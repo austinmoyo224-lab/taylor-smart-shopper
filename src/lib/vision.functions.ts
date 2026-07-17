@@ -91,7 +91,7 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
       items = output.items ?? [];
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
-        const fallback = parseFallback(error.text);
+        const fallback = parseFallback(error.text ?? "");
         items = fallback.items ?? [];
       } else {
         throw error;
