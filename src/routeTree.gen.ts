@@ -13,14 +13,28 @@ import { Route as StoresRouteImport } from './routes/stores'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortalIndexRouteImport } from './routes/portal.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PortalStoresRouteImport } from './routes/portal.stores'
+import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
+import { Route as PortalProductsRouteImport } from './routes/portal.products'
+import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
+import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
+import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminStoresRouteImport } from './routes/admin.stores'
+import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 
 const StoresRoute = StoresRouteImport.update({
   id: '/stores',
@@ -40,6 +54,11 @@ const RecipesRoute = RecipesRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -72,9 +91,54 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const PortalStoresRoute = PortalStoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalPromotionsRoute = PortalPromotionsRouteImport.update({
+  id: '/promotions',
+  path: '/promotions',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalProductsRoute = PortalProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalCouponsRoute = PortalCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalCampaignsRoute = PortalCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => PortalRoute,
+} as any)
+const JoinSlugRoute = JoinSlugRouteImport.update({
+  id: '/join/$slug',
+  path: '/join/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -82,20 +146,54 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStoresRoute = AdminStoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
+  id: '/organisations',
+  path: '/organisations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/stores': typeof AdminStoresRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$slug': typeof JoinSlugRoute
+  '/portal/campaigns': typeof PortalCampaignsRoute
+  '/portal/coupons': typeof PortalCouponsRoute
+  '/portal/products': typeof PortalProductsRoute
+  '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/stores': typeof PortalStoresRoute
+  '/admin/': typeof AdminIndexRoute
+  '/portal/': typeof PortalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,38 +207,78 @@ export interface FileRoutesByTo {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/stores': typeof AdminStoresRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$slug': typeof JoinSlugRoute
+  '/portal/campaigns': typeof PortalCampaignsRoute
+  '/portal/coupons': typeof PortalCouponsRoute
+  '/portal/products': typeof PortalProductsRoute
+  '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/stores': typeof PortalStoresRoute
+  '/admin': typeof AdminIndexRoute
+  '/portal': typeof PortalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/stores': typeof AdminStoresRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$slug': typeof JoinSlugRoute
+  '/portal/campaigns': typeof PortalCampaignsRoute
+  '/portal/coupons': typeof PortalCouponsRoute
+  '/portal/products': typeof PortalProductsRoute
+  '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/stores': typeof PortalStoresRoute
+  '/admin/': typeof AdminIndexRoute
+  '/portal/': typeof PortalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/auth'
     | '/chat'
     | '/coupons'
     | '/deals'
     | '/lists'
     | '/notifications'
+    | '/portal'
     | '/profile'
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/audit'
+    | '/admin/organisations'
+    | '/admin/stores'
+    | '/admin/users'
     | '/api/chat'
+    | '/join/$slug'
+    | '/portal/campaigns'
+    | '/portal/coupons'
+    | '/portal/products'
+    | '/portal/promotions'
+    | '/portal/stores'
+    | '/admin/'
+    | '/portal/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -154,36 +292,65 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/audit'
+    | '/admin/organisations'
+    | '/admin/stores'
+    | '/admin/users'
     | '/api/chat'
+    | '/join/$slug'
+    | '/portal/campaigns'
+    | '/portal/coupons'
+    | '/portal/products'
+    | '/portal/promotions'
+    | '/portal/stores'
+    | '/admin'
+    | '/portal'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/auth'
     | '/chat'
     | '/coupons'
     | '/deals'
     | '/lists'
     | '/notifications'
+    | '/portal'
     | '/profile'
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/audit'
+    | '/admin/organisations'
+    | '/admin/stores'
+    | '/admin/users'
     | '/api/chat'
+    | '/join/$slug'
+    | '/portal/campaigns'
+    | '/portal/coupons'
+    | '/portal/products'
+    | '/portal/promotions'
+    | '/portal/stores'
+    | '/admin/'
+    | '/portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
   ListsRoute: typeof ListsRoute
   NotificationsRoute: typeof NotificationsRoute
+  PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   SettingsRoute: typeof SettingsRoute
   StoresRoute: typeof StoresRoute
   ApiChatRoute: typeof ApiChatRoute
+  JoinSlugRoute: typeof JoinSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -214,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -258,11 +432,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/': {
+      id: '/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/portal/stores': {
+      id: '/portal/stores'
+      path: '/stores'
+      fullPath: '/portal/stores'
+      preLoaderRoute: typeof PortalStoresRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/promotions': {
+      id: '/portal/promotions'
+      path: '/promotions'
+      fullPath: '/portal/promotions'
+      preLoaderRoute: typeof PortalPromotionsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/products': {
+      id: '/portal/products'
+      path: '/products'
+      fullPath: '/portal/products'
+      preLoaderRoute: typeof PortalProductsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/coupons': {
+      id: '/portal/coupons'
+      path: '/coupons'
+      fullPath: '/portal/coupons'
+      preLoaderRoute: typeof PortalCouponsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/campaigns': {
+      id: '/portal/campaigns'
+      path: '/campaigns'
+      fullPath: '/portal/campaigns'
+      preLoaderRoute: typeof PortalCampaignsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/join/$slug': {
+      id: '/join/$slug'
+      path: '/join/$slug'
+      fullPath: '/join/$slug'
+      preLoaderRoute: typeof JoinSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -272,22 +509,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/stores': {
+      id: '/admin/stores'
+      path: '/stores'
+      fullPath: '/admin/stores'
+      preLoaderRoute: typeof AdminStoresRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/organisations': {
+      id: '/admin/organisations'
+      path: '/organisations'
+      fullPath: '/admin/organisations'
+      preLoaderRoute: typeof AdminOrganisationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminOrganisationsRoute: typeof AdminOrganisationsRoute
+  AdminStoresRoute: typeof AdminStoresRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditRoute: AdminAuditRoute,
+  AdminOrganisationsRoute: AdminOrganisationsRoute,
+  AdminStoresRoute: AdminStoresRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface PortalRouteChildren {
+  PortalCampaignsRoute: typeof PortalCampaignsRoute
+  PortalCouponsRoute: typeof PortalCouponsRoute
+  PortalProductsRoute: typeof PortalProductsRoute
+  PortalPromotionsRoute: typeof PortalPromotionsRoute
+  PortalStoresRoute: typeof PortalStoresRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalCampaignsRoute: PortalCampaignsRoute,
+  PortalCouponsRoute: PortalCouponsRoute,
+  PortalProductsRoute: PortalProductsRoute,
+  PortalPromotionsRoute: PortalPromotionsRoute,
+  PortalStoresRoute: PortalStoresRoute,
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
   ListsRoute: ListsRoute,
   NotificationsRoute: NotificationsRoute,
+  PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   SettingsRoute: SettingsRoute,
   StoresRoute: StoresRoute,
   ApiChatRoute: ApiChatRoute,
+  JoinSlugRoute: JoinSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

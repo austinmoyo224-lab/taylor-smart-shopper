@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import {
   createLovableAiGatewayProvider,
   getLovableAiGatewayRunId,
   TAYLOR_SYSTEM_PROMPT,
 } from "@/lib/ai-gateway.server";
+import { buildTaylorSystemPrompt } from "@/lib/taylor-engine.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -22,13 +25,37 @@ export const Route = createFileRoute("/api/chat")({
           return new Response("Missing LOVABLE_API_KEY", { status: 500 });
         }
 
+        // Optional: authenticated subscriber gets a personalised system prompt.
+        let userId: string | null = null;
+        const authHeader = request.headers.get("authorization");
+        if (authHeader?.startsWith("Bearer ")) {
+          const token = authHeader.replace("Bearer ", "");
+          if (token.split(".").length === 3) {
+            try {
+              const authClient = createClient<Database>(
+                process.env.SUPABASE_URL!,
+                process.env.SUPABASE_PUBLISHABLE_KEY!,
+                { auth: { persistSession: false, autoRefreshToken: false } },
+              );
+              const { data } = await authClient.auth.getClaims(token);
+              userId = data?.claims?.sub ?? null;
+            } catch {
+              userId = null;
+            }
+          }
+        }
+
+        const systemPrompt = userId
+          ? await buildTaylorSystemPrompt(userId).catch(() => TAYLOR_SYSTEM_PROMPT)
+          : TAYLOR_SYSTEM_PROMPT;
+
         const initialRunId = getLovableAiGatewayRunId(request);
         const gateway = createLovableAiGatewayProvider(key, initialRunId);
         const model = gateway("openai/gpt-5.5");
 
         const result = streamText({
           model,
-          system: TAYLOR_SYSTEM_PROMPT,
+          system: systemPrompt,
           messages: await convertToModelMessages(messages as UIMessage[]),
         });
 

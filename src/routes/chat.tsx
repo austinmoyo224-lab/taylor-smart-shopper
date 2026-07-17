@@ -31,7 +31,17 @@ function ChatScreen() {
   const persistedIdsRef = useRef<Set<string>>(new Set());
 
   const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      // Attach the subscriber's bearer so the server can personalise Taylor.
+      fetch: async (input, init) => {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        const headers = new Headers(init?.headers);
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+        return fetch(input, { ...init, headers });
+      },
+    }),
   });
 
   const isLoading = status === "submitted" || status === "streaming";

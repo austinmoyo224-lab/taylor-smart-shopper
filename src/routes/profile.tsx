@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings2, Sparkles } from "lucide-react";
+import { LogOut, Settings2, Sparkles, ShieldCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
@@ -47,6 +49,12 @@ function ProfileScreen() {
   const [memory, setMemory] = useState<Memory | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  const adminStatus = useQuery({
+    queryKey: ["admin", "status"],
+    queryFn: () => getAdminStatus(),
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (!authLoading && !user) void navigate({ to: "/auth" });
@@ -166,6 +174,39 @@ function ProfileScreen() {
       </header>
 
       <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
+        {adminStatus.data?.isSuperAdmin && (
+          <Link
+            to="/admin"
+            className="flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary"
+          >
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="size-4" />
+              Open admin console
+            </span>
+            <span aria-hidden>→</span>
+          </Link>
+        )}
+        {adminStatus.data?.canClaim && (
+          <Link
+            to="/admin"
+            className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted"
+          >
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="size-4" />
+              Claim super admin (first run)
+            </span>
+            <span aria-hidden>→</span>
+          </Link>
+        )}
+
+        <Link
+          to="/portal"
+          className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm"
+        >
+          <span>Store portal</span>
+          <span aria-hidden className="text-muted">→</span>
+        </Link>
+
         <Section title="About you">
           <TextField
             label="Display name"
