@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
@@ -57,6 +58,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListsRoute = ListsRouteImport.update({
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
+  '/notifications': typeof NotificationsRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
+  '/notifications': typeof NotificationsRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/lists'
+    | '/notifications'
     | '/portal'
     | '/profile'
     | '/recipes'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/lists'
+    | '/notifications'
     | '/profile'
     | '/recipes'
     | '/settings'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/lists'
+    | '/notifications'
     | '/portal'
     | '/profile'
     | '/recipes'
@@ -319,6 +331,7 @@ export interface RootRouteChildren {
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
   ListsRoute: typeof ListsRoute
+  NotificationsRoute: typeof NotificationsRoute
   PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lists': {
@@ -546,6 +566,7 @@ const rootRouteChildren: RootRouteChildren = {
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
   ListsRoute: ListsRoute,
+  NotificationsRoute: NotificationsRoute,
   PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
