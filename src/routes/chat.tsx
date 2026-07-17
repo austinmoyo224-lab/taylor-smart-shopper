@@ -191,19 +191,43 @@ function ChatScreen() {
         onSubmit={onSubmit}
         className="border-t border-border bg-background px-4 py-4"
       >
+        {attachedFile && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs">
+            <span className="max-w-[180px] truncate text-muted">
+              {attachedFile.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAttachedFile(null)}
+              className="text-muted hover:text-destructive"
+              aria-label="Remove attachment"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-3 rounded-full border border-border bg-card px-3 py-2 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
           <button
             type="button"
-            aria-label="Attach"
+            aria-label="Attach photo"
+            onClick={() => fileInputRef.current?.click()}
             className="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
           >
             <Plus className="size-4" strokeWidth={2} />
           </button>
           <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={onFileSelect}
+          />
+          <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Taylor anything..."
+            placeholder={attachedFile ? "Add a message (optional)…" : "Ask Taylor anything..."}
             aria-label="Message Taylor"
             disabled={isLoading}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted/60 disabled:opacity-60"
@@ -218,7 +242,7 @@ function ChatScreen() {
           <button
             type="submit"
             aria-label="Send message"
-            disabled={isLoading || input.trim().length === 0}
+            disabled={isLoading || (input.trim().length === 0 && !attachedFile)}
             className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 disabled:pointer-events-none disabled:opacity-50"
           >
             <ArrowUp className="size-4" strokeWidth={2.5} />
