@@ -169,13 +169,7 @@ function VisionScreen() {
     analyze.mutate(storagePath);
   }
 
-  function loadScan(scan: {
-    id: string;
-    image_url: string;
-    detected: unknown;
-    created_at: string;
-  }) {
-    const detected = (scan.detected ?? {}) as { items?: MatchedItem[] };
+  function loadScan(scan: VisionScan) {
     setScanId(scan.id);
     setImageUrl(scan.image_url);
     setItems(detected.items ?? []);
