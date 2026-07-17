@@ -57,13 +57,18 @@ function AdminLayout() {
   );
 }
 
-const nav = [
+const nav: {
+  to: "/admin" | "/admin/organisations" | "/admin/stores" | "/admin/users" | "/admin/audit";
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+}[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/organisations", label: "Organisations", icon: Building2 },
   { to: "/admin/stores", label: "Stores", icon: Store },
   { to: "/admin/users", label: "Users & roles", icon: Users },
   { to: "/admin/audit", label: "Audit log", icon: ScrollText },
-] as const;
+];
 
 function AdminSidebar() {
   const { pathname } = useLocation();
