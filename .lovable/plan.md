@@ -159,3 +159,18 @@ A working preview where:
 5. Every subsequent milestone plugs into existing tables — no schema rework.
 
 Approve this plan and I'll start M1: enable Cloud, run the design direction question, then ship migrations + PWA shell + Taylor chat in one build pass.
+
+---
+
+## Progress log
+
+- **M1** shipped: DB schema, PWA shell, Taylor chat stub with streaming.
+- **M2** shipped: email/phone/Google auth, profile & memory UI, conversation persistence.
+- **M3** shipped: super-admin console (`/admin`) with orgs/stores/users/audit and bootstrap claim.
+- **M4** shipped: retailer `/portal` (stores, products, promotions, coupons).
+- **M5** shipped: QR generation, `/join/:slug`, follow/unfollow.
+- **M6** shipped: campaigns + in-app notifications with prefs.
+- **M7** shipped: Taylor Intelligence Engine — context-aware system prompt.
+- **M8** shipped: Recipes (public), Shopping Lists (CRUD + items), Pantry (CRUD + expiry), BottomNav updated to expose Lists.
+- **M9** in place: admin dashboard shows org/store/subscriber/promotion/conversation/message counts.
+- **M10** pending: rate limiting, DR notes, SEO polish, PWA install UX.

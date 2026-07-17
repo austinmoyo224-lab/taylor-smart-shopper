@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageCircle, Store, Tag, UtensilsCrossed, User } from "lucide-react";
+import { MessageCircle, Store, UtensilsCrossed, ListChecks, User } from "lucide-react";
 
 const tabs = [
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/stores", label: "Stores", icon: Store },
-  { to: "/deals", label: "Deals", icon: Tag },
+  { to: "/lists", label: "Lists", icon: ListChecks },
   { to: "/recipes", label: "Recipes", icon: UtensilsCrossed },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
