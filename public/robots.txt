@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /portal
+Disallow: /profile
+Disallow: /settings
+Disallow: /notifications
+
+Sitemap: https://taylor-companion-ai.lovable.app/sitemap.xml
