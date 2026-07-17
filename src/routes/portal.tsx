@@ -16,6 +16,7 @@ import {
   Tag,
   Ticket,
   ArrowLeft,
+  Megaphone,
 } from "lucide-react";
 
 export const Route = createFileRoute("/portal")({
@@ -110,7 +111,7 @@ function PortalLayout() {
 }
 
 const nav: {
-  to: "/portal" | "/portal/stores" | "/portal/products" | "/portal/promotions" | "/portal/coupons";
+  to: "/portal" | "/portal/stores" | "/portal/products" | "/portal/promotions" | "/portal/coupons" | "/portal/campaigns";
   label: string;
   icon: typeof Store;
   exact?: boolean;
@@ -120,6 +121,7 @@ const nav: {
   { to: "/portal/products", label: "Products", icon: Package },
   { to: "/portal/promotions", label: "Promotions", icon: Tag },
   { to: "/portal/coupons", label: "Coupons", icon: Ticket },
+  { to: "/portal/campaigns", label: "Campaigns", icon: Megaphone },
 ];
 
 function Sidebar({
