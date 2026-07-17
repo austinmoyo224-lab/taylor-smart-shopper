@@ -1,6 +1,30 @@
-# Plan — Household Sharing (Phase 2 module)
+# Plan — Loyalty & Points (Phase 2 module)
 
 **Status: shipped**
+
+Give each retailer a per-org points ledger, a rewards catalogue, and one-tap
+redemption for shoppers.
+
+## What we shipped
+
+- Migration: `loyalty_transactions` ledger, `rewards` catalogue,
+  `reward_redemptions` log, plus a `private.award_loyalty_points` helper.
+  RLS scopes reads to the shopper for their own rows and to retailer_admin /
+  store_manager for their org; only server code writes to the ledger.
+- Server functions in `src/lib/loyalty.functions.ts`:
+  `getMyLoyalty`, `listRewardsForOrg`, `redeemReward`, `listMyRedemptions`
+  (shopper); `listOrgRewards`, `upsertReward`, `deleteReward`,
+  `awardPointsToUser`, `listOrgLoyaltyLedger` (retailer). Points are
+  credited/debited through a shared `awardPoints` helper using the service
+  role.
+- `/loyalty` shopper route: per-org balance cards, rewards grid, redemption
+  codes and recent activity.
+- `/portal/rewards` retailer route: catalogue CRUD, manual award-points form
+  (lookup by email or phone), and org-wide ledger view. Wired into the portal
+  sidebar.
+- Profile links shoppers to Points & rewards.
+
+## Previously shipped (Household Sharing)
 
 Let subscribers share shopping lists and pantry with the people they live with.
 
