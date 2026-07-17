@@ -3,7 +3,14 @@ import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut } from "lucide-react";
+import { LogOut, BellRing, BellOff, Send } from "lucide-react";
+import {
+  enablePush,
+  disablePush,
+  getPushPermission,
+  pushSupported,
+} from "@/lib/push-client";
+import { sendTestPush } from "@/lib/push.functions";
 
 export const Route = createFileRoute("/settings")({
   ssr: false,
@@ -33,6 +40,62 @@ function SettingsScreen() {
   const [locale, setLocale] = useState("en-ZA");
   const [currency, setCurrency] = useState("ZAR");
   const [saving, setSaving] = useState(false);
+  const [pushState, setPushState] = useState<{
+    supported: boolean;
+    permission: NotificationPermission | "unsupported";
+    busy: boolean;
+    msg: string | null;
+  }>({ supported: false, permission: "default", busy: false, msg: null });
+
+  useEffect(() => {
+    (async () => {
+      const supported = pushSupported();
+      const permission = await getPushPermission();
+      setPushState((s) => ({ ...s, supported, permission }));
+    })();
+  }, []);
+
+  async function togglePush(on: boolean) {
+    setPushState((s) => ({ ...s, busy: true, msg: null }));
+    try {
+      if (on) {
+        const r = await enablePush();
+        setPushState((s) => ({
+          ...s,
+          busy: false,
+          permission: r.ok ? "granted" : s.permission,
+          msg: r.ok ? "Push enabled on this device." : r.reason,
+        }));
+      } else {
+        await disablePush();
+        setPushState((s) => ({ ...s, busy: false, msg: "Push disabled on this device." }));
+      }
+    } catch (e) {
+      setPushState((s) => ({
+        ...s,
+        busy: false,
+        msg: e instanceof Error ? e.message : "Could not update push.",
+      }));
+    }
+  }
+
+  async function testPush() {
+    setPushState((s) => ({ ...s, busy: true, msg: null }));
+    try {
+      const r = await sendTestPush({ data: undefined });
+      setPushState((s) => ({
+        ...s,
+        busy: false,
+        msg: r.sent > 0 ? `Sent to ${r.sent} device(s).` : "No active push devices found.",
+      }));
+    } catch (e) {
+      setPushState((s) => ({
+        ...s,
+        busy: false,
+        msg: e instanceof Error ? e.message : "Could not send.",
+      }));
+    }
+  }
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -131,10 +194,63 @@ function SettingsScreen() {
           <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Notifications
           </h2>
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Push on this device</p>
+                <p className="text-[11px] text-muted">
+                  {!pushState.supported
+                    ? "Not supported in this browser. Install the app for the best experience."
+                    : pushState.permission === "granted"
+                      ? "Enabled — Taylor can send alerts here."
+                      : pushState.permission === "denied"
+                        ? "Blocked. Enable notifications in your browser settings."
+                        : "Get deal alerts, expiry reminders and campaign updates."}
+                </p>
+              </div>
+              {pushState.supported && pushState.permission !== "denied" && (
+                <button
+                  onClick={() => togglePush(pushState.permission !== "granted")}
+                  disabled={pushState.busy}
+                  className={
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-60 " +
+                    (pushState.permission === "granted"
+                      ? "border border-border text-muted"
+                      : "bg-primary text-primary-foreground")
+                  }
+                >
+                  {pushState.permission === "granted" ? (
+                    <>
+                      <BellOff className="size-3.5" />
+                      Turn off
+                    </>
+                  ) : (
+                    <>
+                      <BellRing className="size-3.5" />
+                      Turn on
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            {pushState.permission === "granted" && (
+              <button
+                onClick={testPush}
+                disabled={pushState.busy}
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline disabled:opacity-60"
+              >
+                <Send className="size-3" />
+                Send test notification
+              </button>
+            )}
+            {pushState.msg && (
+              <p className="mt-2 text-[11px] text-muted">{pushState.msg}</p>
+            )}
+          </div>
           {(
             [
               ["in_app", "In-app"],
-              ["push", "Push notifications"],
+              ["push", "Include this account in push sends"],
               ["email", "Email"],
               ["sms", "SMS"],
             ] as const
