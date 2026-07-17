@@ -233,14 +233,19 @@ function ChatScreen() {
 
 function MessageRow({
   role,
-  text,
+  parts,
   delay,
 }: {
   role: string;
-  text: string;
+  parts: UIMessage["parts"];
   delay: number;
 }) {
   const isUser = role === "user";
+  const text = parts
+    .map((p) => (p.type === "text" ? p.text : ""))
+    .join("");
+  const hasFile = parts.some((p) => p.type === "file");
+
   return (
     <div
       className={
@@ -251,17 +256,40 @@ function MessageRow({
     >
       <div
         className={
-          "max-w-[85%] px-4 py-3 " +
+          "max-w-[85%] space-y-2 px-4 py-3 " +
           (isUser
             ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
             : "rounded-2xl rounded-tl-none border border-black/5 bg-surface")
         }
       >
-        {isUser ? (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
-        ) : (
-          <div className="prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold">
-            <ReactMarkdown>{text}</ReactMarkdown>
+        {hasFile && (
+          <div className="flex flex-wrap gap-2">
+            {parts.map((p, idx) =>
+              p.type === "file" ? (
+                <img
+                  key={idx}
+                  src={p.data}
+                  alt="Shared photo"
+                  className="max-h-48 rounded-lg border border-black/5 object-cover"
+                  loading="lazy"
+                />
+              ) : null,
+            )}
+          </div>
+        )}
+        {text && (
+          <div
+            className={
+              isUser
+                ? "whitespace-pre-wrap text-sm leading-relaxed"
+                : "prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold"
+            }
+          >
+            {isUser ? (
+              <p>{text}</p>
+            ) : (
+              <ReactMarkdown>{text}</ReactMarkdown>
+            )}
           </div>
         )}
       </div>
