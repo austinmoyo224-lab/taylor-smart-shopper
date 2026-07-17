@@ -504,6 +504,30 @@ function Perk({ icon: Icon, label }: { icon: typeof Tag; label: string }) {
   );
 }
 
+function ActionMenuItem({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: typeof Camera;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-surface"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Icon className="size-4" strokeWidth={2} />
+      </span>
+      <span className="text-pretty leading-snug">{label}</span>
+    </button>
+  );
+}
+
 function InstallCta() {
   const [canInstall, setCanInstall] = useState(false);
   const [installed, setInstalled] = useState(false);
