@@ -23,11 +23,17 @@ import {
   Check,
   ChefHat,
   ListPlus,
-  Plus,
   RefreshCw,
   ShoppingBasket,
   Trash2,
 } from "lucide-react";
+
+type VisionScan = {
+  id: string;
+  image_url: string | null;
+  detected: { items?: MatchedItem[]; storage_path?: string };
+  created_at: string;
+};
 
 export const Route = createFileRoute("/vision")({
   ssr: false,
