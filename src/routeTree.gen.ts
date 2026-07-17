@@ -18,6 +18,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PantryRouteImport } from './routes/pantry'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ListsRouteImport } from './routes/lists'
+import { Route as HouseholdRouteImport } from './routes/household'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -82,6 +83,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const ListsRoute = ListsRouteImport.update({
   id: '/lists',
   path: '/lists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HouseholdRoute = HouseholdRouteImport.update({
+  id: '/household',
+  path: '/household',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DealsRoute = DealsRouteImport.update({
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
   '/pantry': typeof PantryRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
   '/pantry': typeof PantryRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
   '/pantry': typeof PantryRoute
@@ -286,6 +295,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/household'
     | '/lists'
     | '/notifications'
     | '/pantry'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/household'
     | '/lists'
     | '/notifications'
     | '/pantry'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/household'
     | '/lists'
     | '/notifications'
     | '/pantry'
@@ -378,6 +390,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
+  HouseholdRoute: typeof HouseholdRoute
   ListsRoute: typeof ListsRoute
   NotificationsRoute: typeof NotificationsRoute
   PantryRoute: typeof PantryRoute
@@ -454,6 +467,13 @@ declare module '@tanstack/react-router' {
       path: '/lists'
       fullPath: '/lists'
       preLoaderRoute: typeof ListsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/household': {
+      id: '/household'
+      path: '/household'
+      fullPath: '/household'
+      preLoaderRoute: typeof HouseholdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deals': {
@@ -647,6 +667,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
+  HouseholdRoute: HouseholdRoute,
   ListsRoute: ListsRoute,
   NotificationsRoute: NotificationsRoute,
   PantryRoute: PantryRoute,
