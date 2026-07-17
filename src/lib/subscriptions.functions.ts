@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
@@ -13,14 +11,12 @@ export const getStoreByJoinSlug = createServerFn({ method: "GET" })
     z.object({ slug: z.string().min(3).max(120) }).parse(d),
   )
   .handler(async ({ data }) => {
-    // Server publishable client (public read via RLS anon policy on stores).
-    const supabase = createClient<Database>(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
+    // Read via admin client so join links work even for stores that haven't
+    // been marked is_public yet — the /join page only surfaces name + hero.
+    const { supabaseAdmin: supabase } = await import(
+      "@/integrations/supabase/client.server"
     );
 
-    // Try the direct store qr_slug first (portal.stores.tsx uses slug === qr_slug on create).
     let store = null as
       | {
           id: string;
