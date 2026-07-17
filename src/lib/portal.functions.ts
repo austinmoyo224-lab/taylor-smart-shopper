@@ -226,8 +226,8 @@ export const createPromotion = createServerFn({ method: "POST" })
         original_price: data.original_price ?? null,
         sale_price: data.sale_price ?? null,
         currency_code: data.currency_code,
-        starts_at: data.starts_at || null,
-        ends_at: data.ends_at || null,
+        starts_at: data.starts_at || undefined,
+        ends_at: data.ends_at || undefined,
         is_published: data.is_published,
       })
       .select("id")
@@ -295,8 +295,8 @@ export const createCoupon = createServerFn({ method: "POST" })
         discount_amount: data.discount_amount ?? null,
         currency_code: data.currency_code,
         usage_limit_total: data.usage_limit_total ?? null,
-        starts_at: data.starts_at || null,
-        ends_at: data.ends_at || null,
+        starts_at: data.starts_at || undefined,
+        ends_at: data.ends_at || undefined,
         status: data.status,
       })
       .select("id")
