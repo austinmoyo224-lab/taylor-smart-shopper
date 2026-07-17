@@ -38,7 +38,19 @@ function AuthScreen() {
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && user) void navigate({ to: "/chat" });
+    if (!authLoading && user) {
+      let dest = "/chat";
+      try {
+        const pending = localStorage.getItem("taylor.join.pending");
+        if (pending && pending.startsWith("/join/")) {
+          dest = pending;
+          localStorage.removeItem("taylor.join.pending");
+        }
+      } catch {
+        // ignore
+      }
+      window.location.href = dest;
+    }
   }, [user, authLoading, navigate]);
 
   async function onEmailSubmit(e: FormEvent) {
