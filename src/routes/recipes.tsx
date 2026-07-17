@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
@@ -68,7 +68,8 @@ function RecipeGrid() {
   return (
     <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {data.map((r) => (
-        <li key={r.id} className="overflow-hidden rounded-2xl border border-border bg-card">
+        <li key={r.id} className="overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/40">
+          <Link to="/recipes/$slug" params={{ slug: r.slug }} className="block">
           {r.hero_image_url && (
             <img
               src={r.hero_image_url}
@@ -104,6 +105,7 @@ function RecipeGrid() {
               )}
             </div>
           </div>
+          </Link>
         </li>
       ))}
     </ul>
