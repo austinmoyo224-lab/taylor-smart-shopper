@@ -28,6 +28,7 @@ import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
+import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
@@ -129,6 +130,11 @@ const PortalCouponsRoute = PortalCouponsRouteImport.update({
   path: '/coupons',
   getParentRoute: () => PortalRoute,
 } as any)
+const JoinSlugRoute = JoinSlugRouteImport.update({
+  id: '/join/$slug',
+  path: '/join/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$slug': typeof JoinSlugRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$slug': typeof JoinSlugRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$slug': typeof JoinSlugRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin/stores'
     | '/admin/users'
     | '/api/chat'
+    | '/join/$slug'
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/admin/stores'
     | '/admin/users'
     | '/api/chat'
+    | '/join/$slug'
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/admin/stores'
     | '/admin/users'
     | '/api/chat'
+    | '/join/$slug'
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
@@ -326,6 +338,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StoresRoute: typeof StoresRoute
   ApiChatRoute: typeof ApiChatRoute
+  JoinSlugRoute: typeof JoinSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -463,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCouponsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/join/$slug': {
+      id: '/join/$slug'
+      path: '/join/$slug'
+      fullPath: '/join/$slug'
+      preLoaderRoute: typeof JoinSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -553,6 +573,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StoresRoute: StoresRoute,
   ApiChatRoute: ApiChatRoute,
+  JoinSlugRoute: JoinSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
