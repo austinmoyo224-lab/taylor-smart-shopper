@@ -65,7 +65,7 @@ async function awardPoints(opts: {
     reason: opts.reason,
     reference_type: opts.ref_type ?? null,
     reference_id: opts.ref_id ?? null,
-    metadata: opts.metadata ?? {},
+    metadata: (opts.metadata ?? {}) as never,
   });
   if (tErr) throw new Error(tErr.message);
   return newBalance;
