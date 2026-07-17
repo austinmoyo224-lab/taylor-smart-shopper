@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { name: "author", content: "Taylor Intelligence" },
-      { name: "theme-color", content: "#b54e1e" },
+      { name: "theme-color", content: "#22c55e" },
       { property: "og:title", content: "Taylor Intelligence - Your AI shopping companion" },
       {
         property: "og:description",
@@ -117,12 +117,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap",
-      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
