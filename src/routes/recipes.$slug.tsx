@@ -14,12 +14,13 @@ const recipeQO = (slug: string) =>
   });
 
 export const Route = createFileRoute("/recipes/$slug")({
-  head: ({ loaderData }) => {
-    const title = loaderData?.recipe?.title
-      ? `${loaderData.recipe.title} - Taylor Intelligence`
+  head: ({ loaderData }: { loaderData?: Awaited<ReturnType<typeof getRecipeBySlug>> }) => {
+    const r = loaderData?.recipe;
+    const title = r?.title
+      ? `${r.title} - Taylor Intelligence`
       : "Recipe - Taylor Intelligence";
     const desc =
-      loaderData?.recipe?.description ??
+      r?.description ??
       "A Taylor-picked recipe with ingredients ready to send to your shopping list.";
     return {
       meta: [
@@ -29,10 +30,10 @@ export const Route = createFileRoute("/recipes/$slug")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(loaderData?.recipe?.hero_image_url
+        ...(r?.hero_image_url
           ? [
-              { property: "og:image", content: loaderData.recipe.hero_image_url },
-              { name: "twitter:image", content: loaderData.recipe.hero_image_url },
+              { property: "og:image", content: r.hero_image_url },
+              { name: "twitter:image", content: r.hero_image_url },
             ]
           : []),
       ],
