@@ -172,8 +172,8 @@ function VisionScreen() {
   function loadScan(scan: VisionScan) {
     setScanId(scan.id);
     setImageUrl(scan.image_url);
-    setItems(detected.items ?? []);
-    setSelected(new Set((detected.items ?? []).map((_, i) => i)));
+    setItems(scan.detected.items ?? []);
+    setSelected(new Set((scan.detected.items ?? []).map((_, i) => i)));
     setRecipes([]);
     setMode("results");
   }
