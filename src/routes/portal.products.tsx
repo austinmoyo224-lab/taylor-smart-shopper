@@ -74,10 +74,18 @@ function ProductsPage() {
           </thead>
           <tbody>
             {isLoading && (
-              <tr><td colSpan={5} className="px-4 py-6 text-muted">Loading…</td></tr>
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-muted">
+                  Loading…
+                </td>
+              </tr>
             )}
             {!isLoading && (data?.length ?? 0) === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-muted">No products yet.</td></tr>
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-muted">
+                  No products yet.
+                </td>
+              </tr>
             )}
             {(data ?? []).map((p) => (
               <tr key={p.id} className="border-t border-border">
@@ -102,7 +110,15 @@ function ProductsPage() {
   );
 }
 
-function NewProductForm({ orgId, currency, onDone }: { orgId: string; currency: string; onDone: () => void }) {
+function NewProductForm({
+  orgId,
+  currency,
+  onDone,
+}: {
+  orgId: string;
+  currency: string;
+  onDone: () => void;
+}) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [sku, setSku] = useState("");
@@ -117,7 +133,10 @@ function NewProductForm({ orgId, currency, onDone }: { orgId: string; currency: 
       createProduct({
         data: {
           organisation_id: orgId,
-          name, slug, sku, unit,
+          name,
+          slug,
+          sku,
+          unit,
           unit_amount: unitAmount ? Number(unitAmount) : null,
           base_price: basePrice ? Number(basePrice) : null,
           currency_code: currency,
@@ -130,37 +149,87 @@ function NewProductForm({ orgId, currency, onDone }: { orgId: string; currency: 
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); setError(null); mut.mutate(); }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(null);
+        mut.mutate();
+      }}
       className="mb-8 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-5 md:grid-cols-2"
     >
       <F label="Name">
-        <input value={name} onChange={(e) => {
-          setName(e.target.value);
-          if (!slug) setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
-        }} required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+        <input
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (!slug)
+              setSlug(
+                e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-|-$/g, ""),
+              );
+          }}
+          required
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
       </F>
       <F label="Slug">
-        <input value={slug} onChange={(e) => setSlug(e.target.value)} required pattern="[a-z0-9-]+" className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm" />
+        <input
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          required
+          pattern="[a-z0-9-]+"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
+        />
       </F>
       <F label="SKU">
-        <input value={sku} onChange={(e) => setSku(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+        <input
+          value={sku}
+          onChange={(e) => setSku(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
       </F>
       <F label="Unit (e.g. g, ml, ea)">
-        <input value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+        <input
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
       </F>
       <F label="Unit amount">
-        <input type="number" step="0.01" value={unitAmount} onChange={(e) => setUnitAmount(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+        <input
+          type="number"
+          step="0.01"
+          value={unitAmount}
+          onChange={(e) => setUnitAmount(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
       </F>
       <F label={`Base price (${currency})`}>
-        <input type="number" step="0.01" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+        <input
+          type="number"
+          step="0.01"
+          value={basePrice}
+          onChange={(e) => setBasePrice(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
       </F>
       <div className="md:col-span-2">
         <F label="Description">
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          />
         </F>
       </div>
       <div className="md:col-span-2">
-        <button type="submit" disabled={mut.isPending} className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={mut.isPending}
+          className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+        >
           {mut.isPending ? "Creating…" : "Create product"}
         </button>
         {error && <p className="mt-2 text-xs text-destructive">{error}</p>}

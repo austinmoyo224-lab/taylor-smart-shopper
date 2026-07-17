@@ -51,7 +51,9 @@ export function VisionCapture({
       }
       setState("preview");
     } catch {
-      setError("Camera access is needed for scanning. You can also pick a photo from your gallery.");
+      setError(
+        "Camera access is needed for scanning. You can also pick a photo from your gallery.",
+      );
       setState("idle");
     }
   }
@@ -148,12 +150,7 @@ export function VisionCapture({
 
       {state === "preview" ? (
         <>
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="aspect-[4/5] w-full object-cover"
-          />
+          <video ref={videoRef} playsInline muted className="aspect-[4/5] w-full object-cover" />
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/60 to-transparent p-4">
             <button
               type="button"

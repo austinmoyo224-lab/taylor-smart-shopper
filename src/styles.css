@@ -19,13 +19,13 @@
   --radius: 0.75rem;
 
   /* Warm high-street editorial palette */
-  --background: 38 30% 96%;         /* warm off-white */
-  --foreground: 30 15% 12%;         /* deep ink */
-  --muted: 30 10% 40%;              /* mid stone */
+  --background: 38 30% 96%; /* warm off-white */
+  --foreground: 30 15% 12%; /* deep ink */
+  --muted: 30 10% 40%; /* mid stone */
   --muted-foreground: 30 10% 40%;
-  --primary: 18 65% 42%;            /* terracotta */
+  --primary: 18 65% 42%; /* terracotta */
   --primary-foreground: 38 30% 98%;
-  --surface: 35 25% 92%;            /* Taylor bubble surface */
+  --surface: 35 25% 92%; /* Taylor bubble surface */
   --card: 0 0% 100%;
   --card-foreground: 30 15% 12%;
   --popover: 0 0% 100%;
@@ -106,12 +106,23 @@
 }
 
 @keyframes message-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @keyframes shimmer {
-  0%, 100% { opacity: 0.4; }
-  50%      { opacity: 0.9; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
 }
 
 @utility animate-message {
@@ -122,8 +133,13 @@
 }
 
 @layer base {
-  * { border-color: hsl(var(--border)); }
-  html, body { height: 100%; }
+  * {
+    border-color: hsl(var(--border));
+  }
+  html,
+  body {
+    height: 100%;
+  }
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));

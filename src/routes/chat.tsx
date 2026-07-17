@@ -136,7 +136,9 @@ function ChatScreen() {
               className="text-balance text-3xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              {user ? `Hi ${user.user_metadata?.first_name ?? user.email?.split("@")[0] ?? ""}` : "Good day"}
+              {user
+                ? `Hi ${user.user_metadata?.first_name ?? user.email?.split("@")[0] ?? ""}`
+                : "Good day"}
             </h1>
           </div>
           {user ? (
@@ -161,41 +163,26 @@ function ChatScreen() {
         </div>
       </header>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth"
-      >
+      <div ref={scrollRef} className="flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth">
         {showIntro && <IntroMessages />}
 
         {messages.map((message, i) => (
-          <MessageRow
-            key={message.id}
-            role={message.role}
-            parts={message.parts}
-            delay={i * 60}
-          />
+          <MessageRow key={message.id} role={message.role} parts={message.parts} delay={i * 60} />
         ))}
 
         {status === "submitted" && (
           <div className="animate-message flex max-w-[85%] flex-col items-start">
             <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
-              <span className="animate-shimmer text-sm leading-relaxed">
-                Taylor is thinking...
-              </span>
+              <span className="animate-shimmer text-sm leading-relaxed">Taylor is thinking...</span>
             </div>
           </div>
         )}
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="border-t border-border bg-background px-4 py-4"
-      >
+      <form onSubmit={onSubmit} className="border-t border-border bg-background px-4 py-4">
         {attachedFile && (
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs">
-            <span className="max-w-[180px] truncate text-muted">
-              {attachedFile.name}
-            </span>
+            <span className="max-w-[180px] truncate text-muted">{attachedFile.name}</span>
             <button
               type="button"
               onClick={() => setAttachedFile(null)}
@@ -265,17 +252,12 @@ function MessageRow({
   delay: number;
 }) {
   const isUser = role === "user";
-  const text = parts
-    .map((p) => (p.type === "text" ? p.text : ""))
-    .join("");
+  const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
   const hasFile = parts.some((p) => p.type === "file");
 
   return (
     <div
-      className={
-        "animate-message flex w-full flex-col " +
-        (isUser ? "items-end" : "items-start")
-      }
+      className={"animate-message flex w-full flex-col " + (isUser ? "items-end" : "items-start")}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div
@@ -309,11 +291,7 @@ function MessageRow({
                 : "prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold"
             }
           >
-            {isUser ? (
-              <p>{text}</p>
-            ) : (
-              <ReactMarkdown>{text}</ReactMarkdown>
-            )}
+            {isUser ? <p>{text}</p> : <ReactMarkdown>{text}</ReactMarkdown>}
           </div>
         )}
       </div>
@@ -333,9 +311,8 @@ function IntroMessages() {
       >
         <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
           <p className="text-pretty text-sm leading-relaxed">
-            Hi, I'm Taylor. Think of me as your AI shopping companion — I help
-            you keep track of specials, recipes and coupons from the stores you
-            follow.
+            Hi, I'm Taylor. Think of me as your AI shopping companion — I help you keep track of
+            specials, recipes and coupons from the stores you follow.
           </p>
         </div>
         <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
@@ -349,8 +326,8 @@ function IntroMessages() {
       >
         <div className="mb-4 max-w-[85%] rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
           <p className="text-pretty text-sm leading-relaxed">
-            Once you follow a store, I'll only share deals that match what you
-            actually buy. Here's an example of how a personalised pick looks:
+            Once you follow a store, I'll only share deals that match what you actually buy. Here's
+            an example of how a personalised pick looks:
           </p>
         </div>
 
@@ -390,9 +367,8 @@ function IntroMessages() {
                     Why Taylor would pick this
                   </p>
                   <p className="text-[11px] leading-snug text-muted">
-                    Once stores are connected, Taylor only shows deals that
-                    match your preferences. This card is illustrative — real
-                    deals arrive once you follow a store.
+                    Once stores are connected, Taylor only shows deals that match your preferences.
+                    This card is illustrative — real deals arrive once you follow a store.
                   </p>
                 </div>
               </div>

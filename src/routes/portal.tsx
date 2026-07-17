@@ -1,23 +1,9 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, createContext, useContext } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getPortalContext } from "@/lib/portal.functions";
-import {
-  LayoutDashboard,
-  Store,
-  Package,
-  Tag,
-  Ticket,
-  ArrowLeft,
-  Megaphone,
-} from "lucide-react";
+import { LayoutDashboard, Store, Package, Tag, Ticket, ArrowLeft, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/portal")({
   ssr: false,
@@ -26,8 +12,7 @@ export const Route = createFileRoute("/portal")({
       { title: "Store Portal - Taylor Intelligence" },
       {
         name: "description",
-        content:
-          "Retailer workspace for stores, products, promotions and coupons.",
+        content: "Retailer workspace for stores, products, promotions and coupons.",
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
@@ -111,7 +96,13 @@ function PortalLayout() {
 }
 
 const nav: {
-  to: "/portal" | "/portal/stores" | "/portal/products" | "/portal/promotions" | "/portal/coupons" | "/portal/campaigns";
+  to:
+    | "/portal"
+    | "/portal/stores"
+    | "/portal/products"
+    | "/portal/promotions"
+    | "/portal/coupons"
+    | "/portal/campaigns";
   label: string;
   icon: typeof Store;
   exact?: boolean;
@@ -173,9 +164,7 @@ function Sidebar({
       )}
       {organisations.length === 1 && (
         <p className="mb-6 text-xs text-muted">
-          <span className="font-medium text-foreground">
-            {organisations[0].name}
-          </span>
+          <span className="font-medium text-foreground">{organisations[0].name}</span>
           <br />
           <span className="font-mono text-[10px]">{organisations[0].slug}</span>
         </p>
@@ -227,9 +216,8 @@ function NoAccess() {
           No access yet
         </h1>
         <p className="mt-3 text-sm text-muted">
-          You need a retailer admin, store manager or staff role on an
-          organisation to use the store portal. Ask a platform admin to grant
-          you access.
+          You need a retailer admin, store manager or staff role on an organisation to use the store
+          portal. Ask a platform admin to grant you access.
         </p>
         <Link
           to="/chat"

@@ -15,9 +15,7 @@ function AuditPage() {
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
-      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-        Trust
-      </p>
+      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Trust</p>
       <h1
         className="mb-8 text-4xl italic tracking-tight"
         style={{ fontFamily: "var(--font-display)" }}

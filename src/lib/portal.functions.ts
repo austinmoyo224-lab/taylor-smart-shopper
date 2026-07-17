@@ -12,16 +12,13 @@ async function getPortalScope(userId: string) {
     .select("role, organisation_id")
     .eq("user_id", userId);
   if (error) throw new Error(error.message);
-  const roles = (data ?? []).filter((r): r is { role: PortalRole; organisation_id: string | null } =>
-    ["super_admin", "retailer_admin", "store_manager", "staff"].includes(r.role),
+  const roles = (data ?? []).filter(
+    (r): r is { role: PortalRole; organisation_id: string | null } =>
+      ["super_admin", "retailer_admin", "store_manager", "staff"].includes(r.role),
   );
   const isSuperAdmin = roles.some((r) => r.role === "super_admin");
   const orgIds = Array.from(
-    new Set(
-      roles
-        .map((r) => r.organisation_id)
-        .filter((v): v is string => !!v),
-    ),
+    new Set(roles.map((r) => r.organisation_id).filter((v): v is string => !!v)),
   );
   return { roles, isSuperAdmin, orgIds };
 }
@@ -29,8 +26,7 @@ async function getPortalScope(userId: string) {
 async function assertOrgAccess(userId: string, orgId: string) {
   const scope = await getPortalScope(userId);
   if (scope.isSuperAdmin) return scope;
-  if (!scope.orgIds.includes(orgId))
-    throw new Error("Forbidden: no access to this organisation");
+  if (!scope.orgIds.includes(orgId)) throw new Error("Forbidden: no access to this organisation");
   return scope;
 }
 
@@ -48,7 +44,9 @@ export const getPortalContext = createServerFn({ method: "GET" })
       .is("deleted_at", null);
     const { data: orgs } = scope.isSuperAdmin
       ? await orgQuery.order("name")
-      : await orgQuery.in("id", scope.orgIds.length ? scope.orgIds : ["00000000-0000-0000-0000-000000000000"]).order("name");
+      : await orgQuery
+          .in("id", scope.orgIds.length ? scope.orgIds : ["00000000-0000-0000-0000-000000000000"])
+          .order("name");
     const orgIds = (orgs ?? []).map((o) => o.id);
     const { data: stores } = orgIds.length
       ? await supabaseAdmin
@@ -131,7 +129,12 @@ export const listProducts = createServerFn({ method: "GET" })
 const createProductSchema = z.object({
   organisation_id: z.string().uuid(),
   name: z.string().trim().min(1).max(200),
-  slug: z.string().trim().min(2).max(120).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(120)
+    .regex(/^[a-z0-9-]+$/),
   sku: z.string().trim().max(80).optional().or(z.literal("")),
   unit: z.string().trim().max(20).optional().or(z.literal("")),
   unit_amount: z.number().nonnegative().optional().nullable(),
@@ -191,14 +194,7 @@ const createPromotionSchema = z.object({
   store_id: z.string().uuid().optional().nullable(),
   title: z.string().trim().min(1).max(200),
   description: z.string().max(2000).optional().or(z.literal("")),
-  type: z.enum([
-    "weekly_special",
-    "flash_sale",
-    "discount",
-    "bundle",
-    "seasonal",
-    "sponsored",
-  ]),
+  type: z.enum(["weekly_special", "flash_sale", "discount", "bundle", "seasonal", "sponsored"]),
   is_sponsored: z.boolean().default(false),
   original_price: z.number().nonnegative().optional().nullable(),
   sale_price: z.number().nonnegative().optional().nullable(),
@@ -273,9 +269,7 @@ const createCouponSchema = z.object({
   usage_limit_total: z.number().int().positive().optional().nullable(),
   starts_at: z.string().datetime().optional().or(z.literal("")),
   ends_at: z.string().datetime().optional().or(z.literal("")),
-  status: z
-    .enum(["draft", "active", "paused", "expired", "archived"])
-    .default("draft"),
+  status: z.enum(["draft", "active", "paused", "expired", "archived"]).default("draft"),
 });
 
 export const createCoupon = createServerFn({ method: "POST" })

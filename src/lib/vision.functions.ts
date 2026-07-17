@@ -34,9 +34,7 @@ const SIGNED_URL_TTL = 60 * 60; // 1 hour
 
 export const analyzeVisionScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ storagePath: z.string().min(1) }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ storagePath: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Missing LOVABLE_API_KEY");
@@ -233,9 +231,7 @@ function findBestProductMatch(
 }
 
 function tokenSet(text: string): string[] {
-  return text
-    .split(/[^a-z0-9]+/)
-    .filter((t) => t.length > 2);
+  return text.split(/[^a-z0-9]+/).filter((t) => t.length > 2);
 }
 
 function parseFallback(text: string): { items: DetectedItem[] } {

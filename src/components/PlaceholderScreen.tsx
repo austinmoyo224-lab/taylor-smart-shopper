@@ -15,9 +15,7 @@ export function PlaceholderScreen({
   return (
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          {eyebrow}
-        </p>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">{eyebrow}</p>
         <h1
           className="text-balance text-3xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}

@@ -7,7 +7,9 @@ export const listMyShoppingLists = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("shopping_lists")
-      .select("id, name, status, is_ai_generated, estimated_total, estimated_savings, currency_code, updated_at")
+      .select(
+        "id, name, status, is_ai_generated, estimated_total, estimated_savings, currency_code, updated_at",
+      )
       .eq("user_id", context.userId)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -53,7 +55,9 @@ export const getShoppingList = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: list, error } = await context.supabase
       .from("shopping_lists")
-      .select("id, name, status, estimated_total, estimated_savings, currency_code, is_ai_generated")
+      .select(
+        "id, name, status, estimated_total, estimated_savings, currency_code, is_ai_generated",
+      )
       .eq("id", data.id)
       .eq("user_id", context.userId)
       .maybeSingle();
@@ -115,10 +119,7 @@ export const deleteListItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("shopping_list_items")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("shopping_list_items").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

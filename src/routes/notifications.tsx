@@ -86,8 +86,8 @@ function NotificationsScreen() {
         {!isLoading && (data?.length ?? 0) === 0 && (
           <div className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted">
             <Bell className="mx-auto mb-3 size-5 text-muted" />
-            You're all caught up. Taylor will let you know when stores you
-            follow have something worth your time.
+            You're all caught up. Taylor will let you know when stores you follow have something
+            worth your time.
           </div>
         )}
         <ul className="space-y-2">
@@ -99,9 +99,7 @@ function NotificationsScreen() {
                 onClick={() => unread && markOne.mutate(n.id)}
                 className={
                   "cursor-pointer rounded-2xl border px-4 py-3 transition " +
-                  (unread
-                    ? "border-primary/30 bg-primary/5"
-                    : "border-border bg-card")
+                  (unread ? "border-primary/30 bg-primary/5" : "border-border bg-card")
                 }
               >
                 <div className="mb-1 flex items-center justify-between">
@@ -116,11 +114,7 @@ function NotificationsScreen() {
                   </span>
                 </div>
                 <p className="text-sm font-medium leading-snug">{n.title}</p>
-                {n.body && (
-                  <p className="mt-1 text-xs leading-relaxed text-muted">
-                    {n.body}
-                  </p>
-                )}
+                {n.body && <p className="mt-1 text-xs leading-relaxed text-muted">{n.body}</p>}
               </li>
             );
           })}

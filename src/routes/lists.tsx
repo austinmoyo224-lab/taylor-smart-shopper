@@ -21,8 +21,7 @@ export const Route = createFileRoute("/lists")({
       { title: "Shopping lists - Taylor Intelligence" },
       {
         name: "description",
-        content:
-          "Your personal and AI-generated shopping lists with basket totals and savings.",
+        content: "Your personal and AI-generated shopping lists with basket totals and savings.",
       },
     ],
   }),
@@ -67,9 +66,7 @@ function ListsScreen() {
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
         <div className="flex items-end justify-between">
           <div>
-            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-              Plan
-            </p>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Plan</p>
             <h1
               className="text-3xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
@@ -112,8 +109,8 @@ function ListsScreen() {
         {lists.isLoading && <p className="text-sm text-muted">Loading…</p>}
         {!lists.isLoading && (lists.data?.length ?? 0) === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
-            No lists yet. Start one above, or ask Taylor to build one from
-            your pantry and this week's specials.
+            No lists yet. Start one above, or ask Taylor to build one from your pantry and this
+            week's specials.
           </div>
         )}
         <ul className="space-y-2">
@@ -122,10 +119,7 @@ function ListsScreen() {
               key={l.id}
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
             >
-              <button
-                onClick={() => setOpenId(l.id)}
-                className="flex-1 text-left"
-              >
+              <button onClick={() => setOpenId(l.id)} className="flex-1 text-left">
                 <p className="text-sm font-medium">{l.name}</p>
                 <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                   {l.is_ai_generated ? "AI · " : ""}
@@ -164,8 +158,7 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
     },
   });
   const toggle = useMutation({
-    mutationFn: (v: { id: string; checked: boolean }) =>
-      toggleListItem({ data: v }),
+    mutationFn: (v: { id: string; checked: boolean }) => toggleListItem({ data: v }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["list", id] }),
   });
   const del = useMutation({
@@ -223,16 +216,11 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
               <input
                 type="checkbox"
                 checked={it.is_checked}
-                onChange={(e) =>
-                  toggle.mutate({ id: it.id, checked: e.target.checked })
-                }
+                onChange={(e) => toggle.mutate({ id: it.id, checked: e.target.checked })}
                 className="size-4 accent-primary"
               />
               <span
-                className={
-                  "flex-1 text-sm " +
-                  (it.is_checked ? "text-muted line-through" : "")
-                }
+                className={"flex-1 text-sm " + (it.is_checked ? "text-muted line-through" : "")}
               >
                 {it.name}
                 {it.quantity ? ` · ${it.quantity}${it.unit ?? ""}` : ""}

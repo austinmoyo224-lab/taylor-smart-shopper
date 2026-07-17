@@ -58,7 +58,14 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
           .select("id, name, city, country_code")
           .in("id", storeIds)
           .is("deleted_at", null)
-      : Promise.resolve({ data: [] as { id: string; name: string; city: string | null; country_code: string | null }[] }),
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            name: string;
+            city: string | null;
+            country_code: string | null;
+          }[],
+        }),
     storeIds.length
       ? supabaseAdmin
           .from("promotions")
@@ -107,7 +114,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   const greeting = profile?.preferred_greeting || null;
   const style = profile?.communication_style || null;
   lines.push(`Name: ${name ?? "unknown"}`);
-  lines.push(`Locale: ${profile?.locale ?? "en-ZA"} / Currency: ${profile?.currency_code ?? "ZAR"}`);
+  lines.push(
+    `Locale: ${profile?.locale ?? "en-ZA"} / Currency: ${profile?.currency_code ?? "ZAR"}`,
+  );
   if (greeting) lines.push(`Preferred greeting: "${greeting}"`);
   if (style) lines.push(`Conversation style: ${style}`);
 
@@ -147,9 +156,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
 
   lines.push("");
   if (activePromos.length === 0) {
-    lines.push(
-      "LIVE PROMOTIONS: none right now. Say so honestly rather than inventing one.",
-    );
+    lines.push("LIVE PROMOTIONS: none right now. Say so honestly rather than inventing one.");
   } else {
     lines.push(
       `LIVE PROMOTIONS (${activePromos.length}) — quote only these when the subscriber asks about deals. Include the store name. If is_sponsored=true, LABEL it as sponsored.`,
@@ -162,9 +169,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
           }`
         : "price on request";
       const sponsored = p.is_sponsored ? " [SPONSORED]" : "";
-      lines.push(
-        `- ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}`,
-      );
+      lines.push(`- ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}`);
     }
   }
 

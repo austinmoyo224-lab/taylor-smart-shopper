@@ -3,11 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  addPantryItem,
-  deletePantryItem,
-  listMyPantry,
-} from "@/lib/pantry.functions";
+import { addPantryItem, deletePantryItem, listMyPantry } from "@/lib/pantry.functions";
 import { Camera, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/pantry")({
@@ -113,8 +109,7 @@ function PantryScreen() {
           {(pantry.data ?? []).map((it) => {
             const expiring =
               it.expires_at &&
-              new Date(it.expires_at).getTime() - Date.now() <
-                7 * 24 * 3600 * 1000;
+              new Date(it.expires_at).getTime() - Date.now() < 7 * 24 * 3600 * 1000;
             return (
               <li
                 key={it.id}
@@ -125,8 +120,7 @@ function PantryScreen() {
                   {it.expires_at && (
                     <p
                       className={
-                        "mt-0.5 text-[11px] " +
-                        (expiring ? "text-destructive" : "text-muted")
+                        "mt-0.5 text-[11px] " + (expiring ? "text-destructive" : "text-muted")
                       }
                     >
                       Best before {new Date(it.expires_at).toLocaleDateString()}
@@ -145,8 +139,8 @@ function PantryScreen() {
           })}
           {(pantry.data?.length ?? 0) === 0 && !pantry.isLoading && (
             <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
-              Your pantry is empty. Add a few staples so Taylor can suggest
-              recipes and warn you before things expire.
+              Your pantry is empty. Add a few staples so Taylor can suggest recipes and warn you
+              before things expire.
             </div>
           )}
         </ul>

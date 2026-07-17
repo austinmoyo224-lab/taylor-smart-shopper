@@ -2,12 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type AppRole =
-  | "super_admin"
-  | "retailer_admin"
-  | "store_manager"
-  | "staff"
-  | "subscriber";
+type AppRole = "super_admin" | "retailer_admin" | "store_manager" | "staff" | "subscriber";
 
 async function assertSuperAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -68,30 +63,23 @@ export const getAdminDashboard = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [orgs, stores, subscribers, promos, conversations, msgs] =
-      await Promise.all([
-        supabaseAdmin
-          .from("organisations")
-          .select("id", { count: "exact", head: true })
-          .is("deleted_at", null),
-        supabaseAdmin
-          .from("stores")
-          .select("id", { count: "exact", head: true })
-          .is("deleted_at", null),
-        supabaseAdmin
-          .from("user_roles")
-          .select("id", { count: "exact", head: true })
-          .eq("role", "subscriber"),
-        supabaseAdmin
-          .from("promotions")
-          .select("id", { count: "exact", head: true }),
-        supabaseAdmin
-          .from("conversations")
-          .select("id", { count: "exact", head: true }),
-        supabaseAdmin
-          .from("messages")
-          .select("id", { count: "exact", head: true }),
-      ]);
+    const [orgs, stores, subscribers, promos, conversations, msgs] = await Promise.all([
+      supabaseAdmin
+        .from("organisations")
+        .select("id", { count: "exact", head: true })
+        .is("deleted_at", null),
+      supabaseAdmin
+        .from("stores")
+        .select("id", { count: "exact", head: true })
+        .is("deleted_at", null),
+      supabaseAdmin
+        .from("user_roles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "subscriber"),
+      supabaseAdmin.from("promotions").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("conversations").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("messages").select("id", { count: "exact", head: true }),
+    ]);
     return {
       organisations: orgs.count ?? 0,
       stores: stores.count ?? 0,
@@ -202,13 +190,7 @@ export const listUsers = createServerFn({ method: "GET" })
 
 const setRoleSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum([
-    "super_admin",
-    "retailer_admin",
-    "store_manager",
-    "staff",
-    "subscriber",
-  ]),
+  role: z.enum(["super_admin", "retailer_admin", "store_manager", "staff", "subscriber"]),
   organisationId: z.string().uuid().optional().nullable(),
   grant: z.boolean(),
 });

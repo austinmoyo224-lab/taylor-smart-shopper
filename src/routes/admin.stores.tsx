@@ -15,9 +15,7 @@ function StoresPage() {
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
-      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-        Retail
-      </p>
+      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Retail</p>
       <h1
         className="mb-8 text-4xl italic tracking-tight"
         style={{ fontFamily: "var(--font-display)" }}
@@ -46,21 +44,17 @@ function StoresPage() {
             {!isLoading && (data?.length ?? 0) === 0 && (
               <tr>
                 <td className="px-4 py-6 text-muted" colSpan={5}>
-                  No stores yet. Retailers create stores from the Store Portal
-                  (Milestone 4).
+                  No stores yet. Retailers create stores from the Store Portal (Milestone 4).
                 </td>
               </tr>
             )}
             {(data ?? []).map((s) => {
-              const org = (s as { organisations?: { name: string } | null })
-                .organisations;
+              const org = (s as { organisations?: { name: string } | null }).organisations;
               return (
                 <tr key={s.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">
                     {s.name}
-                    <div className="font-mono text-[10px] text-muted">
-                      {s.slug}
-                    </div>
+                    <div className="font-mono text-[10px] text-muted">{s.slug}</div>
                   </td>
                   <td className="px-4 py-3">{org?.name ?? "—"}</td>
                   <td className="px-4 py-3 text-muted">

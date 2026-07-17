@@ -12,21 +12,9 @@ import {
   suggestRecipesFromItems,
   type MatchedItem,
 } from "@/lib/vision.functions";
-import {
-  addListItem,
-  createShoppingList,
-  listMyShoppingLists,
-} from "@/lib/lists.functions";
+import { addListItem, createShoppingList, listMyShoppingLists } from "@/lib/lists.functions";
 import { addPantryItem } from "@/lib/pantry.functions";
-import {
-  Camera,
-  Check,
-  ChefHat,
-  ListPlus,
-  RefreshCw,
-  ShoppingBasket,
-  Trash2,
-} from "lucide-react";
+import { Camera, Check, ChefHat, ListPlus, RefreshCw, ShoppingBasket, Trash2 } from "lucide-react";
 
 type VisionScan = {
   id: string;
@@ -63,7 +51,15 @@ function VisionScreen() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [targetListId, setTargetListId] = useState<string>("new");
   const [newListName, setNewListName] = useState("");
-  const [recipes, setRecipes] = useState<{ id: string; title: string; hero_image_url: string | null; cooking_time_minutes: number | null; servings: number | null }[]>([]);
+  const [recipes, setRecipes] = useState<
+    {
+      id: string;
+      title: string;
+      hero_image_url: string | null;
+      cooking_time_minutes: number | null;
+      servings: number | null;
+    }[]
+  >([]);
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -265,9 +261,7 @@ function VisionScreen() {
                   key={i}
                   onClick={() => toggleItem(i)}
                   className={`cursor-pointer rounded-2xl border px-4 py-3 transition-colors ${
-                    selected.has(i)
-                      ? "border-primary bg-primary/5"
-                      : "border-border bg-card"
+                    selected.has(i) ? "border-primary bg-primary/5" : "border-border bg-card"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -290,8 +284,7 @@ function VisionScreen() {
                       </p>
                       {it.matched_product && (
                         <p className="mt-1 text-xs text-primary">
-                          Matched: {it.matched_product.name} —{" "}
-                          {it.matched_product.currency_code}{" "}
+                          Matched: {it.matched_product.name} — {it.matched_product.currency_code}{" "}
                           {it.matched_product.base_price}
                         </p>
                       )}
@@ -374,7 +367,10 @@ function VisionScreen() {
                 <p className="mb-2 text-sm font-medium">Recipe ideas</p>
                 <ul className="space-y-2">
                   {recipes.map((r) => (
-                    <li key={r.id} className="overflow-hidden rounded-2xl border border-border bg-card">
+                    <li
+                      key={r.id}
+                      className="overflow-hidden rounded-2xl border border-border bg-card"
+                    >
                       {r.hero_image_url && (
                         <img
                           src={r.hero_image_url}
@@ -494,7 +490,9 @@ function ScanThumbnail({ detected }: { detected: unknown }) {
     if (!storagePath) return;
     let cancelled = false;
     void (async () => {
-      const { data } = await supabase.storage.from("vision-uploads").createSignedUrl(storagePath, 60 * 10);
+      const { data } = await supabase.storage
+        .from("vision-uploads")
+        .createSignedUrl(storagePath, 60 * 10);
       if (!cancelled && data?.signedUrl) setUrl(data.signedUrl);
     })();
     return () => {

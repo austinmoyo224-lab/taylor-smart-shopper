@@ -11,11 +11,7 @@ export type RateLimitResult = {
   retryAfterSec: number;
 };
 
-export function rateLimit(
-  key: string,
-  limit: number,
-  windowMs: number,
-): RateLimitResult {
+export function rateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
   const now = Date.now();
   const existing = buckets.get(key);
   if (!existing || existing.resetAt <= now) {
@@ -41,9 +37,10 @@ export function rateLimit(
 }
 
 export function clientKeyFromRequest(request: Request, prefix: string): string {
-  const fwd = request.headers.get("cf-connecting-ip")
-    ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    ?? request.headers.get("x-real-ip")
-    ?? "unknown";
+  const fwd =
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
   return `${prefix}:${fwd}`;
 }

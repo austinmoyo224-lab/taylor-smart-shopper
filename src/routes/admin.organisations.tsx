@@ -21,9 +21,7 @@ function OrganisationsPage() {
     <div className="flex-1 overflow-y-auto px-8 py-10">
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-            Tenants
-          </p>
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Tenants</p>
           <h1
             className="text-4xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
@@ -74,8 +72,8 @@ function OrganisationsPage() {
             {!isLoading && (data?.length ?? 0) === 0 && (
               <tr>
                 <td className="px-4 py-6 text-muted" colSpan={7}>
-                  No organisations yet. Create the first one to onboard a
-                  retailer, brand or partner.
+                  No organisations yet. Create the first one to onboard a retailer, brand or
+                  partner.
                 </td>
               </tr>
             )}
@@ -110,9 +108,9 @@ function OrganisationsPage() {
 function NewOrgForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [type, setType] = useState<
-    "retail_group" | "brand" | "partner" | "independent"
-  >("retail_group");
+  const [type, setType] = useState<"retail_group" | "brand" | "partner" | "independent">(
+    "retail_group",
+  );
   const [contactEmail, setContactEmail] = useState("");
   const [country, setCountry] = useState("ZA");
   const [currency, setCurrency] = useState("ZAR");
@@ -224,18 +222,10 @@ function NewOrgForm({ onCreated }: { onCreated: () => void }) {
   );
 }
 
-function FormField({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium text-muted">
-        {label}
-      </span>
+      <span className="mb-1 block text-[11px] font-medium text-muted">{label}</span>
       {children}
     </label>
   );

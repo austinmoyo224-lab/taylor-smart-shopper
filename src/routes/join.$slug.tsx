@@ -94,8 +94,7 @@ function JoinPage() {
               Not found
             </h1>
             <p className="mt-3 text-sm text-muted">
-              This invite link isn't active. Ask the store to share their
-              current QR code.
+              This invite link isn't active. Ask the store to share their current QR code.
             </p>
           </div>
         ) : (
@@ -131,8 +130,7 @@ function JoinPage() {
             {subscribed ? (
               <div className="mt-6 flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary">
                 <CheckCircle2 className="size-4" />
-                You're following {store.name}. Taylor will start looking out
-                for their deals.
+                You're following {store.name}. Taylor will start looking out for their deals.
               </div>
             ) : (
               <button
@@ -141,19 +139,12 @@ function JoinPage() {
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
               >
                 <Sparkles className="size-4" />
-                {busy
-                  ? "One moment…"
-                  : user
-                    ? "Follow this store"
-                    : "Sign in and follow"}
+                {busy ? "One moment…" : user ? "Follow this store" : "Sign in and follow"}
               </button>
             )}
-            {error && (
-              <p className="mt-3 text-xs text-destructive">{error}</p>
-            )}
+            {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
             <p className="mt-6 text-center text-[10px] leading-relaxed text-muted">
-              You can unfollow any time. Taylor only uses what you choose to
-              share.
+              You can unfollow any time. Taylor only uses what you choose to share.
             </p>
           </>
         )}
