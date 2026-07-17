@@ -82,7 +82,7 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
             role: "user",
             content: [
               { type: "text", text: "What do you see in this photo?" },
-              { type: "image_url", image_url: { url: signed.signedUrl } },
+              { type: "image", image: signed.signedUrl },
             ],
           },
         ],
