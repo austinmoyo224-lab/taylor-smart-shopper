@@ -456,6 +456,47 @@ export type Database = {
         }
         Relationships: []
       }
+      household_invites: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          household_id: string
+          id: string
+          invited_by: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string
+          household_id: string
+          id?: string
+          invited_by: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          household_id?: string
+          id?: string
+          invited_by?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_invites_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_members: {
         Row: {
           created_at: string
@@ -858,6 +899,7 @@ export type Database = {
         Row: {
           created_at: string
           expires_at: string | null
+          household_id: string | null
           id: string
           metadata: Json
           name: string
@@ -871,6 +913,7 @@ export type Database = {
         Insert: {
           created_at?: string
           expires_at?: string | null
+          household_id?: string | null
           id?: string
           metadata?: Json
           name: string
@@ -884,6 +927,7 @@ export type Database = {
         Update: {
           created_at?: string
           expires_at?: string | null
+          household_id?: string | null
           id?: string
           metadata?: Json
           name?: string
@@ -895,6 +939,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pantry_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pantry_items_product_id_fkey"
             columns: ["product_id"]
@@ -1717,6 +1768,7 @@ export type Database = {
           currency_code: string
           estimated_savings: number | null
           estimated_total: number | null
+          household_id: string | null
           id: string
           is_ai_generated: boolean
           metadata: Json
@@ -1730,6 +1782,7 @@ export type Database = {
           currency_code?: string
           estimated_savings?: number | null
           estimated_total?: number | null
+          household_id?: string | null
           id?: string
           is_ai_generated?: boolean
           metadata?: Json
@@ -1743,6 +1796,7 @@ export type Database = {
           currency_code?: string
           estimated_savings?: number | null
           estimated_total?: number | null
+          household_id?: string | null
           id?: string
           is_ai_generated?: boolean
           metadata?: Json
@@ -1758,6 +1812,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "shopping_lists_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2166,6 +2227,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_household_member: {
+        Args: { _household_id: string; _user_id: string }
         Returns: boolean
       }
       show_limit: { Args: never; Returns: number }
