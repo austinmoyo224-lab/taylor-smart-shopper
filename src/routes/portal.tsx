@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getPortalContext } from "@/lib/portal.functions";
 import { PortalContext, type PortalCtx } from "@/lib/portal-context";
-import { LayoutDashboard, Store, Package, Tag, Ticket, ArrowLeft, Megaphone } from "lucide-react";
+import {
+  LayoutDashboard,
+  Store,
+  Package,
+  Tag,
+  Ticket,
+  ArrowLeft,
+  Megaphone,
+  BarChart3,
+} from "lucide-react";
 
 export const Route = createFileRoute("/portal")({
   ssr: false,
@@ -76,12 +85,14 @@ const nav: {
     | "/portal/products"
     | "/portal/promotions"
     | "/portal/coupons"
-    | "/portal/campaigns";
+    | "/portal/campaigns"
+    | "/portal/analytics";
   label: string;
   icon: typeof Store;
   exact?: boolean;
 }[] = [
   { to: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/portal/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/portal/stores", label: "Stores", icon: Store },
   { to: "/portal/products", label: "Products", icon: Package },
   { to: "/portal/promotions", label: "Promotions", icon: Tag },
