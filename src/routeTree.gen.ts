@@ -30,6 +30,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PortalStoresRouteImport } from './routes/portal.stores'
+import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
@@ -147,6 +148,11 @@ const PortalStoresRoute = PortalStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalRewardsRoute = PortalRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalPromotionsRoute = PortalPromotionsRouteImport.update({
   id: '/promotions',
   path: '/promotions',
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
+    | '/portal/rewards'
     | '/portal/stores'
     | '/admin/'
     | '/portal/'
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
+    | '/portal/rewards'
     | '/portal/stores'
     | '/admin'
     | '/portal'
@@ -402,6 +413,7 @@ export interface FileRouteTypes {
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
+    | '/portal/rewards'
     | '/portal/stores'
     | '/admin/'
     | '/portal/'
@@ -579,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalStoresRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/rewards': {
+      id: '/portal/rewards'
+      path: '/rewards'
+      fullPath: '/portal/rewards'
+      preLoaderRoute: typeof PortalRewardsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/promotions': {
       id: '/portal/promotions'
       path: '/promotions'
@@ -683,6 +702,7 @@ interface PortalRouteChildren {
   PortalCouponsRoute: typeof PortalCouponsRoute
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
+  PortalRewardsRoute: typeof PortalRewardsRoute
   PortalStoresRoute: typeof PortalStoresRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
@@ -693,6 +713,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalCouponsRoute: PortalCouponsRoute,
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
+  PortalRewardsRoute: PortalRewardsRoute,
   PortalStoresRoute: PortalStoresRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
