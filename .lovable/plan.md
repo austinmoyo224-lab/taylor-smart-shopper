@@ -1,6 +1,19 @@
-# Plan — Store Analytics v2 (Phase 2 module)
+# Plan — Household Sharing (Phase 2 module)
 
 **Status: shipped**
+
+Let subscribers share shopping lists and pantry with the people they live with.
+
+## What we shipped
+
+- Migration: `household_id` on `shopping_lists` and `pantry_items`; new `household_invites` table with codes and 14-day expiry; `is_household_member` security-definer helper; RLS updated so household members can view/edit shared lists, list items, and pantry items while personal rows remain owner-only.
+- Server functions in `src/lib/households.functions.ts`: list/create household, view detail, create/accept invite, leave, remove member, share list, share/unshare pantry.
+- `/household` route with member list, invite codes (copy to clipboard), pantry sharing toggle, and multi-household switcher.
+- Profile screen links to Household sharing.
+
+## Previously shipped (Store Analytics v2)
+
+Kept: `getStoreAnalytics`, `/portal/analytics`, tightened coupons SELECT policy.
 
 Give retailers a real dashboard: follower growth, coupon redemptions, live promotions and active campaigns, filterable by store and time range.
 
