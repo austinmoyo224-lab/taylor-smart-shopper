@@ -438,8 +438,8 @@ function ScanHistory({
   onDelete,
   isDeleting,
 }: {
-  scans: { id: string; image_url: string; detected: unknown; created_at: string }[];
-  onSelect: (scan: (typeof scans)[number]) => void;
+  scans: VisionScan[];
+  onSelect: (scan: VisionScan) => void;
   onDelete: (id: string) => void;
   isDeleting: boolean;
 }) {
