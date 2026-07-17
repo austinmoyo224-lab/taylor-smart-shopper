@@ -60,10 +60,13 @@ function ChatScreen() {
     if (!user || isLoading || messages.length === 0) return;
     void (async () => {
       if (!conversationIdRef.current) {
-        const firstText = messages[0]?.parts
-          .map((p) => (p.type === "text" ? p.text : ""))
-          .join("")
-          .slice(0, 80);
+        const firstHasImage = messages[0]?.parts.some((p) => p.type === "file");
+        const firstText = firstHasImage
+          ? "Photo"
+          : messages[0]?.parts
+              .map((p) => (p.type === "text" ? p.text : ""))
+              .join("")
+              .slice(0, 80);
         const { data, error } = await supabase
           .from("conversations")
           .insert({ user_id: user.id, title: firstText || "New chat" })
@@ -79,7 +82,9 @@ function ChatScreen() {
         conversation_id: cid!,
         user_id: user.id,
         role: m.role as "user" | "assistant",
-        parts: m.parts as never,
+        parts: m.parts.map((p) =>
+          p.type === "file" ? { type: "text", text: "[photo shared]" } : p,
+        ) as never,
       }));
       const { error } = await supabase.from("messages").insert(rows);
       if (!error) toSave.forEach((m) => persistedIdsRef.current.add(m.id));
