@@ -268,7 +268,7 @@ function MessageRow({
               p.type === "file" ? (
                 <img
                   key={idx}
-                  src={p.data}
+                  src={p.url}
                   alt="Shared photo"
                   className="max-h-48 rounded-lg border border-black/5 object-cover"
                   loading="lazy"
