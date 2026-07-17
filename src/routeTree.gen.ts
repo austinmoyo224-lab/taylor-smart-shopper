@@ -16,6 +16,7 @@ import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PantryRouteImport } from './routes/pantry'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as HouseholdRouteImport } from './routes/household'
@@ -73,6 +74,11 @@ const PortalRoute = PortalRouteImport.update({
 const PantryRoute = PantryRouteImport.update({
   id: '/pantry',
   path: '/pantry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/household'
     | '/lists'
     | '/notifications'
+    | '/onboarding'
     | '/pantry'
     | '/portal'
     | '/profile'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/household'
     | '/lists'
     | '/notifications'
+    | '/onboarding'
     | '/pantry'
     | '/profile'
     | '/recipes'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/household'
     | '/lists'
     | '/notifications'
+    | '/onboarding'
     | '/pantry'
     | '/portal'
     | '/profile'
@@ -393,6 +405,7 @@ export interface RootRouteChildren {
   HouseholdRoute: typeof HouseholdRoute
   ListsRoute: typeof ListsRoute
   NotificationsRoute: typeof NotificationsRoute
+  OnboardingRoute: typeof OnboardingRoute
   PantryRoute: typeof PantryRoute
   PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
@@ -453,6 +466,13 @@ declare module '@tanstack/react-router' {
       path: '/pantry'
       fullPath: '/pantry'
       preLoaderRoute: typeof PantryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -670,6 +690,7 @@ const rootRouteChildren: RootRouteChildren = {
   HouseholdRoute: HouseholdRoute,
   ListsRoute: ListsRoute,
   NotificationsRoute: NotificationsRoute,
+  OnboardingRoute: OnboardingRoute,
   PantryRoute: PantryRoute,
   PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,

@@ -202,14 +202,22 @@ function NoAccess() {
         </h1>
         <p className="mt-3 text-sm text-muted">
           You need a retailer admin, store manager or staff role on an organisation to use the store
-          portal. Ask a platform admin to grant you access.
+          portal. Set up your own business in a few minutes, or ask a platform admin to grant you access.
         </p>
         <Link
-          to="/chat"
-          className="mt-6 inline-flex items-center rounded-full border border-border px-4 py-2 text-xs"
+          to="/onboarding"
+          className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
-          Back to Taylor
+          Start onboarding
         </Link>
+        <div className="mt-3">
+          <Link
+            to="/chat"
+            className="inline-flex items-center rounded-full border border-border px-4 py-2 text-xs"
+          >
+            Back to Taylor
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -233,10 +241,10 @@ function NoOrgs() {
           to create an organisation and assign you to it.
         </p>
         <Link
-          to="/admin/organisations"
+          to="/onboarding"
           className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
-          Open admin console
+          Start onboarding
         </Link>
         <div className="mt-3">
           <Link
