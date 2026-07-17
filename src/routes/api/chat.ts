@@ -8,6 +8,7 @@ import {
   TAYLOR_SYSTEM_PROMPT,
 } from "@/lib/ai-gateway.server";
 import { buildTaylorSystemPrompt } from "@/lib/taylor-engine.server";
+import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -43,6 +44,22 @@ export const Route = createFileRoute("/api/chat")({
               userId = null;
             }
           }
+        }
+
+        // Rate limit: authenticated 30/min, anonymous 10/min.
+        const rlKey = userId ? `chat:u:${userId}` : clientKeyFromRequest(request, "chat");
+        const rl = rateLimit(rlKey, userId ? 30 : 10, 60_000);
+        if (!rl.ok) {
+          return new Response(
+            "Taylor is receiving a lot of messages right now. Please try again in a moment.",
+            {
+              status: 429,
+              headers: {
+                "Retry-After": String(rl.retryAfterSec),
+                "X-RateLimit-Reset": String(rl.resetAt),
+              },
+            },
+          );
         }
 
         const systemPrompt = userId
