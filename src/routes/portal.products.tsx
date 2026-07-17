@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { createProduct, listProducts } from "@/lib/portal.functions";
-import { usePortal } from "./portal";
+import { usePortal } from "@/lib/portal-context";
 import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/portal/products")({

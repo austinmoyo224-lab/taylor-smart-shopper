@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { createStore } from "@/lib/portal.functions";
 import { ensureStoreQrCode } from "@/lib/subscriptions.functions";
-import { usePortal } from "./portal";
+import { usePortal } from "@/lib/portal-context";
 import { Plus, QrCode as QrIcon } from "lucide-react";
 import QRCode from "qrcode";
 
