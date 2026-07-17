@@ -26,6 +26,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 
 const StoresRoute = StoresRouteImport.update({
   id: '/stores',
@@ -112,6 +113,11 @@ const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
   path: '/organisations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/users'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/users'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/users'
@@ -366,10 +378,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrganisationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
   AdminStoresRoute: typeof AdminStoresRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -377,6 +397,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditRoute: AdminAuditRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
   AdminStoresRoute: AdminStoresRoute,
   AdminUsersRoute: AdminUsersRoute,
