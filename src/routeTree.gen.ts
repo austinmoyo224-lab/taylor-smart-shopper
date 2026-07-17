@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PortalStoresRouteImport } from './routes/portal.stores'
+import { Route as PortalProductsRouteImport } from './routes/portal.products'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
@@ -111,6 +112,11 @@ const PortalStoresRoute = PortalStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalProductsRoute = PortalProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => PortalRoute,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/portal/products': typeof PortalProductsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/portal/products': typeof PortalProductsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/admin/stores': typeof AdminStoresRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/portal/products': typeof PortalProductsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/admin/stores'
     | '/admin/users'
     | '/api/chat'
+    | '/portal/products'
     | '/portal/stores'
     | '/admin/'
     | '/portal/'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin/stores'
     | '/admin/users'
     | '/api/chat'
+    | '/portal/products'
     | '/portal/stores'
     | '/admin'
     | '/portal'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/admin/stores'
     | '/admin/users'
     | '/api/chat'
+    | '/portal/products'
     | '/portal/stores'
     | '/admin/'
     | '/portal/'
@@ -406,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalStoresRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/products': {
+      id: '/portal/products'
+      path: '/products'
+      fullPath: '/portal/products'
+      preLoaderRoute: typeof PortalProductsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -463,11 +482,13 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PortalRouteChildren {
+  PortalProductsRoute: typeof PortalProductsRoute
   PortalStoresRoute: typeof PortalStoresRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalProductsRoute: PortalProductsRoute,
   PortalStoresRoute: PortalStoresRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
