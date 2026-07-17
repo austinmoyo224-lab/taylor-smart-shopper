@@ -23,6 +23,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 
 const StoresRoute = StoresRouteImport.update({
   id: '/stores',
@@ -94,6 +95,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
+  id: '/organisations',
+  path: '/organisations',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/organisations': typeof AdminOrganisationsRoute
   '/api/chat': typeof ApiChatRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/organisations': typeof AdminOrganisationsRoute
   '/api/chat': typeof ApiChatRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
+  '/admin/organisations': typeof AdminOrganisationsRoute
   '/api/chat': typeof ApiChatRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/organisations'
     | '/api/chat'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/organisations'
     | '/api/chat'
     | '/admin'
   id:
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/stores'
+    | '/admin/organisations'
     | '/api/chat'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -309,14 +321,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/organisations': {
+      id: '/admin/organisations'
+      path: '/organisations'
+      fullPath: '/admin/organisations'
+      preLoaderRoute: typeof AdminOrganisationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminOrganisationsRoute: typeof AdminOrganisationsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminOrganisationsRoute: AdminOrganisationsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
