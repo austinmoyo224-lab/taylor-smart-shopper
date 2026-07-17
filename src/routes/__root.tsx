@@ -85,21 +85,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Taylor Intelligence" },
       { name: "theme-color", content: "#b54e1e" },
-      { property: "og:title", content: "Taylor Intelligence" },
+      { property: "og:title", content: "Taylor Intelligence - Your AI shopping companion" },
       {
         property: "og:description",
         content:
-          "Your AI shopping companion. Personal deals, recipes and reminders from the stores you follow.",
+          "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Taylor Intelligence" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Taylor Intelligence" },
+      { name: "twitter:title", content: "Taylor Intelligence - Your AI shopping companion" },
       {
         name: "twitter:description",
         content:
-          "Your AI shopping companion. Personal deals, recipes and reminders from the stores you follow.",
+          "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57b3f123-43a6-45a7-b2d8-7a6eaeecc2c5/id-preview-4b9a48d2--c0197c54-2298-44b5-85ea-897cf4a313d4.lovable.app-1784263073546.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57b3f123-43a6-45a7-b2d8-7a6eaeecc2c5/id-preview-4b9a48d2--c0197c54-2298-44b5-85ea-897cf4a313d4.lovable.app-1784263073546.png" },
     ],
     links: [
       {
