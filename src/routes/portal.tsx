@@ -1,8 +1,9 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getPortalContext } from "@/lib/portal.functions";
+import { PortalContext, type PortalCtx } from "@/lib/portal-context";
 import { LayoutDashboard, Store, Package, Tag, Ticket, ArrowLeft, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/portal")({
@@ -19,34 +20,6 @@ export const Route = createFileRoute("/portal")({
   }),
   component: PortalLayout,
 });
-
-type PortalCtx = {
-  organisations: {
-    id: string;
-    name: string;
-    slug: string;
-    type: string;
-    default_currency: string;
-    country_code: string;
-  }[];
-  stores: {
-    id: string;
-    name: string;
-    slug: string;
-    status: string;
-    organisation_id: string;
-  }[];
-  activeOrgId: string;
-  setActiveOrgId: (id: string) => void;
-};
-
-const PortalContext = createContext<PortalCtx | null>(null);
-
-export function usePortal() {
-  const ctx = useContext(PortalContext);
-  if (!ctx) throw new Error("usePortal outside <PortalLayout>");
-  return ctx;
-}
 
 function PortalLayout() {
   const { user, loading } = useAuth();
