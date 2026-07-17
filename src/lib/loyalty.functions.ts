@@ -24,6 +24,53 @@ function genCode() {
   return s;
 }
 
+/** Credit/debit points and write a ledger row. Uses service role. */
+async function awardPoints(opts: {
+  user_id: string;
+  organisation_id: string;
+  points: number;
+  reason: string;
+  ref_type?: string | null;
+  ref_id?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  // Ensure account exists
+  await supabaseAdmin
+    .from("loyalty_accounts")
+    .upsert(
+      { user_id: opts.user_id, organisation_id: opts.organisation_id, points: 0 },
+      { onConflict: "user_id,organisation_id", ignoreDuplicates: true },
+    );
+  const { data: acc, error: aErr } = await supabaseAdmin
+    .from("loyalty_accounts")
+    .select("points")
+    .eq("user_id", opts.user_id)
+    .eq("organisation_id", opts.organisation_id)
+    .maybeSingle();
+  if (aErr || !acc) throw new Error(aErr?.message ?? "Loyalty account missing");
+  const newBalance = Number(acc.points) + opts.points;
+  if (newBalance < 0) throw new Error("Insufficient loyalty points");
+  const { error: uErr } = await supabaseAdmin
+    .from("loyalty_accounts")
+    .update({ points: newBalance })
+    .eq("user_id", opts.user_id)
+    .eq("organisation_id", opts.organisation_id);
+  if (uErr) throw new Error(uErr.message);
+  const { error: tErr } = await supabaseAdmin.from("loyalty_transactions").insert({
+    user_id: opts.user_id,
+    organisation_id: opts.organisation_id,
+    points: opts.points,
+    balance_after: newBalance,
+    reason: opts.reason,
+    reference_type: opts.ref_type ?? null,
+    reference_id: opts.ref_id ?? null,
+    metadata: opts.metadata ?? {},
+  });
+  if (tErr) throw new Error(tErr.message);
+  return newBalance;
+}
+
 // ---------- Shopper ----------
 
 export const getMyLoyalty = createServerFn({ method: "GET" })
@@ -81,17 +128,14 @@ export const redeemReward = createServerFn({ method: "POST" })
     if (!reward.is_active) throw new Error("Reward unavailable");
     if (reward.stock !== null && reward.stock <= 0) throw new Error("Out of stock");
 
-    // Debit via ledger function
-    const { error: awardErr } = await supabaseAdmin.rpc("award_loyalty_points" as never, {
-      _user_id: context.userId,
-      _org_id: reward.organisation_id,
-      _points: -Number(reward.points_cost),
-      _reason: `Redeemed: ${reward.title}`,
-      _ref_type: "reward",
-      _ref_id: reward.id,
-      _metadata: {},
-    } as never);
-    if (awardErr) throw new Error(awardErr.message);
+    await awardPoints({
+      user_id: context.userId,
+      organisation_id: reward.organisation_id,
+      points: -Number(reward.points_cost),
+      reason: `Redeemed: ${reward.title}`,
+      ref_type: "reward",
+      ref_id: reward.id,
+    });
 
     const code = genCode();
     const { data: red, error: redErr } = await supabaseAdmin
@@ -234,16 +278,14 @@ export const awardPointsToUser = createServerFn({ method: "POST" })
     const target = matches?.[0];
     if (!target) throw new Error("Shopper not found");
 
-    const { error } = await supabaseAdmin.rpc("award_loyalty_points" as never, {
-      _user_id: target.id,
-      _org_id: data.organisation_id,
-      _points: data.points,
-      _reason: data.reason,
-      _ref_type: "manual_award",
-      _ref_id: null,
-      _metadata: { awarded_by: context.userId },
-    } as never);
-    if (error) throw new Error(error.message);
+    await awardPoints({
+      user_id: target.id,
+      organisation_id: data.organisation_id,
+      points: data.points,
+      reason: data.reason,
+      ref_type: "manual_award",
+      metadata: { awarded_by: context.userId },
+    });
     return { ok: true, user: { id: target.id, name: target.display_name ?? target.email } };
   });
 
