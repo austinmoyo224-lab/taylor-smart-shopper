@@ -18,6 +18,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PantryRouteImport } from './routes/pantry'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as HouseholdRouteImport } from './routes/household'
 import { Route as DealsRouteImport } from './routes/deals'
@@ -29,6 +30,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PortalStoresRouteImport } from './routes/portal.stores'
+import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
@@ -86,6 +88,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoyaltyRoute = LoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListsRoute = ListsRouteImport.update({
   id: '/lists',
   path: '/lists',
@@ -139,6 +146,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const PortalStoresRoute = PortalStoresRouteImport.update({
   id: '/stores',
   path: '/stores',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalRewardsRoute = PortalRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalPromotionsRoute = PortalPromotionsRouteImport.update({
@@ -206,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
@@ -226,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -238,6 +252,7 @@ export interface FileRoutesByTo {
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
@@ -257,6 +272,7 @@ export interface FileRoutesByTo {
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -271,6 +287,7 @@ export interface FileRoutesById {
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
@@ -291,6 +308,7 @@ export interface FileRoutesById {
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
+  '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -306,6 +324,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/household'
     | '/lists'
+    | '/loyalty'
     | '/notifications'
     | '/onboarding'
     | '/pantry'
@@ -326,6 +345,7 @@ export interface FileRouteTypes {
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
+    | '/portal/rewards'
     | '/portal/stores'
     | '/admin/'
     | '/portal/'
@@ -338,6 +358,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/household'
     | '/lists'
+    | '/loyalty'
     | '/notifications'
     | '/onboarding'
     | '/pantry'
@@ -357,6 +378,7 @@ export interface FileRouteTypes {
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
+    | '/portal/rewards'
     | '/portal/stores'
     | '/admin'
     | '/portal'
@@ -370,6 +392,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/household'
     | '/lists'
+    | '/loyalty'
     | '/notifications'
     | '/onboarding'
     | '/pantry'
@@ -390,6 +413,7 @@ export interface FileRouteTypes {
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
+    | '/portal/rewards'
     | '/portal/stores'
     | '/admin/'
     | '/portal/'
@@ -404,6 +428,7 @@ export interface RootRouteChildren {
   DealsRoute: typeof DealsRoute
   HouseholdRoute: typeof HouseholdRoute
   ListsRoute: typeof ListsRoute
+  LoyaltyRoute: typeof LoyaltyRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   PantryRoute: typeof PantryRoute
@@ -482,6 +507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loyalty': {
+      id: '/loyalty'
+      path: '/loyalty'
+      fullPath: '/loyalty'
+      preLoaderRoute: typeof LoyaltyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lists': {
       id: '/lists'
       path: '/lists'
@@ -557,6 +589,13 @@ declare module '@tanstack/react-router' {
       path: '/stores'
       fullPath: '/portal/stores'
       preLoaderRoute: typeof PortalStoresRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/rewards': {
+      id: '/portal/rewards'
+      path: '/rewards'
+      fullPath: '/portal/rewards'
+      preLoaderRoute: typeof PortalRewardsRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/promotions': {
@@ -663,6 +702,7 @@ interface PortalRouteChildren {
   PortalCouponsRoute: typeof PortalCouponsRoute
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
+  PortalRewardsRoute: typeof PortalRewardsRoute
   PortalStoresRoute: typeof PortalStoresRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
@@ -673,6 +713,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalCouponsRoute: PortalCouponsRoute,
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
+  PortalRewardsRoute: PortalRewardsRoute,
   PortalStoresRoute: PortalStoresRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
@@ -689,6 +730,7 @@ const rootRouteChildren: RootRouteChildren = {
   DealsRoute: DealsRoute,
   HouseholdRoute: HouseholdRoute,
   ListsRoute: ListsRoute,
+  LoyaltyRoute: LoyaltyRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   PantryRoute: PantryRoute,

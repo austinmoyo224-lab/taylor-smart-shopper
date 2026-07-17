@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings2, Sparkles, ShieldCheck, Users } from "lucide-react";
+import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
 
@@ -212,6 +212,19 @@ function ProfileScreen() {
           <span className="flex items-center gap-2">
             <Users className="size-4 text-primary" />
             Household sharing
+          </span>
+          <span aria-hidden className="text-muted">
+            →
+          </span>
+        </Link>
+
+        <Link
+          to="/loyalty"
+          className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm"
+        >
+          <span className="flex items-center gap-2">
+            <Gift className="size-4 text-primary" />
+            Points & rewards
           </span>
           <span aria-hidden className="text-muted">
             →
