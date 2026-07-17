@@ -1,11 +1,13 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Mic, Plus } from "lucide-react";
+import { ArrowUp, Mic, Plus, LogIn } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({
@@ -24,6 +26,9 @@ export const Route = createFileRoute("/chat")({
 function ChatScreen() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const conversationIdRef = useRef<string | null>(null);
+  const persistedIdsRef = useRef<Set<string>>(new Set());
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -37,6 +42,43 @@ function ChatScreen() {
       behavior: "smooth",
     });
   }, [messages, status]);
+
+  // Persist messages for authenticated subscribers.
+  useEffect(() => {
+    if (!user || isLoading || messages.length === 0) return;
+    void (async () => {
+      if (!conversationIdRef.current) {
+        const firstText = messages[0]?.parts
+          .map((p) => (p.type === "text" ? p.text : ""))
+          .join("")
+          .slice(0, 80);
+        const { data, error } = await supabase
+          .from("conversations")
+          .insert({ user_id: user.id, title: firstText || "New chat" })
+          .select("id")
+          .single();
+        if (error || !data) return;
+        conversationIdRef.current = data.id;
+      }
+      const cid = conversationIdRef.current;
+      const toSave = messages.filter((m) => !persistedIdsRef.current.has(m.id));
+      if (toSave.length === 0) return;
+      const rows = toSave.map((m) => ({
+        conversation_id: cid!,
+        user_id: user.id,
+        role: m.role as "user" | "assistant",
+        parts: m.parts as never,
+      }));
+      const { error } = await supabase.from("messages").insert(rows);
+      if (!error) toSave.forEach((m) => persistedIdsRef.current.add(m.id));
+      if (cid) {
+        await supabase
+          .from("conversations")
+          .update({ last_message_at: new Date().toISOString() })
+          .eq("id", cid);
+      }
+    })();
+  }, [messages, isLoading, user]);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,17 +102,28 @@ function ChatScreen() {
               className="text-balance text-3xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Good day
+              {user ? `Hi ${user.user_metadata?.first_name ?? user.email?.split("@")[0] ?? ""}` : "Good day"}
             </h1>
           </div>
-          <div className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-            <span
-              className="font-bold text-primary"
+          {user ? (
+            <Link
+              to="/profile"
+              aria-label="Profile"
+              className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 font-bold text-primary"
               style={{ fontFamily: "var(--font-display)" }}
             >
               T
-            </span>
-          </div>
+            </Link>
+          ) : (
+            <Link
+              to="/auth"
+              aria-label="Sign in"
+              className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
+            >
+              <LogIn className="size-3" />
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
 

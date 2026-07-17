@@ -1,7 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { AppShell, BottomNav } from "@/components/AppShell";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, Settings2, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Profile - Taylor Intelligence" },
@@ -12,11 +17,396 @@ export const Route = createFileRoute("/profile")({
       },
     ],
   }),
-  component: () => (
-    <PlaceholderScreen
-      eyebrow="You"
-      title="Profile"
-      description="Your preferences, favourite stores, dietary needs and the memories Taylor uses to personalise your experience. All opt-in, all under your control."
-    />
-  ),
+  component: ProfileScreen,
 });
+
+type Profile = {
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+  locale: string;
+  country_code: string;
+  currency_code: string;
+  preferred_greeting: string | null;
+  communication_style: string | null;
+};
+
+type Memory = {
+  personal: Record<string, unknown>;
+  shopping: Record<string, unknown>;
+  food: Record<string, unknown>;
+  lifestyle: Record<string, unknown>;
+};
+
+function ProfileScreen() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [memory, setMemory] = useState<Memory | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) void navigate({ to: "/auth" });
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [{ data: p }, { data: m }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            "display_name, first_name, last_name, email, phone, locale, country_code, currency_code, preferred_greeting, communication_style",
+          )
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("subscriber_memory")
+          .select("personal, shopping, food, lifestyle")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ]);
+      if (p) setProfile(p as Profile);
+      if (m)
+        setMemory({
+          personal: (m.personal ?? {}) as Record<string, unknown>,
+          shopping: (m.shopping ?? {}) as Record<string, unknown>,
+          food: (m.food ?? {}) as Record<string, unknown>,
+          lifestyle: (m.lifestyle ?? {}) as Record<string, unknown>,
+        });
+    })();
+  }, [user]);
+
+  async function save() {
+    if (!user || !profile || !memory) return;
+    setSaving(true);
+    try {
+      await Promise.all([
+        supabase
+          .from("profiles")
+          .update({
+            display_name: profile.display_name,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            preferred_greeting: profile.preferred_greeting,
+            communication_style: profile.communication_style,
+          })
+          .eq("id", user.id),
+        supabase
+          .from("subscriber_memory")
+          .update({
+            personal: memory.personal as never,
+            shopping: memory.shopping as never,
+            food: memory.food as never,
+            lifestyle: memory.lifestyle as never,
+          })
+          .eq("user_id", user.id),
+      ]);
+      setSavedAt(Date.now());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (authLoading || !user) {
+    return (
+      <AppShell>
+        <div className="flex-1" />
+        <BottomNav />
+      </AppShell>
+    );
+  }
+
+  if (!profile || !memory) {
+    return (
+      <AppShell>
+        <header className="border-b border-border bg-background px-6 pb-4 pt-10">
+          <h1
+            className="text-3xl italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Profile
+          </h1>
+        </header>
+        <main className="flex-1 px-6 py-8 text-sm text-muted">Loading…</main>
+        <BottomNav />
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <header className="border-b border-border bg-background px-6 pb-4 pt-10">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+              You
+            </p>
+            <h1
+              className="text-3xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {profile.display_name || profile.first_name || "Your profile"}
+            </h1>
+            <p className="mt-1 text-xs text-muted">
+              {profile.email ?? profile.phone ?? ""}
+            </p>
+          </div>
+          <Link
+            to="/settings"
+            aria-label="Settings"
+            className="flex size-9 items-center justify-center rounded-full border border-border text-muted hover:text-foreground"
+          >
+            <Settings2 className="size-4" />
+          </Link>
+        </div>
+      </header>
+
+      <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
+        <Section title="About you">
+          <TextField
+            label="Display name"
+            value={profile.display_name ?? ""}
+            onChange={(v) => setProfile({ ...profile, display_name: v })}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <TextField
+              label="First name"
+              value={profile.first_name ?? ""}
+              onChange={(v) => setProfile({ ...profile, first_name: v })}
+            />
+            <TextField
+              label="Last name"
+              value={profile.last_name ?? ""}
+              onChange={(v) => setProfile({ ...profile, last_name: v })}
+            />
+          </div>
+          <TextField
+            label="How should Taylor greet you?"
+            placeholder="Howzit, morning, hello…"
+            value={profile.preferred_greeting ?? ""}
+            onChange={(v) => setProfile({ ...profile, preferred_greeting: v })}
+          />
+          <SelectField
+            label="Conversation style"
+            value={profile.communication_style ?? "warm"}
+            options={[
+              { value: "warm", label: "Warm and chatty" },
+              { value: "concise", label: "Concise" },
+              { value: "playful", label: "Playful" },
+            ]}
+            onChange={(v) => setProfile({ ...profile, communication_style: v })}
+          />
+        </Section>
+
+        <MemorySection
+          title="Shopping"
+          description="Favourite stores, budget, who you shop for. Taylor uses this to pick better deals."
+          value={memory.shopping}
+          onChange={(v) => setMemory({ ...memory, shopping: v })}
+          fields={[
+            { key: "budget_per_shop", label: "Typical budget per shop (R)", type: "number" },
+            { key: "household_size", label: "People in the household", type: "number" },
+            { key: "notes", label: "Anything else about how you shop", type: "textarea" },
+          ]}
+        />
+
+        <MemorySection
+          title="Food & diet"
+          description="Allergies, preferences and cuisines. Never shared outside Taylor."
+          value={memory.food}
+          onChange={(v) => setMemory({ ...memory, food: v })}
+          fields={[
+            { key: "allergies", label: "Allergies", type: "text" },
+            { key: "dietary", label: "Dietary preferences (halal, vegetarian…)", type: "text" },
+            { key: "loved_cuisines", label: "Cuisines you love", type: "text" },
+            { key: "disliked", label: "Foods to avoid", type: "text" },
+          ]}
+        />
+
+        <MemorySection
+          title="Lifestyle"
+          description="Life moments Taylor should remember. Fully opt-in."
+          value={memory.lifestyle}
+          onChange={(v) => setMemory({ ...memory, lifestyle: v })}
+          fields={[
+            { key: "cooking_time", label: "Time you have for cooking on weeknights", type: "text" },
+            { key: "kids_ages", label: "Kids in the home (ages)", type: "text" },
+            { key: "notes", label: "Anything else Taylor should know", type: "textarea" },
+          ]}
+        />
+
+        <div className="sticky bottom-20 z-10 -mx-6 border-t border-border bg-background/95 px-6 py-3 backdrop-blur">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-sm disabled:opacity-60"
+          >
+            <Sparkles className="size-4" />
+            {saving ? "Saving…" : "Save profile"}
+          </button>
+          {savedAt && (
+            <p className="mt-2 text-center text-[10px] text-muted">
+              Saved just now. Taylor will use this from your next message.
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            void navigate({ to: "/auth" });
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-xs text-muted hover:text-foreground"
+        >
+          <LogOut className="size-3.5" />
+          Sign out
+        </button>
+      </main>
+
+      <BottomNav />
+    </AppShell>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">
+        {title}
+      </h2>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  ...rest
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[11px] font-medium text-muted">
+        {label}
+      </span>
+      <input
+        {...rest}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+      />
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[11px] font-medium text-muted">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function MemorySection({
+  title,
+  description,
+  value,
+  onChange,
+  fields,
+}: {
+  title: string;
+  description: string;
+  value: Record<string, unknown>;
+  onChange: (v: Record<string, unknown>) => void;
+  fields: { key: string; label: string; type: "text" | "number" | "textarea" }[];
+}) {
+  return (
+    <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
+      <div>
+        <h2
+          className="text-lg italic tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {title}
+        </h2>
+        <p className="mt-1 text-[11px] leading-snug text-muted">{description}</p>
+      </div>
+      {fields.map((f) => {
+        const v = (value[f.key] as string | number | undefined) ?? "";
+        return (
+          <label key={f.key} className="block">
+            <span className="mb-1 block text-[11px] font-medium text-muted">
+              {f.label}
+            </span>
+            {f.type === "textarea" ? (
+              <textarea
+                value={String(v)}
+                onChange={(e) =>
+                  onChange({ ...value, [f.key]: e.target.value })
+                }
+                rows={2}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+              />
+            ) : (
+              <input
+                type={f.type}
+                value={String(v)}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  onChange({
+                    ...value,
+                    [f.key]:
+                      f.type === "number"
+                        ? raw === ""
+                          ? ""
+                          : Number(raw)
+                        : raw,
+                  });
+                }}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+              />
+            )}
+          </label>
+        );
+      })}
+    </section>
+  );
+}
