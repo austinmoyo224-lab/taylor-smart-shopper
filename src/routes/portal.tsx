@@ -71,6 +71,7 @@ function PortalLayout() {
 
   if (!user || isLoading) return <Full>Loading store portal…</Full>;
   if (!data?.hasAccess) return <NoAccess />;
+  if (data.organisations.length === 0) return <NoOrgs />;
 
   return (
     <PortalContext.Provider
@@ -225,6 +226,42 @@ function NoAccess() {
         >
           Back to Taylor
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function NoOrgs() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="max-w-md text-center">
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          Store portal
+        </p>
+        <h1
+          className="text-3xl italic tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          No organisation yet
+        </h1>
+        <p className="mt-3 text-sm text-muted">
+          Your account has a portal role but is not linked to any organisation. A super admin needs
+          to create an organisation and assign you to it.
+        </p>
+        <Link
+          to="/admin/organisations"
+          className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
+        >
+          Open admin console
+        </Link>
+        <div className="mt-3">
+          <Link
+            to="/chat"
+            className="inline-flex items-center rounded-full border border-border px-4 py-2 text-xs"
+          >
+            Back to Taylor
+          </Link>
+        </div>
       </div>
     </div>
   );

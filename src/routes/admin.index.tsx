@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminDashboard } from "@/lib/admin.functions";
-import { Building2, Store, Users, Tag, MessagesSquare, Send } from "lucide-react";
+import { Building2, Store, Users, Tag, MessagesSquare, Send, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
   ssr: false,
@@ -47,6 +47,34 @@ function AdminDashboard() {
         Numbers span every tenant on Taylor Intelligence. Use the sidebar to drill into
         organisations, stores, users and the audit log.
       </p>
+
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Link
+          to="/admin/stores"
+          className="group flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40"
+        >
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Quick add</p>
+            <p className="mt-1 text-lg italic" style={{ fontFamily: "var(--font-display)" }}>
+              Create a store
+            </p>
+          </div>
+          <ArrowRight className="size-4 text-primary transition group-hover:translate-x-1" />
+        </Link>
+        <Link
+          to="/portal"
+          className="group flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40"
+        >
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Manage</p>
+            <p className="mt-1 text-lg italic" style={{ fontFamily: "var(--font-display)" }}>
+              Products, promos & coupons
+            </p>
+            <p className="mt-1 text-xs text-muted">Open the store portal as a super admin.</p>
+          </div>
+          <ArrowRight className="size-4 text-primary transition group-hover:translate-x-1" />
+        </Link>
+      </div>
     </div>
   );
 }
