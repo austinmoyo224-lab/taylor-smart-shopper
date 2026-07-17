@@ -233,10 +233,10 @@ function NoOrgs() {
           to create an organisation and assign you to it.
         </p>
         <Link
-          to="/admin/organisations"
+          to="/onboarding"
           className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
-          Open admin console
+          Start onboarding
         </Link>
         <div className="mt-3">
           <Link
