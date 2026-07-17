@@ -1,6 +1,20 @@
-# Plan — Taylor Vision (Phase 2 module)
+# Plan — Store Analytics v2 (Phase 2 module)
 
 **Status: shipped**
+
+Give retailers a real dashboard: follower growth, coupon redemptions, live promotions and active campaigns, filterable by store and time range.
+
+## What we shipped
+
+- `getStoreAnalytics` server function (`src/lib/portal.functions.ts`) — authenticated, org-scoped, with optional `store_id` filter and 7/30/90 day windows. Aggregates from `subscriber_store_subs`, `coupon_redemptions`, `promotions`, `campaigns`.
+- `/portal/analytics` route with KPI tiles, follower growth area chart, daily redemptions bar chart (recharts), and a top-5 coupons table.
+- Store portal nav entry "Analytics" between Dashboard and Stores.
+- Tightened the coupons SELECT policy so only shoppers who actually follow the store (or a store in the same org for org-wide coupons) can read a coupon's `qr_payload`.
+
+## Out of scope
+
+- CSV export, cohort retention, funnel from view → redemption (needs an impression/view event table).
+- Sponsored-brand ROI (needs a spend field on campaigns).
 
 Build a camera-first feature that lets subscribers snap their fridge, pantry, or shopping receipt, then have Taylor identify items, match them to real store products, and add them to a shopping list or pantry.
 

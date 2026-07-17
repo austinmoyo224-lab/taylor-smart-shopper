@@ -298,3 +298,173 @@ export const createCoupon = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { id: row.id };
   });
+
+// ---------- ANALYTICS ----------
+
+const analyticsInput = z.object({
+  organisation_id: z.string().uuid(),
+  store_id: z.string().uuid().optional().nullable(),
+  days: z.number().int().min(7).max(180).default(30),
+});
+
+function dayKey(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function emptySeries(days: number) {
+  const out: { date: string; value: number }[] = [];
+  const now = new Date();
+  now.setUTCHours(0, 0, 0, 0);
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setUTCDate(now.getUTCDate() - i);
+    out.push({ date: dayKey(d), value: 0 });
+  }
+  return out;
+}
+
+export const getStoreAnalytics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => analyticsInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const since = new Date();
+    since.setUTCHours(0, 0, 0, 0);
+    since.setUTCDate(since.getUTCDate() - (data.days - 1));
+    const sinceIso = since.toISOString();
+
+    // scope to org stores (and optional single store)
+    const storesQuery = supabaseAdmin
+      .from("stores")
+      .select("id, name")
+      .eq("organisation_id", data.organisation_id)
+      .is("deleted_at", null);
+    const { data: orgStores } = await storesQuery;
+    const allStoreIds = (orgStores ?? []).map((s) => s.id);
+    const storeIds =
+      data.store_id && allStoreIds.includes(data.store_id) ? [data.store_id] : allStoreIds;
+    const storeNameById = new Map((orgStores ?? []).map((s) => [s.id, s.name]));
+
+    // --- followers ---
+    const followerSeries = emptySeries(data.days);
+    const followerIdx = new Map(followerSeries.map((p, i) => [p.date, i]));
+    let followerTotal = 0;
+    let followerNew = 0;
+
+    if (storeIds.length) {
+      const { count: totalCount } = await supabaseAdmin
+        .from("subscriber_store_subs")
+        .select("id", { count: "exact", head: true })
+        .eq("target_type", "store")
+        .eq("is_active", true)
+        .in("target_id", storeIds);
+      followerTotal = totalCount ?? 0;
+
+      const { data: newSubs } = await supabaseAdmin
+        .from("subscriber_store_subs")
+        .select("created_at, target_id")
+        .eq("target_type", "store")
+        .in("target_id", storeIds)
+        .gte("created_at", sinceIso)
+        .limit(5000);
+      for (const s of newSubs ?? []) {
+        followerNew++;
+        const key = dayKey(new Date(s.created_at));
+        const i = followerIdx.get(key);
+        if (i !== undefined) followerSeries[i].value++;
+      }
+    }
+
+    // --- redemptions ---
+    const redemptionSeries = emptySeries(data.days);
+    const redemptionIdx = new Map(redemptionSeries.map((p, i) => [p.date, i]));
+    let redemptionsTotal = 0;
+    const perCoupon = new Map<string, number>();
+
+    const { data: orgCoupons } = await supabaseAdmin
+      .from("coupons")
+      .select("id, code, title, store_id")
+      .eq("organisation_id", data.organisation_id)
+      .is("deleted_at", null);
+    const relevantCoupons = (orgCoupons ?? []).filter(
+      (c) => !data.store_id || c.store_id === data.store_id || c.store_id === null,
+    );
+    const couponIds = relevantCoupons.map((c) => c.id);
+    const couponMeta = new Map(relevantCoupons.map((c) => [c.id, c]));
+
+    if (couponIds.length) {
+      const { data: reds } = await supabaseAdmin
+        .from("coupon_redemptions")
+        .select("coupon_id, redeemed_at")
+        .in("coupon_id", couponIds)
+        .gte("redeemed_at", sinceIso)
+        .limit(10000);
+      for (const r of reds ?? []) {
+        redemptionsTotal++;
+        perCoupon.set(r.coupon_id, (perCoupon.get(r.coupon_id) ?? 0) + 1);
+        const key = dayKey(new Date(r.redeemed_at));
+        const i = redemptionIdx.get(key);
+        if (i !== undefined) redemptionSeries[i].value++;
+      }
+    }
+
+    const topCoupons = Array.from(perCoupon.entries())
+      .map(([id, count]) => {
+        const c = couponMeta.get(id);
+        return {
+          id,
+          code: c?.code ?? "—",
+          title: c?.title ?? "Coupon",
+          store_name: c?.store_id ? (storeNameById.get(c.store_id) ?? null) : null,
+          count,
+        };
+      })
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // --- promotions & campaigns ---
+    const promoQuery = supabaseAdmin
+      .from("promotions")
+      .select("id, is_published, ends_at, store_id", { count: "exact" })
+      .eq("organisation_id", data.organisation_id)
+      .is("deleted_at", null);
+    if (data.store_id) promoQuery.eq("store_id", data.store_id);
+    const { data: promos } = await promoQuery;
+    const nowMs = Date.now();
+    const promotionsPublished = (promos ?? []).filter((p) => p.is_published).length;
+    const promotionsActive = (promos ?? []).filter(
+      (p) => p.is_published && (!p.ends_at || new Date(p.ends_at).getTime() > nowMs),
+    ).length;
+
+    const campQuery = supabaseAdmin
+      .from("campaigns")
+      .select("id, is_active, store_id")
+      .eq("organisation_id", data.organisation_id)
+      .is("deleted_at", null);
+    if (data.store_id) campQuery.eq("store_id", data.store_id);
+    const { data: camps } = await campQuery;
+    const campaignsActive = (camps ?? []).filter((c) => c.is_active).length;
+
+    const activeCoupons = relevantCoupons.length;
+
+    return {
+      days: data.days,
+      scope: data.store_id ? "store" : ("organisation" as const),
+      totals: {
+        followerTotal,
+        followerNew,
+        redemptionsTotal,
+        activeCoupons,
+        promotionsPublished,
+        promotionsActive,
+        campaignsActive,
+      },
+      series: {
+        followers: followerSeries,
+        redemptions: redemptionSeries,
+      },
+      topCoupons,
+    };
+  });

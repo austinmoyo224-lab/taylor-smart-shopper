@@ -31,6 +31,7 @@ import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
 import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
+import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -148,6 +149,11 @@ const PortalCampaignsRoute = PortalCampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalAnalyticsRoute = PortalAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => PortalRoute,
+} as any)
 const JoinSlugRoute = JoinSlugRouteImport.update({
   id: '/join/$slug',
   path: '/join/$slug',
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
+    | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/products'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
+    | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/products'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
+    | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/products'
@@ -535,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCampaignsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/analytics': {
+      id: '/portal/analytics'
+      path: '/analytics'
+      fullPath: '/portal/analytics'
+      preLoaderRoute: typeof PortalAnalyticsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/join/$slug': {
       id: '/join/$slug'
       path: '/join/$slug'
@@ -599,6 +618,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PortalRouteChildren {
+  PortalAnalyticsRoute: typeof PortalAnalyticsRoute
   PortalCampaignsRoute: typeof PortalCampaignsRoute
   PortalCouponsRoute: typeof PortalCouponsRoute
   PortalProductsRoute: typeof PortalProductsRoute
@@ -608,6 +628,7 @@ interface PortalRouteChildren {
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalAnalyticsRoute: PortalAnalyticsRoute,
   PortalCampaignsRoute: PortalCampaignsRoute,
   PortalCouponsRoute: PortalCouponsRoute,
   PortalProductsRoute: PortalProductsRoute,
@@ -641,13 +662,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
