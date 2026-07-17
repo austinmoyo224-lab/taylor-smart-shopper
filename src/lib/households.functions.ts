@@ -26,13 +26,16 @@ export const createHousehold = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ name: z.string().min(1).max(80) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: hh, error } = await context.supabase
       .from("households")
       .insert({ name: data.name, owner_user_id: context.userId })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    const { error: memErr } = await context.supabase
+    // household_members inserts go through the service role: direct RLS
+    // writes are disabled so users cannot self-join arbitrary households.
+    const { error: memErr } = await supabaseAdmin
       .from("household_members")
       .insert({ household_id: hh.id, user_id: context.userId, role: "owner" });
     if (memErr) throw new Error(memErr.message);
