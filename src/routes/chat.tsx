@@ -306,6 +306,8 @@ function MessageRow({
 function IntroMessages() {
   return (
     <>
+      <HeroBanner />
+
       <div
         className="animate-message flex max-w-[85%] flex-col items-start"
         style={{ animationDelay: "80ms" }}
@@ -381,6 +383,136 @@ function IntroMessages() {
           Taylor
         </span>
       </div>
+
+      <InstallCta />
     </>
+  );
+}
+
+function HeroBanner() {
+  return (
+    <section
+      className="animate-message relative -mx-1 overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
+      style={{ animationDelay: "20ms" }}
+    >
+      <div className="relative">
+        <img
+          src={heroImg}
+          alt="Fresh market table with produce, bread and a phone showing a chat with Taylor"
+          width={1024}
+          height={1024}
+          className="h-56 w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest opacity-80">
+            Meet Taylor
+          </p>
+          <h2
+            className="text-balance text-2xl italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Your AI shopping companion.
+          </h2>
+          <p className="mt-1 max-w-md text-[13px] leading-snug opacity-90">
+            Personal deals. Recipes from what's on special. All in one calm chat — never spam.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 divide-x divide-border border-t border-border text-center">
+        <Perk icon={Tag} label="Real specials" />
+        <Perk icon={Sparkles} label="Recipe ideas" />
+        <Perk icon={ScanLine} label="Scan & save" />
+      </div>
+    </section>
+  );
+}
+
+function Perk({ icon: Icon, label }: { icon: typeof Tag; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1 px-2 py-3">
+      <Icon className="size-4 text-primary" strokeWidth={2} />
+      <span className="text-[11px] font-medium text-foreground">{label}</span>
+    </div>
+  );
+}
+
+function InstallCta() {
+  const [canInstall, setCanInstall] = useState(false);
+  const [installed, setInstalled] = useState(false);
+  const promptRef = useRef<Event | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const standalone =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      (navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (standalone) {
+      setInstalled(true);
+      return;
+    }
+    const handler = (e: Event) => {
+      e.preventDefault();
+      promptRef.current = e;
+      setCanInstall(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  if (installed) return null;
+
+  async function install() {
+    const e = promptRef.current as (Event & { prompt: () => Promise<void> }) | null;
+    if (!e) return;
+    try {
+      await e.prompt();
+    } finally {
+      setCanInstall(false);
+    }
+  }
+
+  return (
+    <div
+      className="animate-message rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5"
+      style={{ animationDelay: "360ms" }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+          <Download className="size-5" strokeWidth={2} />
+        </div>
+        <div className="flex-1">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+            Best experience
+          </p>
+          <h3
+            className="mt-0.5 text-lg italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Install Taylor on your phone
+          </h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            One tap from your home screen. Full-screen, offline-friendly, and gentle push alerts
+            when your favourite specials drop.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {canInstall ? (
+              <button
+                type="button"
+                onClick={install}
+                className="rounded-full bg-primary px-4 py-1.5 text-[12px] font-medium text-primary-foreground shadow-sm transition hover:scale-[1.02]"
+              >
+                Install now
+              </button>
+            ) : (
+              <span className="rounded-full border border-primary/30 bg-background px-3 py-1.5 text-[11px] text-muted">
+                iPhone: tap Share → “Add to Home Screen”
+              </span>
+            )}
+            <span className="text-[10px] text-muted">Free • No ads • Yours to shape</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
