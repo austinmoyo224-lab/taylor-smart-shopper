@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createStore } from "@/lib/portal.functions";
+import { ensureStoreQrCode } from "@/lib/subscriptions.functions";
 import { usePortal } from "./portal";
-import { Plus } from "lucide-react";
+import { Plus, QrCode as QrIcon } from "lucide-react";
+import QRCode from "qrcode";
 
 export const Route = createFileRoute("/portal/stores")({
   ssr: false,
@@ -79,6 +81,136 @@ function StoresPage() {
           </tbody>
         </table>
       </div>
+
+      {orgStores.length > 0 && (
+        <div className="mt-8">
+          <h2
+            className="mb-4 text-2xl italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Invite subscribers
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {orgStores.map((s) => (
+              <QrCard key={s.id} storeId={s.id} storeName={s.name} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function QrCard({ storeId, storeName }: { storeId: string; storeName: string }) {
+  const [state, setState] = useState<{
+    slug: string;
+    scans: number;
+    conversions: number;
+  } | null>(null);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function ensure() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const r = await ensureStoreQrCode({ data: { storeId } });
+      setState(r);
+      const joinUrl = `${window.location.origin}/join/${r.slug}`;
+      const png = await QRCode.toDataURL(joinUrl, {
+        width: 320,
+        margin: 1,
+        color: { dark: "#1a0e05", light: "#ffffff" },
+      });
+      setDataUrl(png);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not generate QR");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void ensure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId]);
+
+  const joinUrl = state ? `${window.location.origin}/join/${state.slug}` : "";
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Store
+          </p>
+          <h3 className="text-lg font-medium">{storeName}</h3>
+        </div>
+        <QrIcon className="size-5 text-primary/70" />
+      </div>
+      {loading && <p className="text-sm text-muted">Preparing invite…</p>}
+      {err && <p className="text-xs text-destructive">{err}</p>}
+      {state && dataUrl && (
+        <>
+          <div className="flex items-start gap-4">
+            <img
+              src={dataUrl}
+              alt={`QR for ${storeName}`}
+              width={160}
+              height={160}
+              className="rounded-xl border border-border bg-white p-2"
+            />
+            <div className="flex-1 space-y-2 text-xs">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Join link
+                </p>
+                <a
+                  href={joinUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all font-mono text-[11px] text-primary hover:underline"
+                >
+                  {joinUrl}
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(joinUrl)}
+                className="rounded-full border border-border px-3 py-1 text-[11px]"
+              >
+                Copy link
+              </button>
+              <a
+                href={dataUrl}
+                download={`taylor-qr-${state.slug}.png`}
+                className="ml-2 rounded-full border border-border px-3 py-1 text-[11px]"
+              >
+                Download PNG
+              </a>
+              <div className="grid grid-cols-2 gap-2 pt-2 text-muted">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest">
+                    Scans
+                  </p>
+                  <p className="text-lg font-medium text-foreground">
+                    {state.scans}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest">
+                    Follows
+                  </p>
+                  <p className="text-lg font-medium text-foreground">
+                    {state.conversions}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
