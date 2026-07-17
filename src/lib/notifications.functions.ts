@@ -204,7 +204,7 @@ async function deliverCampaign(opts: {
   // Respect per-user in_app preference (default true when no row).
   const { data: prefs } = await supabaseAdmin
     .from("notification_prefs")
-    .select("user_id, in_app")
+    .select("user_id, in_app, push")
     .in("user_id", users);
   const optedOut = new Set((prefs ?? []).filter((p) => p.in_app === false).map((p) => p.user_id));
   const targets = users.filter((u) => !optedOut.has(u));
@@ -228,6 +228,29 @@ async function deliverCampaign(opts: {
     const { error } = await supabaseAdmin.from("notifications").insert(rows.slice(i, i + CHUNK));
     if (error) throw new Error(error.message);
   }
+
+  // Fan out Web Push to users who opted into push (default true).
+  const pushOptedOut = new Set(
+    (prefs ?? [])
+      .filter((p) => (p as { push?: boolean }).push === false)
+      .map((p) => p.user_id),
+  );
+  const pushTargets = targets.filter((u) => !pushOptedOut.has(u));
+  if (pushTargets.length > 0) {
+    try {
+      const { sendPushToUsers } = await import("./push.server");
+      await sendPushToUsers(pushTargets, {
+        title: opts.title,
+        body: opts.body,
+        url: opts.storeId ? "/stores" : "/notifications",
+        tag: `campaign-${opts.campaignId}`,
+        data: { campaign_id: opts.campaignId },
+      });
+    } catch (e) {
+      console.error("[push] fanout failed", e);
+    }
+  }
+
   return rows.length;
 }
 
