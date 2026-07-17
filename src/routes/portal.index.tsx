@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { usePortal } from "./portal";
+import { usePortal } from "@/lib/portal-context";
 import { Store, Package, Tag, Ticket } from "lucide-react";
 
 export const Route = createFileRoute("/portal/")({

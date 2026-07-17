@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { createCampaign, listCampaigns, sendCampaignNow } from "@/lib/notifications.functions";
-import { usePortal } from "./portal";
+import { usePortal } from "@/lib/portal-context";
 import { Plus, Send } from "lucide-react";
 
 export const Route = createFileRoute("/portal/campaigns")({
