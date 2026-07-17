@@ -1,8 +1,21 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Mic, Plus, LogIn, X, Download, Sparkles, ScanLine, Tag } from "lucide-react";
+import {
+  ArrowUp,
+  Mic,
+  Plus,
+  LogIn,
+  X,
+  Download,
+  Sparkles,
+  ScanLine,
+  Tag,
+  Camera,
+  Image as ImageIcon,
+  ScanSearch,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
@@ -28,8 +41,11 @@ function ChatScreen() {
   const [input, setInput] = useState("");
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const conversationIdRef = useRef<string | null>(null);
   const persistedIdsRef = useRef<Set<string>>(new Set());
 
@@ -123,6 +139,17 @@ function ChatScreen() {
     if (e.target) e.target.value = "";
   }
 
+  function handleMenuAction(action: "scan" | "camera" | "gallery") {
+    setMenuOpen(false);
+    if (action === "scan") {
+      void navigate({ to: user ? "/vision" : "/auth" });
+    } else if (action === "camera") {
+      cameraInputRef.current?.click();
+    } else {
+      galleryInputRef.current?.click();
+    }
+  }
+
   const showIntro = messages.length === 0;
 
   return (
@@ -195,19 +222,59 @@ function ChatScreen() {
           </div>
         )}
         <div className="flex items-center gap-3 rounded-full border border-border bg-card px-3 py-2 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
-          <button
-            type="button"
-            aria-label="Attach photo"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
-          >
-            <Plus className="size-4" strokeWidth={2} />
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Open actions"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105"
+            >
+              <Plus className={"size-4 transition-transform " + (menuOpen ? "rotate-45" : "")} strokeWidth={2.5} />
+            </button>
+            {menuOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  className="fixed inset-0 z-30 cursor-default bg-transparent"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <div
+                  role="menu"
+                  className="animate-message absolute bottom-full left-0 z-40 mb-3 w-64 overflow-hidden rounded-2xl border border-border bg-card shadow-xl"
+                >
+                  <ActionMenuItem
+                    icon={ScanSearch}
+                    label="Scan pantry, QR code, or receipt"
+                    onClick={() => handleMenuAction("scan")}
+                  />
+                  <ActionMenuItem
+                    icon={Camera}
+                    label="Take Photo"
+                    onClick={() => handleMenuAction("camera")}
+                  />
+                  <ActionMenuItem
+                    icon={ImageIcon}
+                    label="Choose from Gallery"
+                    onClick={() => handleMenuAction("gallery")}
+                  />
+                </div>
+              </>
+            )}
+          </div>
           <input
-            ref={fileInputRef}
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"
+            className="hidden"
+            onChange={onFileSelect}
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
             className="hidden"
             onChange={onFileSelect}
           />
@@ -434,6 +501,30 @@ function Perk({ icon: Icon, label }: { icon: typeof Tag; label: string }) {
       <Icon className="size-4 text-primary" strokeWidth={2} />
       <span className="text-[11px] font-medium text-foreground">{label}</span>
     </div>
+  );
+}
+
+function ActionMenuItem({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: typeof Camera;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-surface"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Icon className="size-4" strokeWidth={2} />
+      </span>
+      <span className="text-pretty leading-snug">{label}</span>
+    </button>
   );
 }
 
