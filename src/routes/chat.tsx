@@ -15,6 +15,10 @@ import {
   Camera,
   Image as ImageIcon,
   ScanSearch,
+  Square,
+  Volume2,
+  VolumeX,
+  Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { AppShell, BottomNav } from "@/components/AppShell";
@@ -22,6 +26,15 @@ import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  VoiceRecorder,
+  transcribeBlob,
+  speakText,
+  stopSpeaking,
+  getAutoSpeak,
+  setAutoSpeak,
+  voiceSupported,
+} from "@/lib/voice-client";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({
@@ -48,6 +61,18 @@ function ChatScreen() {
   const navigate = useNavigate();
   const conversationIdRef = useRef<string | null>(null);
   const persistedIdsRef = useRef<Set<string>>(new Set());
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recorderRef = useRef<VoiceRecorder | null>(null);
+  const [autoSpeak, setAutoSpeakState] = useState(false);
+  const lastSpokenIdRef = useRef<string | null>(null);
+  const canVoice = voiceSupported();
+
+  useEffect(() => {
+    setAutoSpeakState(getAutoSpeak());
+    return () => stopSpeaking();
+  }, []);
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -64,6 +89,73 @@ function ChatScreen() {
   });
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  // Auto-speak the latest completed assistant message when enabled.
+  useEffect(() => {
+    if (!autoSpeak || isLoading || messages.length === 0) return;
+    const last = messages[messages.length - 1];
+    if (last.role !== "assistant" || lastSpokenIdRef.current === last.id) return;
+    const text = last.parts
+      .map((p) => (p.type === "text" ? p.text : ""))
+      .join("")
+      .trim();
+    if (!text) return;
+    lastSpokenIdRef.current = last.id;
+    void speakText(text).catch(() => {
+      /* ignore */
+    });
+  }, [messages, isLoading, autoSpeak]);
+
+  async function startRecording() {
+    if (!canVoice || recording || transcribing) return;
+    setVoiceError(null);
+    stopSpeaking();
+    const rec = new VoiceRecorder();
+    try {
+      await rec.start();
+      recorderRef.current = rec;
+      setRecording(true);
+    } catch {
+      setVoiceError("Microphone access is needed to talk to Taylor.");
+    }
+  }
+
+  async function stopRecording(send = true) {
+    const rec = recorderRef.current;
+    if (!rec) return;
+    recorderRef.current = null;
+    setRecording(false);
+    if (!send) {
+      rec.cancel();
+      return;
+    }
+    setTranscribing(true);
+    try {
+      const blob = await rec.stop();
+      if (blob.size < 2048) {
+        setVoiceError("That was too quiet — please try again.");
+        return;
+      }
+      const text = await transcribeBlob(blob);
+      if (!text) {
+        setVoiceError("Didn't catch that — please try again.");
+        return;
+      }
+      setInput("");
+      void sendMessage({ text });
+    } catch (err) {
+      setVoiceError(err instanceof Error ? err.message : "Voice failed.");
+    } finally {
+      setTranscribing(false);
+    }
+  }
+
+  function toggleAutoSpeak() {
+    const next = !autoSpeak;
+    setAutoSpeak(next);
+    setAutoSpeakState(next);
+    if (!next) stopSpeaking();
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -169,7 +261,24 @@ function ChatScreen() {
                 : "Good day"}
             </h1>
           </div>
-          {user ? (
+          <div className="flex items-center gap-2">
+            {canVoice && (
+              <button
+                type="button"
+                onClick={toggleAutoSpeak}
+                aria-pressed={autoSpeak}
+                aria-label={autoSpeak ? "Turn voice replies off" : "Turn voice replies on"}
+                className={
+                  "flex size-9 items-center justify-center rounded-full border transition-colors " +
+                  (autoSpeak
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border bg-card text-muted hover:text-foreground")
+                }
+              >
+                {autoSpeak ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+              </button>
+            )}
+            {user ? (
             <Link
               to="/profile"
               aria-label="Profile"
@@ -178,7 +287,7 @@ function ChatScreen() {
             >
               T
             </Link>
-          ) : (
+            ) : (
             <Link
               to="/auth"
               aria-label="Sign in"
@@ -187,7 +296,8 @@ function ChatScreen() {
               <LogIn className="size-3" />
               Sign in
             </Link>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
@@ -195,7 +305,13 @@ function ChatScreen() {
         {showIntro && <IntroMessages />}
 
         {messages.map((message, i) => (
-          <MessageRow key={message.id} role={message.role} parts={message.parts} delay={i * 60} />
+          <MessageRow
+            key={message.id}
+            role={message.role}
+            parts={message.parts}
+            delay={i * 60}
+            canVoice={canVoice}
+          />
         ))}
 
         {status === "submitted" && (
@@ -208,6 +324,29 @@ function ChatScreen() {
       </div>
 
       <form onSubmit={onSubmit} className="border-t border-border bg-background px-4 py-4">
+        {voiceError && (
+          <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
+            {voiceError}
+          </div>
+        )}
+        {recording && (
+          <div className="mb-2 flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/10 px-3 py-2">
+            <div className="flex items-center gap-2 text-[12px] text-primary">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
+                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+              </span>
+              Listening… tap the square to send.
+            </div>
+            <button
+              type="button"
+              onClick={() => stopRecording(false)}
+              className="text-[11px] text-muted underline"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
         {attachedFile && (
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs">
             <span className="max-w-[180px] truncate text-muted">{attachedFile.name}</span>
@@ -282,22 +421,47 @@ function ChatScreen() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={attachedFile ? "Add a message (optional)…" : "Ask Taylor anything..."}
+            placeholder={
+              recording
+                ? "Listening…"
+                : transcribing
+                  ? "Transcribing…"
+                  : attachedFile
+                    ? "Add a message (optional)…"
+                    : "Ask Taylor anything, or tap the mic…"
+            }
             aria-label="Message Taylor"
-            disabled={isLoading}
+            disabled={isLoading || recording || transcribing}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted/60 disabled:opacity-60"
           />
-          <button
-            type="button"
-            aria-label="Voice"
-            className="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
-          >
-            <Mic className="size-4" strokeWidth={2} />
-          </button>
+          {canVoice && (
+            <button
+              type="button"
+              aria-label={recording ? "Stop recording and send" : "Record voice message"}
+              onClick={() => (recording ? stopRecording(true) : startRecording())}
+              disabled={transcribing || isLoading}
+              className={
+                "flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-50 " +
+                (recording
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted hover:text-primary")
+              }
+            >
+              {transcribing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : recording ? (
+                <Square className="size-3.5" strokeWidth={3} />
+              ) : (
+                <Mic className="size-4" strokeWidth={2} />
+              )}
+            </button>
+          )}
           <button
             type="submit"
             aria-label="Send message"
-            disabled={isLoading || (input.trim().length === 0 && !attachedFile)}
+            disabled={
+              isLoading || recording || transcribing || (input.trim().length === 0 && !attachedFile)
+            }
             className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 disabled:pointer-events-none disabled:opacity-50"
           >
             <ArrowUp className="size-4" strokeWidth={2.5} />
@@ -314,14 +478,34 @@ function MessageRow({
   role,
   parts,
   delay,
+  canVoice,
 }: {
   role: string;
   parts: UIMessage["parts"];
   delay: number;
+  canVoice?: boolean;
 }) {
   const isUser = role === "user";
   const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
   const hasFile = parts.some((p) => p.type === "file");
+  const [speaking, setSpeaking] = useState(false);
+
+  async function toggleSpeak() {
+    if (speaking) {
+      stopSpeaking();
+      setSpeaking(false);
+      return;
+    }
+    if (!text.trim()) return;
+    setSpeaking(true);
+    try {
+      await speakText(text);
+    } catch {
+      /* ignore */
+    } finally {
+      setSpeaking(false);
+    }
+  }
 
   return (
     <div
@@ -363,9 +547,21 @@ function MessageRow({
           </div>
         )}
       </div>
-      <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
-        {isUser ? "You" : "Taylor"}
-      </span>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-tighter text-muted">
+          {isUser ? "You" : "Taylor"}
+        </span>
+        {!isUser && canVoice && text.trim() && (
+          <button
+            type="button"
+            onClick={toggleSpeak}
+            aria-label={speaking ? "Stop reading" : "Read aloud"}
+            className="flex size-6 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
+          >
+            {speaking ? <Square className="size-2.5" strokeWidth={3} /> : <Volume2 className="size-3" />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

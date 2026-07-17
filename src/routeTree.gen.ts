@@ -43,6 +43,8 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
+import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
 
 const VisionRoute = VisionRouteImport.update({
   id: '/vision',
@@ -214,6 +216,16 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
+  id: '/api/voice/transcribe',
+  path: '/api/voice/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
+  id: '/api/voice/speak',
+  path: '/api/voice/speak',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -250,6 +262,8 @@ export interface FileRoutesByFullPath {
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -284,6 +298,8 @@ export interface FileRoutesByTo {
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -321,6 +337,8 @@ export interface FileRoutesById {
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -359,6 +377,8 @@ export interface FileRouteTypes {
     | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
+    | '/api/voice/speak'
+    | '/api/voice/transcribe'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -393,6 +413,8 @@ export interface FileRouteTypes {
     | '/recipes/$slug'
     | '/admin'
     | '/portal'
+    | '/api/voice/speak'
+    | '/api/voice/transcribe'
   id:
     | '__root__'
     | '/'
@@ -429,6 +451,8 @@ export interface FileRouteTypes {
     | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
+    | '/api/voice/speak'
+    | '/api/voice/transcribe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -452,6 +476,8 @@ export interface RootRouteChildren {
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
+  ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
+  ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -694,6 +720,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/voice/transcribe': {
+      id: '/api/voice/transcribe'
+      path: '/api/voice/transcribe'
+      fullPath: '/api/voice/transcribe'
+      preLoaderRoute: typeof ApiVoiceTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/voice/speak': {
+      id: '/api/voice/speak'
+      path: '/api/voice/speak'
+      fullPath: '/api/voice/speak'
+      preLoaderRoute: typeof ApiVoiceSpeakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -772,17 +812,9 @@ const rootRouteChildren: RootRouteChildren = {
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
+  ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
+  ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
