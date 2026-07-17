@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { VisionCapture } from "@/components/VisionCapture";
@@ -14,10 +14,10 @@ import {
 } from "@/lib/vision.functions";
 import {
   addListItem,
-  addPantryItem,
   createShoppingList,
   listMyShoppingLists,
 } from "@/lib/lists.functions";
+import { addPantryItem } from "@/lib/pantry.functions";
 import {
   Camera,
   Check,
