@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoresRouteImport } from './routes/stores'
 import { Route as RecipesRouteImport } from './routes/recipes'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as DealsRouteImport } from './routes/deals'
@@ -28,6 +29,11 @@ const StoresRoute = StoresRouteImport.update({
 const RecipesRoute = RecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/stores': typeof StoresRoute
   '/api/chat': typeof ApiChatRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/stores': typeof StoresRoute
   '/api/chat': typeof ApiChatRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/deals': typeof DealsRoute
   '/lists': typeof ListsRoute
   '/notifications': typeof NotificationsRoute
+  '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/stores': typeof StoresRoute
   '/api/chat': typeof ApiChatRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/lists'
     | '/notifications'
+    | '/profile'
     | '/recipes'
     | '/stores'
     | '/api/chat'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/lists'
     | '/notifications'
+    | '/profile'
     | '/recipes'
     | '/stores'
     | '/api/chat'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/lists'
     | '/notifications'
+    | '/profile'
     | '/recipes'
     | '/stores'
     | '/api/chat'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   DealsRoute: typeof DealsRoute
   ListsRoute: typeof ListsRoute
   NotificationsRoute: typeof NotificationsRoute
+  ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   StoresRoute: typeof StoresRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/recipes'
       fullPath: '/recipes'
       preLoaderRoute: typeof RecipesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   DealsRoute: DealsRoute,
   ListsRoute: ListsRoute,
   NotificationsRoute: NotificationsRoute,
+  ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   StoresRoute: StoresRoute,
   ApiChatRoute: ApiChatRoute,

@@ -98,10 +98,10 @@ function ProfileScreen() {
         supabase
           .from("subscriber_memory")
           .update({
-            personal: memory.personal,
-            shopping: memory.shopping,
-            food: memory.food,
-            lifestyle: memory.lifestyle,
+            personal: memory.personal as never,
+            shopping: memory.shopping as never,
+            food: memory.food as never,
+            lifestyle: memory.lifestyle as never,
           })
           .eq("user_id", user.id),
       ]);
