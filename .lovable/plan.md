@@ -1,5 +1,7 @@
 # Plan — Taylor Vision (Phase 2 module)
 
+**Status: shipped**
+
 Build a camera-first feature that lets subscribers snap their fridge, pantry, or shopping receipt, then have Taylor identify items, match them to real store products, and add them to a shopping list or pantry.
 
 ## Goals
