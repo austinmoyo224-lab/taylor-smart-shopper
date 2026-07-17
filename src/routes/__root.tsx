@@ -100,8 +100,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57b3f123-43a6-45a7-b2d8-7a6eaeecc2c5/id-preview-4b9a48d2--c0197c54-2298-44b5-85ea-897cf4a313d4.lovable.app-1784263073546.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57b3f123-43a6-45a7-b2d8-7a6eaeecc2c5/id-preview-4b9a48d2--c0197c54-2298-44b5-85ea-897cf4a313d4.lovable.app-1784263073546.png" },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57b3f123-43a6-45a7-b2d8-7a6eaeecc2c5/id-preview-4b9a48d2--c0197c54-2298-44b5-85ea-897cf4a313d4.lovable.app-1784263073546.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57b3f123-43a6-45a7-b2d8-7a6eaeecc2c5/id-preview-4b9a48d2--c0197c54-2298-44b5-85ea-897cf4a313d4.lovable.app-1784263073546.png",
+      },
     ],
     links: [
       {

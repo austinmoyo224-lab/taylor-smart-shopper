@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  createCampaign,
-  listCampaigns,
-  sendCampaignNow,
-} from "@/lib/notifications.functions";
+import { createCampaign, listCampaigns, sendCampaignNow } from "@/lib/notifications.functions";
 import { usePortal } from "./portal";
 import { Plus, Send } from "lucide-react";
 
@@ -28,17 +24,14 @@ function CampaignsPage() {
 
   const send = useMutation({
     mutationFn: (campaignId: string) => sendCampaignNow({ data: { campaignId } }),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["portal", "campaigns", activeOrgId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["portal", "campaigns", activeOrgId] }),
   });
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-            Reach
-          </p>
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Reach</p>
           <h1
             className="text-4xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
@@ -109,9 +102,7 @@ function CampaignsPage() {
                     <div className="text-muted">{sched.body ?? ""}</div>
                   </td>
                   <td className="px-4 py-3 text-[11px] text-muted">
-                    {c.starts_at
-                      ? new Date(c.starts_at).toLocaleString("en-ZA")
-                      : "Not sent"}
+                    {c.starts_at ? new Date(c.starts_at).toLocaleString("en-ZA") : "Not sent"}
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -130,9 +121,7 @@ function CampaignsPage() {
       </div>
 
       {send.data && (
-        <p className="mt-3 text-xs text-muted">
-          Delivered to {send.data.delivered} subscribers.
-        </p>
+        <p className="mt-3 text-xs text-muted">Delivered to {send.data.delivered} subscribers.</p>
       )}
     </div>
   );
@@ -179,8 +168,7 @@ function NewCampaignForm({
     onError: (e: Error) => setError(e.message),
   });
 
-  const cls =
-    "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm";
+  const cls = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm";
 
   return (
     <form
@@ -206,16 +194,32 @@ function NewCampaignForm({
       </F>
       <div className="md:col-span-2">
         <F label="Title (what the subscriber sees)">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={160} className={cls} />
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            maxLength={160}
+            className={cls}
+          />
         </F>
       </div>
       <div className="md:col-span-2">
         <F label="Message">
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={500} className={cls} />
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={3}
+            maxLength={500}
+            className={cls}
+          />
         </F>
       </div>
       <F label="Category">
-        <select value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className={cls}>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as typeof category)}
+          className={cls}
+        >
           <option value="campaign">Campaign</option>
           <option value="promotion">Promotion</option>
           <option value="coupon">Coupon</option>
@@ -244,11 +248,7 @@ function NewCampaignForm({
         {result && (
           <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
             Delivered to {result.delivered} subscribers.
-            <button
-              type="button"
-              onClick={onDone}
-              className="ml-3 underline"
-            >
+            <button type="button" onClick={onDone} className="ml-3 underline">
               Close
             </button>
           </div>
@@ -261,9 +261,7 @@ function NewCampaignForm({
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium text-muted">
-        {label}
-      </span>
+      <span className="mb-1 block text-[11px] font-medium text-muted">{label}</span>
       {children}
     </label>
   );

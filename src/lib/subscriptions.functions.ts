@@ -7,30 +7,24 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * return the store card content used on /join/:slug.
  */
 export const getStoreByJoinSlug = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) =>
-    z.object({ slug: z.string().min(3).max(120) }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(3).max(120) }).parse(d))
   .handler(async ({ data }) => {
     // Read via admin client so join links work even for stores that haven't
     // been marked is_public yet — the /join page only surfaces name + hero.
-    const { supabaseAdmin: supabase } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
 
-    let store = null as
-      | {
-          id: string;
-          name: string;
-          slug: string;
-          description: string | null;
-          hero_image_url: string | null;
-          logo_url: string | null;
-          city: string | null;
-          country_code: string | null;
-          is_public: boolean;
-          organisation_id: string;
-        }
-      | null;
+    let store = null as {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      hero_image_url: string | null;
+      logo_url: string | null;
+      city: string | null;
+      country_code: string | null;
+      is_public: boolean;
+      organisation_id: string;
+    } | null;
 
     const direct = await supabase
       .from("stores")
@@ -69,9 +63,7 @@ export const getStoreByJoinSlug = createServerFn({ method: "GET" })
 
 /** Increment scan counter (best-effort, never blocks the page). */
 export const recordJoinScan = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
-    z.object({ slug: z.string().min(3).max(120) }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(3).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Only bump if a qr_codes row with that slug exists.
@@ -139,9 +131,7 @@ export const subscribeToStore = createServerFn({ method: "POST" })
 
 export const unsubscribeFromStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ storeId: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
@@ -173,17 +163,14 @@ export const listMySubscriptions = createServerFn({ method: "GET" })
       .in("id", ids);
     return (stores ?? []).map((s) => ({
       ...s,
-      subscribed_at:
-        data?.find((r) => r.target_id === s.id)?.created_at ?? null,
+      subscribed_at: data?.find((r) => r.target_id === s.id)?.created_at ?? null,
     }));
   });
 
 /** Portal: ensure a QR row exists for this store, return the join URL + slug. */
 export const ensureStoreQrCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ storeId: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Verify caller owns access to the org this store belongs to.
@@ -211,7 +198,12 @@ export const ensureStoreQrCode = createServerFn({ method: "POST" })
       .eq("target_id", store.id)
       .eq("type", "store_invite")
       .maybeSingle();
-    if (existing) return { slug: existing.slug, scans: existing.scan_count, conversions: existing.conversion_count };
+    if (existing)
+      return {
+        slug: existing.slug,
+        scans: existing.scan_count,
+        conversions: existing.conversion_count,
+      };
 
     const { data: created, error } = await supabaseAdmin
       .from("qr_codes")

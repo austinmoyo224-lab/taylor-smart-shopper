@@ -12,8 +12,7 @@ export const Route = createFileRoute("/settings")({
       { title: "Settings - Taylor Intelligence" },
       {
         name: "description",
-        content:
-          "Language, currency, notification preferences and account controls.",
+        content: "Language, currency, notification preferences and account controls.",
       },
     ],
   }),
@@ -43,11 +42,7 @@ function SettingsScreen() {
     if (!user) return;
     (async () => {
       const [{ data: p }, { data: np }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("locale, currency_code")
-          .eq("id", user.id)
-          .maybeSingle(),
+        supabase.from("profiles").select("locale, currency_code").eq("id", user.id).maybeSingle(),
         supabase
           .from("notification_prefs")
           .select("in_app, push, email, sms")
@@ -68,10 +63,7 @@ function SettingsScreen() {
     setSaving(true);
     try {
       await Promise.all([
-        supabase
-          .from("profiles")
-          .update({ locale, currency_code: currency })
-          .eq("id", user.id),
+        supabase.from("profiles").update({ locale, currency_code: currency }).eq("id", user.id),
         supabase.from("notification_prefs").upsert({
           user_id: user.id,
           ...prefs,
@@ -94,9 +86,7 @@ function SettingsScreen() {
   return (
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Setup
-        </p>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Setup</p>
         <h1
           className="text-3xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
@@ -107,13 +97,9 @@ function SettingsScreen() {
 
       <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
         <section className="space-y-3">
-          <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Region
-          </h2>
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">Region</h2>
           <label className="block">
-            <span className="mb-1 block text-[11px] font-medium text-muted">
-              Language
-            </span>
+            <span className="mb-1 block text-[11px] font-medium text-muted">Language</span>
             <select
               value={locale}
               onChange={(e) => setLocale(e.target.value)}
@@ -127,9 +113,7 @@ function SettingsScreen() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-[11px] font-medium text-muted">
-              Currency
-            </span>
+            <span className="mb-1 block text-[11px] font-medium text-muted">Currency</span>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
@@ -163,9 +147,7 @@ function SettingsScreen() {
               <input
                 type="checkbox"
                 checked={prefs[key]}
-                onChange={(e) =>
-                  setPrefs({ ...prefs, [key]: e.target.checked })
-                }
+                onChange={(e) => setPrefs({ ...prefs, [key]: e.target.checked })}
                 className="size-4 accent-primary"
               />
             </label>

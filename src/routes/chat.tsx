@@ -1,8 +1,8 @@
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Mic, Plus, LogIn } from "lucide-react";
+import { ArrowUp, Mic, Plus, LogIn, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
@@ -25,7 +25,9 @@ export const Route = createFileRoute("/chat")({
 
 function ChatScreen() {
   const [input, setInput] = useState("");
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const conversationIdRef = useRef<string | null>(null);
   const persistedIdsRef = useRef<Set<string>>(new Set());
@@ -58,10 +60,13 @@ function ChatScreen() {
     if (!user || isLoading || messages.length === 0) return;
     void (async () => {
       if (!conversationIdRef.current) {
-        const firstText = messages[0]?.parts
-          .map((p) => (p.type === "text" ? p.text : ""))
-          .join("")
-          .slice(0, 80);
+        const firstHasImage = messages[0]?.parts.some((p) => p.type === "file");
+        const firstText = firstHasImage
+          ? "Photo"
+          : messages[0]?.parts
+              .map((p) => (p.type === "text" ? p.text : ""))
+              .join("")
+              .slice(0, 80);
         const { data, error } = await supabase
           .from("conversations")
           .insert({ user_id: user.id, title: firstText || "New chat" })
@@ -77,7 +82,9 @@ function ChatScreen() {
         conversation_id: cid!,
         user_id: user.id,
         role: m.role as "user" | "assistant",
-        parts: m.parts as never,
+        parts: m.parts.map((p) =>
+          p.type === "file" ? { type: "text", text: "[photo shared]" } : p,
+        ) as never,
       }));
       const { error } = await supabase.from("messages").insert(rows);
       if (!error) toSave.forEach((m) => persistedIdsRef.current.add(m.id));
@@ -93,9 +100,26 @@ function ChatScreen() {
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+    if ((!trimmed && !attachedFile) || isLoading) return;
+
+    if (attachedFile) {
+      const dt = new DataTransfer();
+      dt.items.add(attachedFile);
+      const files = dt.files;
+      setAttachedFile(null);
+      setInput("");
+      void sendMessage(trimmed ? { text: trimmed, files } : { files });
+      return;
+    }
+
     setInput("");
     void sendMessage({ text: trimmed });
+  }
+
+  function onFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) setAttachedFile(file);
+    if (e.target) e.target.value = "";
   }
 
   const showIntro = messages.length === 0;
@@ -112,7 +136,9 @@ function ChatScreen() {
               className="text-balance text-3xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              {user ? `Hi ${user.user_metadata?.first_name ?? user.email?.split("@")[0] ?? ""}` : "Good day"}
+              {user
+                ? `Hi ${user.user_metadata?.first_name ?? user.email?.split("@")[0] ?? ""}`
+                : "Good day"}
             </h1>
           </div>
           {user ? (
@@ -137,54 +163,58 @@ function ChatScreen() {
         </div>
       </header>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth"
-      >
+      <div ref={scrollRef} className="flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth">
         {showIntro && <IntroMessages />}
 
-        {messages.map((message, i) => {
-          const text = message.parts
-            .map((p) => (p.type === "text" ? p.text : ""))
-            .join("");
-          return (
-            <MessageRow
-              key={message.id}
-              role={message.role}
-              text={text}
-              delay={i * 60}
-            />
-          );
-        })}
+        {messages.map((message, i) => (
+          <MessageRow key={message.id} role={message.role} parts={message.parts} delay={i * 60} />
+        ))}
 
         {status === "submitted" && (
           <div className="animate-message flex max-w-[85%] flex-col items-start">
             <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
-              <span className="animate-shimmer text-sm leading-relaxed">
-                Taylor is thinking...
-              </span>
+              <span className="animate-shimmer text-sm leading-relaxed">Taylor is thinking...</span>
             </div>
           </div>
         )}
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="border-t border-border bg-background px-4 py-4"
-      >
+      <form onSubmit={onSubmit} className="border-t border-border bg-background px-4 py-4">
+        {attachedFile && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs">
+            <span className="max-w-[180px] truncate text-muted">{attachedFile.name}</span>
+            <button
+              type="button"
+              onClick={() => setAttachedFile(null)}
+              className="text-muted hover:text-destructive"
+              aria-label="Remove attachment"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-3 rounded-full border border-border bg-card px-3 py-2 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
           <button
             type="button"
-            aria-label="Attach"
+            aria-label="Attach photo"
+            onClick={() => fileInputRef.current?.click()}
             className="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
           >
             <Plus className="size-4" strokeWidth={2} />
           </button>
           <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={onFileSelect}
+          />
+          <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Taylor anything..."
+            placeholder={attachedFile ? "Add a message (optional)…" : "Ask Taylor anything..."}
             aria-label="Message Taylor"
             disabled={isLoading}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted/60 disabled:opacity-60"
@@ -199,7 +229,7 @@ function ChatScreen() {
           <button
             type="submit"
             aria-label="Send message"
-            disabled={isLoading || input.trim().length === 0}
+            disabled={isLoading || (input.trim().length === 0 && !attachedFile)}
             className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 disabled:pointer-events-none disabled:opacity-50"
           >
             <ArrowUp className="size-4" strokeWidth={2.5} />
@@ -214,35 +244,54 @@ function ChatScreen() {
 
 function MessageRow({
   role,
-  text,
+  parts,
   delay,
 }: {
   role: string;
-  text: string;
+  parts: UIMessage["parts"];
   delay: number;
 }) {
   const isUser = role === "user";
+  const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+  const hasFile = parts.some((p) => p.type === "file");
+
   return (
     <div
-      className={
-        "animate-message flex w-full flex-col " +
-        (isUser ? "items-end" : "items-start")
-      }
+      className={"animate-message flex w-full flex-col " + (isUser ? "items-end" : "items-start")}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div
         className={
-          "max-w-[85%] px-4 py-3 " +
+          "max-w-[85%] space-y-2 px-4 py-3 " +
           (isUser
             ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
             : "rounded-2xl rounded-tl-none border border-black/5 bg-surface")
         }
       >
-        {isUser ? (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
-        ) : (
-          <div className="prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold">
-            <ReactMarkdown>{text}</ReactMarkdown>
+        {hasFile && (
+          <div className="flex flex-wrap gap-2">
+            {parts.map((p, idx) =>
+              p.type === "file" ? (
+                <img
+                  key={idx}
+                  src={p.url}
+                  alt="Shared photo"
+                  className="max-h-48 rounded-lg border border-black/5 object-cover"
+                  loading="lazy"
+                />
+              ) : null,
+            )}
+          </div>
+        )}
+        {text && (
+          <div
+            className={
+              isUser
+                ? "whitespace-pre-wrap text-sm leading-relaxed"
+                : "prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold"
+            }
+          >
+            {isUser ? <p>{text}</p> : <ReactMarkdown>{text}</ReactMarkdown>}
           </div>
         )}
       </div>
@@ -262,9 +311,8 @@ function IntroMessages() {
       >
         <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
           <p className="text-pretty text-sm leading-relaxed">
-            Hi, I'm Taylor. Think of me as your AI shopping companion — I help
-            you keep track of specials, recipes and coupons from the stores you
-            follow.
+            Hi, I'm Taylor. Think of me as your AI shopping companion — I help you keep track of
+            specials, recipes and coupons from the stores you follow.
           </p>
         </div>
         <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
@@ -278,8 +326,8 @@ function IntroMessages() {
       >
         <div className="mb-4 max-w-[85%] rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
           <p className="text-pretty text-sm leading-relaxed">
-            Once you follow a store, I'll only share deals that match what you
-            actually buy. Here's an example of how a personalised pick looks:
+            Once you follow a store, I'll only share deals that match what you actually buy. Here's
+            an example of how a personalised pick looks:
           </p>
         </div>
 
@@ -319,9 +367,8 @@ function IntroMessages() {
                     Why Taylor would pick this
                   </p>
                   <p className="text-[11px] leading-snug text-muted">
-                    Once stores are connected, Taylor only shows deals that
-                    match your preferences. This card is illustrative — real
-                    deals arrive once you follow a store.
+                    Once stores are connected, Taylor only shows deals that match your preferences.
+                    This card is illustrative — real deals arrive once you follow a store.
                   </p>
                 </div>
               </div>

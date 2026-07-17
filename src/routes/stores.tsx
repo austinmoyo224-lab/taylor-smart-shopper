@@ -3,10 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  listMySubscriptions,
-  unsubscribeFromStore,
-} from "@/lib/subscriptions.functions";
+import { listMySubscriptions, unsubscribeFromStore } from "@/lib/subscriptions.functions";
 import { MapPin, X } from "lucide-react";
 
 export const Route = createFileRoute("/stores")({
@@ -40,17 +37,14 @@ function StoresScreen() {
   });
 
   const unsub = useMutation({
-    mutationFn: (storeId: string) =>
-      unsubscribeFromStore({ data: { storeId } }),
+    mutationFn: (storeId: string) => unsubscribeFromStore({ data: { storeId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subs", "mine"] }),
   });
 
   return (
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Follow
-        </p>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Follow</p>
         <h1
           className="text-3xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
@@ -65,8 +59,8 @@ function StoresScreen() {
         ) : (subs.data ?? []).length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6 text-sm leading-relaxed text-muted">
             <p>
-              You're not following any stores yet. Scan a store's QR code in
-              their shop, or open the join link they've shared with you.
+              You're not following any stores yet. Scan a store's QR code in their shop, or open the
+              join link they've shared with you.
             </p>
             <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-primary">
               How it works
@@ -85,11 +79,7 @@ function StoresScreen() {
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
               >
                 {s.logo_url ? (
-                  <img
-                    src={s.logo_url}
-                    alt={s.name}
-                    className="size-12 rounded-xl object-cover"
-                  />
+                  <img src={s.logo_url} alt={s.name} className="size-12 rounded-xl object-cover" />
                 ) : (
                   <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary">
                     {s.name.charAt(0)}
@@ -116,8 +106,7 @@ function StoresScreen() {
         )}
 
         <div className="mt-8 rounded-2xl border border-dashed border-border p-4 text-xs text-muted">
-          Have a store's join code?{" "}
-          <JoinCodeInline />
+          Have a store's join code? <JoinCodeInline />
         </div>
       </main>
 

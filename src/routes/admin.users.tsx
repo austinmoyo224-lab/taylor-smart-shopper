@@ -3,20 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listUsers, setUserRole, listOrganisations } from "@/lib/admin.functions";
 import { useState } from "react";
 
-type Role =
-  | "super_admin"
-  | "retailer_admin"
-  | "store_manager"
-  | "staff"
-  | "subscriber";
+type Role = "super_admin" | "retailer_admin" | "store_manager" | "staff" | "subscriber";
 
-const ROLES: Role[] = [
-  "super_admin",
-  "retailer_admin",
-  "store_manager",
-  "staff",
-  "subscriber",
-];
+const ROLES: Role[] = ["super_admin", "retailer_admin", "store_manager", "staff", "subscriber"];
 
 export const Route = createFileRoute("/admin/users")({
   ssr: false,
@@ -48,9 +37,7 @@ function UsersPage() {
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
-      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-        Access
-      </p>
+      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Access</p>
       <h1
         className="mb-8 text-4xl italic tracking-tight"
         style={{ fontFamily: "var(--font-display)" }}
@@ -111,9 +98,7 @@ function UserRow({
           <p className="text-sm font-medium">
             {user.display_name || user.first_name || user.email || "Subscriber"}
           </p>
-          <p className="font-mono text-[10px] text-muted">
-            {user.email ?? user.id.slice(0, 8)}
-          </p>
+          <p className="font-mono text-[10px] text-muted">{user.email ?? user.id.slice(0, 8)}</p>
         </div>
         <div className="flex flex-wrap gap-1">
           {user.roles.map((r, i) => (
@@ -151,10 +136,7 @@ function UserRow({
           <summary className="cursor-pointer text-[11px] text-muted hover:text-foreground">
             Scope a retailer or staff role to an organisation
           </summary>
-          <ScopedRoleAssigner
-            orgs={orgs}
-            onGrant={(role, orgId) => onToggle(role, true, orgId)}
-          />
+          <ScopedRoleAssigner orgs={orgs} onGrant={(role, orgId) => onToggle(role, true, orgId)} />
         </details>
       )}
     </div>

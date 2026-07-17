@@ -150,18 +150,14 @@ function ProfileScreen() {
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
         <div className="flex items-start justify-between">
           <div>
-            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-              You
-            </p>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">You</p>
             <h1
               className="text-3xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
               {profile.display_name || profile.first_name || "Your profile"}
             </h1>
-            <p className="mt-1 text-xs text-muted">
-              {profile.email ?? profile.phone ?? ""}
-            </p>
+            <p className="mt-1 text-xs text-muted">{profile.email ?? profile.phone ?? ""}</p>
           </div>
           <Link
             to="/settings"
@@ -204,7 +200,9 @@ function ProfileScreen() {
           className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm"
         >
           <span>Store portal</span>
-          <span aria-hidden className="text-muted">→</span>
+          <span aria-hidden className="text-muted">
+            →
+          </span>
         </Link>
 
         <Section title="About you">
@@ -313,18 +311,10 @@ function ProfileScreen() {
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">
-        {title}
-      </h2>
+      <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">{title}</h2>
       <div className="space-y-3">{children}</div>
     </section>
   );
@@ -342,9 +332,7 @@ function TextField({
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium text-muted">
-        {label}
-      </span>
+      <span className="mb-1 block text-[11px] font-medium text-muted">{label}</span>
       <input
         {...rest}
         value={value}
@@ -368,9 +356,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium text-muted">
-        {label}
-      </span>
+      <span className="mb-1 block text-[11px] font-medium text-muted">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -402,10 +388,7 @@ function MemorySection({
   return (
     <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
       <div>
-        <h2
-          className="text-lg italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
+        <h2 className="text-lg italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
           {title}
         </h2>
         <p className="mt-1 text-[11px] leading-snug text-muted">{description}</p>
@@ -414,15 +397,11 @@ function MemorySection({
         const v = (value[f.key] as string | number | undefined) ?? "";
         return (
           <label key={f.key} className="block">
-            <span className="mb-1 block text-[11px] font-medium text-muted">
-              {f.label}
-            </span>
+            <span className="mb-1 block text-[11px] font-medium text-muted">{f.label}</span>
             {f.type === "textarea" ? (
               <textarea
                 value={String(v)}
-                onChange={(e) =>
-                  onChange({ ...value, [f.key]: e.target.value })
-                }
+                onChange={(e) => onChange({ ...value, [f.key]: e.target.value })}
                 rows={2}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
               />
@@ -434,12 +413,7 @@ function MemorySection({
                   const raw = e.target.value;
                   onChange({
                     ...value,
-                    [f.key]:
-                      f.type === "number"
-                        ? raw === ""
-                          ? ""
-                          : Number(raw)
-                        : raw,
+                    [f.key]: f.type === "number" ? (raw === "" ? "" : Number(raw)) : raw,
                   });
                 }}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"

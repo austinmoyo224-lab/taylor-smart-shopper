@@ -10,7 +10,14 @@ export const Route = createFileRoute("/portal/promotions")({
   component: PromotionsPage,
 });
 
-const TYPES = ["weekly_special", "flash_sale", "discount", "bundle", "seasonal", "sponsored"] as const;
+const TYPES = [
+  "weekly_special",
+  "flash_sale",
+  "discount",
+  "bundle",
+  "seasonal",
+  "sponsored",
+] as const;
 type PromoType = (typeof TYPES)[number];
 
 function PromotionsPage() {
@@ -31,10 +38,19 @@ function PromotionsPage() {
       <div className="mb-8 flex items-end justify-between">
         <div>
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Deals</p>
-          <h1 className="text-4xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>Promotions</h1>
+          <h1
+            className="text-4xl italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Promotions
+          </h1>
         </div>
-        <button onClick={() => setShow((v) => !v)} className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground">
-          <Plus className="size-4" />{show ? "Close" : "New promotion"}
+        <button
+          onClick={() => setShow((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground"
+        >
+          <Plus className="size-4" />
+          {show ? "Close" : "New promotion"}
         </button>
       </div>
 
@@ -43,7 +59,10 @@ function PromotionsPage() {
           orgId={activeOrgId}
           currency={org?.default_currency ?? "ZAR"}
           stores={orgStores}
-          onDone={() => { setShow(false); void qc.invalidateQueries({ queryKey: ["portal", "promotions", activeOrgId] }); }}
+          onDone={() => {
+            setShow(false);
+            void qc.invalidateQueries({ queryKey: ["portal", "promotions", activeOrgId] });
+          }}
         />
       )}
 
@@ -60,24 +79,45 @@ function PromotionsPage() {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={6} className="px-4 py-6 text-muted">Loading…</td></tr>}
-            {!isLoading && (data?.length ?? 0) === 0 && <tr><td colSpan={6} className="px-4 py-6 text-muted">No promotions yet.</td></tr>}
+            {isLoading && (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-muted">
+                  Loading…
+                </td>
+              </tr>
+            )}
+            {!isLoading && (data?.length ?? 0) === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-muted">
+                  No promotions yet.
+                </td>
+              </tr>
+            )}
             {(data ?? []).map((p) => {
               const s = (p as { stores?: { name: string } | null }).stores;
               return (
                 <tr key={p.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">
                     {p.title}
-                    {p.is_sponsored && <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-primary">Sponsored</span>}
+                    {p.is_sponsored && (
+                      <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-primary">
+                        Sponsored
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 capitalize">{p.type.replace("_", " ")}</td>
                   <td className="px-4 py-3 text-muted">{s?.name ?? "—"}</td>
                   <td className="px-4 py-3">
                     {p.sale_price != null ? `${p.currency_code} ${p.sale_price}` : "—"}
-                    {p.original_price && <span className="ml-1 text-[10px] text-muted line-through">{p.original_price}</span>}
+                    {p.original_price && (
+                      <span className="ml-1 text-[10px] text-muted line-through">
+                        {p.original_price}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-[11px] text-muted">
-                    {p.starts_at ? new Date(p.starts_at).toLocaleDateString("en-ZA") : "—"}{" → "}
+                    {p.starts_at ? new Date(p.starts_at).toLocaleDateString("en-ZA") : "—"}
+                    {" → "}
                     {p.ends_at ? new Date(p.ends_at).toLocaleDateString("en-ZA") : "—"}
                   </td>
                   <td className="px-4 py-3">{p.is_published ? "Live" : "Draft"}</td>
@@ -91,7 +131,17 @@ function PromotionsPage() {
   );
 }
 
-function NewPromoForm({ orgId, currency, stores, onDone }: { orgId: string; currency: string; stores: { id: string; name: string }[]; onDone: () => void }) {
+function NewPromoForm({
+  orgId,
+  currency,
+  stores,
+  onDone,
+}: {
+  orgId: string;
+  currency: string;
+  stores: { id: string; name: string }[];
+  onDone: () => void;
+}) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<PromoType>("weekly_special");
@@ -110,7 +160,9 @@ function NewPromoForm({ orgId, currency, stores, onDone }: { orgId: string; curr
         data: {
           organisation_id: orgId,
           store_id: storeId || null,
-          title, description, type,
+          title,
+          description,
+          type,
           is_sponsored: isSponsored,
           original_price: original ? Number(original) : null,
           sale_price: sale ? Number(sale) : null,
@@ -127,34 +179,104 @@ function NewPromoForm({ orgId, currency, stores, onDone }: { orgId: string; curr
   const cls = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm";
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); setError(null); mut.mutate(); }} className="mb-8 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-5 md:grid-cols-2">
-      <F label="Title"><input value={title} onChange={(e) => setTitle(e.target.value)} required className={cls} /></F>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(null);
+        mut.mutate();
+      }}
+      className="mb-8 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-5 md:grid-cols-2"
+    >
+      <F label="Title">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} required className={cls} />
+      </F>
       <F label="Type">
         <select value={type} onChange={(e) => setType(e.target.value as PromoType)} className={cls}>
-          {TYPES.map((t) => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
+          {TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t.replace("_", " ")}
+            </option>
+          ))}
         </select>
       </F>
       <F label="Store (optional)">
         <select value={storeId} onChange={(e) => setStoreId(e.target.value)} className={cls}>
           <option value="">All stores</option>
-          {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {stores.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
         </select>
       </F>
-      <F label={`Original price (${currency})`}><input type="number" step="0.01" value={original} onChange={(e) => setOriginal(e.target.value)} className={cls} /></F>
-      <F label={`Sale price (${currency})`}><input type="number" step="0.01" value={sale} onChange={(e) => setSale(e.target.value)} className={cls} /></F>
-      <F label="Starts"><input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={cls} /></F>
-      <F label="Ends"><input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={cls} /></F>
-      <div className="md:col-span-2"><F label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={cls} /></F></div>
+      <F label={`Original price (${currency})`}>
+        <input
+          type="number"
+          step="0.01"
+          value={original}
+          onChange={(e) => setOriginal(e.target.value)}
+          className={cls}
+        />
+      </F>
+      <F label={`Sale price (${currency})`}>
+        <input
+          type="number"
+          step="0.01"
+          value={sale}
+          onChange={(e) => setSale(e.target.value)}
+          className={cls}
+        />
+      </F>
+      <F label="Starts">
+        <input
+          type="datetime-local"
+          value={startsAt}
+          onChange={(e) => setStartsAt(e.target.value)}
+          className={cls}
+        />
+      </F>
+      <F label="Ends">
+        <input
+          type="datetime-local"
+          value={endsAt}
+          onChange={(e) => setEndsAt(e.target.value)}
+          className={cls}
+        />
+      </F>
+      <div className="md:col-span-2">
+        <F label="Description">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className={cls}
+          />
+        </F>
+      </div>
       <label className="flex items-center gap-2 text-xs">
-        <input type="checkbox" checked={isSponsored} onChange={(e) => setIsSponsored(e.target.checked)} className="size-4 accent-primary" />
+        <input
+          type="checkbox"
+          checked={isSponsored}
+          onChange={(e) => setIsSponsored(e.target.checked)}
+          className="size-4 accent-primary"
+        />
         Sponsored (Taylor labels this to subscribers)
       </label>
       <label className="flex items-center gap-2 text-xs">
-        <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} className="size-4 accent-primary" />
+        <input
+          type="checkbox"
+          checked={publish}
+          onChange={(e) => setPublish(e.target.checked)}
+          className="size-4 accent-primary"
+        />
         Publish immediately
       </label>
       <div className="md:col-span-2">
-        <button type="submit" disabled={mut.isPending} className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={mut.isPending}
+          className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+        >
           {mut.isPending ? "Creating…" : "Create promotion"}
         </button>
         {error && <p className="mt-2 text-xs text-destructive">{error}</p>}

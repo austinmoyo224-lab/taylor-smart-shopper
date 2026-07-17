@@ -14,8 +14,7 @@ export const Route = createFileRoute("/auth")({
       { title: "Sign in - Taylor Intelligence" },
       {
         name: "description",
-        content:
-          "Sign in to Taylor Intelligence with email, mobile or Google.",
+        content: "Sign in to Taylor Intelligence with email, mobile or Google.",
       },
     ],
   }),
@@ -133,9 +132,7 @@ function AuthScreen() {
   return (
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Welcome
-        </p>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Welcome</p>
         <h1
           className="text-balance text-3xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
@@ -162,9 +159,7 @@ function AuthScreen() {
 
         <div className="mb-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-border" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            or
-          </span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted">or</span>
           <div className="h-px flex-1 bg-border" />
         </div>
 
@@ -181,9 +176,7 @@ function AuthScreen() {
               }}
               className={
                 "rounded-full px-4 py-1.5 font-medium capitalize transition " +
-                (channel === c
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted")
+                (channel === c ? "bg-primary text-primary-foreground shadow-sm" : "text-muted")
               }
             >
               {c}
@@ -217,9 +210,7 @@ function AuthScreen() {
               onChange={setPassword}
               required
               minLength={8}
-              autoComplete={
-                mode === "signup" ? "new-password" : "current-password"
-              }
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
             />
             <PrimaryButton busy={busy}>
               {mode === "signin" ? "Sign in" : "Create account"}
@@ -253,9 +244,7 @@ function AuthScreen() {
                 maxLength={6}
               />
             )}
-            <PrimaryButton busy={busy}>
-              {otpSent ? "Verify code" : "Send code"}
-            </PrimaryButton>
+            <PrimaryButton busy={busy}>{otpSent ? "Verify code" : "Send code"}</PrimaryButton>
             {otpSent && (
               <button
                 type="button"
@@ -298,8 +287,8 @@ function AuthScreen() {
         </div>
 
         <p className="mt-6 text-center text-[10px] leading-relaxed text-muted">
-          By continuing you agree to Taylor's terms and privacy notice. Taylor
-          only uses what you choose to share.
+          By continuing you agree to Taylor's terms and privacy notice. Taylor only uses what you
+          choose to share.
         </p>
       </main>
 
@@ -333,13 +322,7 @@ function Field({
   );
 }
 
-function PrimaryButton({
-  busy,
-  children,
-}: {
-  busy: boolean;
-  children: React.ReactNode;
-}) {
+function PrimaryButton({ busy, children }: { busy: boolean; children: React.ReactNode }) {
   return (
     <button
       type="submit"

@@ -5,5 +5,6 @@ Disallow: /portal
 Disallow: /profile
 Disallow: /settings
 Disallow: /notifications
+Disallow: /vision
 
 Sitemap: https://taylor-companion-ai.lovable.app/sitemap.xml

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
@@ -12,7 +12,7 @@ import {
   listMyShoppingLists,
   toggleListItem,
 } from "@/lib/lists.functions";
-import { Plus, Trash2, ChevronLeft } from "lucide-react";
+import { Camera, Plus, Trash2, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/lists")({
   ssr: false,
@@ -21,8 +21,7 @@ export const Route = createFileRoute("/lists")({
       { title: "Shopping lists - Taylor Intelligence" },
       {
         name: "description",
-        content:
-          "Your personal and AI-generated shopping lists with basket totals and savings.",
+        content: "Your personal and AI-generated shopping lists with basket totals and savings.",
       },
     ],
   }),
@@ -65,15 +64,23 @@ function ListsScreen() {
   return (
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Plan
-        </p>
-        <h1
-          className="text-3xl italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Shopping lists
-        </h1>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Plan</p>
+            <h1
+              className="text-3xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Shopping lists
+            </h1>
+          </div>
+          <Link
+            to="/vision"
+            className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
+          >
+            <Camera className="size-3" /> Scan
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
@@ -102,8 +109,8 @@ function ListsScreen() {
         {lists.isLoading && <p className="text-sm text-muted">Loading…</p>}
         {!lists.isLoading && (lists.data?.length ?? 0) === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
-            No lists yet. Start one above, or ask Taylor to build one from
-            your pantry and this week's specials.
+            No lists yet. Start one above, or ask Taylor to build one from your pantry and this
+            week's specials.
           </div>
         )}
         <ul className="space-y-2">
@@ -112,10 +119,7 @@ function ListsScreen() {
               key={l.id}
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
             >
-              <button
-                onClick={() => setOpenId(l.id)}
-                className="flex-1 text-left"
-              >
+              <button onClick={() => setOpenId(l.id)} className="flex-1 text-left">
                 <p className="text-sm font-medium">{l.name}</p>
                 <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                   {l.is_ai_generated ? "AI · " : ""}
@@ -154,8 +158,7 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
     },
   });
   const toggle = useMutation({
-    mutationFn: (v: { id: string; checked: boolean }) =>
-      toggleListItem({ data: v }),
+    mutationFn: (v: { id: string; checked: boolean }) => toggleListItem({ data: v }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["list", id] }),
   });
   const del = useMutation({
@@ -213,16 +216,11 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
               <input
                 type="checkbox"
                 checked={it.is_checked}
-                onChange={(e) =>
-                  toggle.mutate({ id: it.id, checked: e.target.checked })
-                }
+                onChange={(e) => toggle.mutate({ id: it.id, checked: e.target.checked })}
                 className="size-4 accent-primary"
               />
               <span
-                className={
-                  "flex-1 text-sm " +
-                  (it.is_checked ? "text-muted line-through" : "")
-                }
+                className={"flex-1 text-sm " + (it.is_checked ? "text-muted line-through" : "")}
               >
                 {it.name}
                 {it.quantity ? ` · ${it.quantity}${it.unit ?? ""}` : ""}

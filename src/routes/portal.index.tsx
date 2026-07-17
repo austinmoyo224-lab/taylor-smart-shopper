@@ -32,10 +32,7 @@ function PortalHome() {
       </div>
 
       <div className="mt-10 rounded-2xl border border-border bg-card p-6">
-        <h2
-          className="text-xl italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
+        <h2 className="text-xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
           Your stores
         </h2>
         {orgStores.length === 0 ? (
@@ -83,9 +80,7 @@ function NavCard({
       className="group flex items-center justify-between rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
     >
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-          {label}
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">{label}</p>
         <p
           className="mt-1 text-3xl italic tracking-tight text-foreground"
           style={{ fontFamily: "var(--font-display)" }}

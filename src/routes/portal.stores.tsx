@@ -72,9 +72,7 @@ function StoresPage() {
             {orgStores.map((s) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{s.name}</td>
-                <td className="px-4 py-3 font-mono text-xs text-muted">
-                  {s.slug}
-                </td>
+                <td className="px-4 py-3 font-mono text-xs text-muted">{s.slug}</td>
                 <td className="px-4 py-3 capitalize">{s.status}</td>
               </tr>
             ))}
@@ -142,9 +140,7 @@ function QrCard({ storeId, storeName }: { storeId: string; storeName: string }) 
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Store
-          </p>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Store</p>
           <h3 className="text-lg font-medium">{storeName}</h3>
         </div>
         <QrIcon className="size-5 text-primary/70" />
@@ -191,20 +187,12 @@ function QrCard({ storeId, storeName }: { storeId: string; storeName: string }) 
               </a>
               <div className="grid grid-cols-2 gap-2 pt-2 text-muted">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest">
-                    Scans
-                  </p>
-                  <p className="text-lg font-medium text-foreground">
-                    {state.scans}
-                  </p>
+                  <p className="font-mono text-[10px] uppercase tracking-widest">Scans</p>
+                  <p className="text-lg font-medium text-foreground">{state.scans}</p>
                 </div>
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest">
-                    Follows
-                  </p>
-                  <p className="text-lg font-medium text-foreground">
-                    {state.conversions}
-                  </p>
+                  <p className="font-mono text-[10px] uppercase tracking-widest">Follows</p>
+                  <p className="text-lg font-medium text-foreground">{state.conversions}</p>
                 </div>
               </div>
             </div>
@@ -300,9 +288,7 @@ function NewStoreForm({ orgId, onDone }: { orgId: string; onDone: () => void }) 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium text-muted">
-        {label}
-      </span>
+      <span className="mb-1 block text-[11px] font-medium text-muted">{label}</span>
       {children}
     </label>
   );

@@ -3,14 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminStatus } from "@/lib/admin.functions";
-import {
-  LayoutDashboard,
-  Building2,
-  Store,
-  Users,
-  ScrollText,
-  ArrowLeft,
-} from "lucide-react";
+import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -74,13 +67,14 @@ function AdminSidebar() {
   const { pathname } = useLocation();
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-8 md:flex">
-      <Link to="/chat" className="mb-8 flex items-center gap-2 text-xs text-muted hover:text-foreground">
+      <Link
+        to="/chat"
+        className="mb-8 flex items-center gap-2 text-xs text-muted hover:text-foreground"
+      >
         <ArrowLeft className="size-3.5" />
         Back to Taylor
       </Link>
-      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-        Admin
-      </p>
+      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">Admin</p>
       <h1
         className="mb-8 text-2xl italic tracking-tight"
         style={{ fontFamily: "var(--font-display)" }}
@@ -119,19 +113,11 @@ function FullPage({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AccessDenied({
-  canClaim,
-  onClaimed,
-}: {
-  canClaim: boolean;
-  onClaimed: () => void;
-}) {
+function AccessDenied({ canClaim, onClaimed }: { canClaim: boolean; onClaimed: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="max-w-md text-center">
-        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Admin
-        </p>
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">Admin</p>
         <h1
           className="text-3xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
@@ -141,9 +127,7 @@ function AccessDenied({
         <p className="mt-3 text-sm text-muted">
           The admin console is reserved for Taylor Intelligence super admins.
         </p>
-        {canClaim && (
-          <ClaimSuperAdminButton onClaimed={onClaimed} />
-        )}
+        {canClaim && <ClaimSuperAdminButton onClaimed={onClaimed} />}
         <div className="mt-6">
           <Link
             to="/chat"
@@ -160,12 +144,10 @@ function AccessDenied({
 function ClaimSuperAdminButton({ onClaimed }: { onClaimed: () => void }) {
   return (
     <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-left">
-      <p className="text-[11px] font-medium uppercase tracking-widest text-primary">
-        First run
-      </p>
+      <p className="text-[11px] font-medium uppercase tracking-widest text-primary">First run</p>
       <p className="mt-1 text-xs text-muted">
-        No super admin exists yet. Claim the role to bootstrap the platform.
-        This is only offered once.
+        No super admin exists yet. Claim the role to bootstrap the platform. This is only offered
+        once.
       </p>
       <button
         onClick={async () => {

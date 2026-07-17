@@ -45,9 +45,7 @@ export const countUnreadNotifications = createServerFn({ method: "GET" })
 
 export const markNotificationRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
@@ -84,17 +82,14 @@ async function assertOrgAccess(userId: string, orgId: string) {
   const ok = (data ?? []).some(
     (r) =>
       r.role === "super_admin" ||
-      ((r.role === "retailer_admin" || r.role === "store_manager") &&
-        r.organisation_id === orgId),
+      ((r.role === "retailer_admin" || r.role === "store_manager") && r.organisation_id === orgId),
   );
   if (!ok) throw new Error("Forbidden");
 }
 
 export const listCampaigns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ organisation_id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ organisation_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertOrgAccess(context.userId, data.organisation_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -119,14 +114,7 @@ const createCampaignSchema = z.object({
   title: z.string().trim().min(1).max(160),
   body: z.string().trim().max(500).optional().or(z.literal("")),
   category: z
-    .enum([
-      "promotion",
-      "coupon",
-      "campaign",
-      "recipe",
-      "reminder",
-      "system",
-    ])
+    .enum(["promotion", "coupon", "campaign", "recipe", "reminder", "system"])
     .default("campaign"),
   send_now: z.boolean().default(false),
 });
@@ -218,9 +206,7 @@ async function deliverCampaign(opts: {
     .from("notification_prefs")
     .select("user_id, in_app")
     .in("user_id", users);
-  const optedOut = new Set(
-    (prefs ?? []).filter((p) => p.in_app === false).map((p) => p.user_id),
-  );
+  const optedOut = new Set((prefs ?? []).filter((p) => p.in_app === false).map((p) => p.user_id));
   const targets = users.filter((u) => !optedOut.has(u));
   if (targets.length === 0) return 0;
 
@@ -239,9 +225,7 @@ async function deliverCampaign(opts: {
   // Insert in chunks to keep payload sane.
   const CHUNK = 500;
   for (let i = 0; i < rows.length; i += CHUNK) {
-    const { error } = await supabaseAdmin
-      .from("notifications")
-      .insert(rows.slice(i, i + CHUNK));
+    const { error } = await supabaseAdmin.from("notifications").insert(rows.slice(i, i + CHUNK));
     if (error) throw new Error(error.message);
   }
   return rows.length;
@@ -249,9 +233,7 @@ async function deliverCampaign(opts: {
 
 export const sendCampaignNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ campaignId: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ campaignId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: camp } = await supabaseAdmin
@@ -261,11 +243,12 @@ export const sendCampaignNow = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!camp) throw new Error("Campaign not found");
     await assertOrgAccess(context.userId, camp.organisation_id);
-    const sched = (camp.schedule as {
-      title?: string;
-      body?: string;
-      category?: Category;
-    }) ?? {};
+    const sched =
+      (camp.schedule as {
+        title?: string;
+        body?: string;
+        category?: Category;
+      }) ?? {};
     const delivered = await deliverCampaign({
       campaignId: camp.id,
       orgId: camp.organisation_id,

@@ -7,8 +7,7 @@ export const Route = createFileRoute("/coupons")({
       { title: "Coupons - Taylor Intelligence" },
       {
         name: "description",
-        content:
-          "Digital coupons and QR redemption from the retailers and brands you follow.",
+        content: "Digital coupons and QR redemption from the retailers and brands you follow.",
       },
     ],
   }),
