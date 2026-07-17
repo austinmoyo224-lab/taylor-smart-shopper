@@ -29,6 +29,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
 import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
@@ -143,6 +144,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const RecipesSlugRoute = RecipesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => RecipesRoute,
+} as any)
 const PortalStoresRoute = PortalStoresRouteImport.update({
   id: '/stores',
   path: '/stores',
@@ -224,7 +230,7 @@ export interface FileRoutesByFullPath {
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
-  '/recipes': typeof RecipesRoute
+  '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
+  '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
 }
@@ -257,7 +264,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/profile': typeof ProfileRoute
-  '/recipes': typeof RecipesRoute
+  '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByTo {
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
+  '/recipes/$slug': typeof RecipesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
 }
@@ -293,7 +301,7 @@ export interface FileRoutesById {
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
-  '/recipes': typeof RecipesRoute
+  '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
@@ -310,6 +318,7 @@ export interface FileRoutesById {
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRoute
+  '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
 }
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/portal/promotions'
     | '/portal/rewards'
     | '/portal/stores'
+    | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
   fileRoutesByTo: FileRoutesByTo
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/portal/promotions'
     | '/portal/rewards'
     | '/portal/stores'
+    | '/recipes/$slug'
     | '/admin'
     | '/portal'
   id:
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/portal/promotions'
     | '/portal/rewards'
     | '/portal/stores'
+    | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
   fileRoutesById: FileRoutesById
@@ -434,7 +446,7 @@ export interface RootRouteChildren {
   PantryRoute: typeof PantryRoute
   PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
-  RecipesRoute: typeof RecipesRoute
+  RecipesRoute: typeof RecipesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   StoresRoute: typeof StoresRoute
   VisionRoute: typeof VisionRoute
@@ -584,6 +596,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/recipes/$slug': {
+      id: '/recipes/$slug'
+      path: '/$slug'
+      fullPath: '/recipes/$slug'
+      preLoaderRoute: typeof RecipesSlugRouteImport
+      parentRoute: typeof RecipesRoute
+    }
     '/portal/stores': {
       id: '/portal/stores'
       path: '/stores'
@@ -721,6 +740,17 @@ const PortalRouteChildren: PortalRouteChildren = {
 const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
 
+interface RecipesRouteChildren {
+  RecipesSlugRoute: typeof RecipesSlugRoute
+}
+
+const RecipesRouteChildren: RecipesRouteChildren = {
+  RecipesSlugRoute: RecipesSlugRoute,
+}
+
+const RecipesRouteWithChildren =
+  RecipesRoute._addFileChildren(RecipesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -736,7 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   PantryRoute: PantryRoute,
   PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,
-  RecipesRoute: RecipesRoute,
+  RecipesRoute: RecipesRouteWithChildren,
   SettingsRoute: SettingsRoute,
   StoresRoute: StoresRoute,
   VisionRoute: VisionRoute,
