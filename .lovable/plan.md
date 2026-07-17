@@ -173,4 +173,4 @@ Approve this plan and I'll start M1: enable Cloud, run the design direction ques
 - **M7** shipped: Taylor Intelligence Engine — context-aware system prompt.
 - **M8** shipped: Recipes (public), Shopping Lists (CRUD + items), Pantry (CRUD + expiry), BottomNav updated to expose Lists.
 - **M9** in place: admin dashboard shows org/store/subscriber/promotion/conversation/message counts.
-- **M10** pending: rate limiting, DR notes, SEO polish, PWA install UX.
+- **M10** shipped: `/api/chat` rate limiter (30/min auth, 10/min anon), PWA install prompt component in `AppShell`, `robots.txt` + `sitemap.xml`, DR runbook at `.lovable/DR.md`.
