@@ -77,19 +77,41 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Taylor Intelligence - Your AI shopping companion" },
+      {
+        name: "description",
+        content:
+          "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+      },
+      { name: "author", content: "Taylor Intelligence" },
+      { name: "theme-color", content: "#b54e1e" },
+      { property: "og:title", content: "Taylor Intelligence" },
+      {
+        property: "og:description",
+        content:
+          "Your AI shopping companion. Personal deals, recipes and reminders from the stores you follow.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Taylor Intelligence" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Taylor Intelligence" },
+      {
+        name: "twitter:description",
+        content:
+          "Your AI shopping companion. Personal deals, recipes and reminders from the stores you follow.",
+      },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],

@@ -1,0 +1,275 @@
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowUp, Mic, Plus } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import { AppShell, BottomNav } from "@/components/AppShell";
+import sourdoughImg from "@/assets/sample-sourdough.jpg";
+
+export const Route = createFileRoute("/chat")({
+  head: () => ({
+    meta: [
+      { title: "Chat with Taylor - Taylor Intelligence" },
+      {
+        name: "description",
+        content:
+          "Talk to Taylor, your AI shopping companion. Ask about deals, recipes, or plan your next shop.",
+      },
+    ],
+  }),
+  component: ChatScreen,
+});
+
+function ChatScreen() {
+  const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
+  });
+
+  const isLoading = status === "submitted" || status === "streaming";
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, status]);
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const trimmed = input.trim();
+    if (!trimmed || isLoading) return;
+    setInput("");
+    void sendMessage({ text: trimmed });
+  }
+
+  const showIntro = messages.length === 0;
+
+  return (
+    <AppShell>
+      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-6 pb-4 pt-10 backdrop-blur-md">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+              Taylor Intelligence
+            </p>
+            <h1
+              className="text-balance text-3xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Good day
+            </h1>
+          </div>
+          <div className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+            <span
+              className="font-bold text-primary"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              T
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth"
+      >
+        {showIntro && <IntroMessages />}
+
+        {messages.map((message, i) => {
+          const text = message.parts
+            .map((p) => (p.type === "text" ? p.text : ""))
+            .join("");
+          return (
+            <MessageRow
+              key={message.id}
+              role={message.role}
+              text={text}
+              delay={i * 60}
+            />
+          );
+        })}
+
+        {status === "submitted" && (
+          <div className="animate-message flex max-w-[85%] flex-col items-start">
+            <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
+              <span className="animate-shimmer text-sm leading-relaxed">
+                Taylor is thinking...
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <form
+        onSubmit={onSubmit}
+        className="border-t border-border bg-background px-4 py-4"
+      >
+        <div className="flex items-center gap-3 rounded-full border border-border bg-card px-3 py-2 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
+          <button
+            type="button"
+            aria-label="Attach"
+            className="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
+          >
+            <Plus className="size-4" strokeWidth={2} />
+          </button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask Taylor anything..."
+            aria-label="Message Taylor"
+            disabled={isLoading}
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted/60 disabled:opacity-60"
+          />
+          <button
+            type="button"
+            aria-label="Voice"
+            className="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:text-primary"
+          >
+            <Mic className="size-4" strokeWidth={2} />
+          </button>
+          <button
+            type="submit"
+            aria-label="Send message"
+            disabled={isLoading || input.trim().length === 0}
+            className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 disabled:pointer-events-none disabled:opacity-50"
+          >
+            <ArrowUp className="size-4" strokeWidth={2.5} />
+          </button>
+        </div>
+      </form>
+
+      <BottomNav />
+    </AppShell>
+  );
+}
+
+function MessageRow({
+  role,
+  text,
+  delay,
+}: {
+  role: string;
+  text: string;
+  delay: number;
+}) {
+  const isUser = role === "user";
+  return (
+    <div
+      className={
+        "animate-message flex w-full flex-col " +
+        (isUser ? "items-end" : "items-start")
+      }
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div
+        className={
+          "max-w-[85%] px-4 py-3 " +
+          (isUser
+            ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
+            : "rounded-2xl rounded-tl-none border border-black/5 bg-surface")
+        }
+      >
+        {isUser ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
+        ) : (
+          <div className="prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold">
+            <ReactMarkdown>{text}</ReactMarkdown>
+          </div>
+        )}
+      </div>
+      <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
+        {isUser ? "You" : "Taylor"}
+      </span>
+    </div>
+  );
+}
+
+function IntroMessages() {
+  return (
+    <>
+      <div
+        className="animate-message flex max-w-[85%] flex-col items-start"
+        style={{ animationDelay: "80ms" }}
+      >
+        <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
+          <p className="text-pretty text-sm leading-relaxed">
+            Hi, I'm Taylor. Think of me as your AI shopping companion — I help
+            you keep track of specials, recipes and coupons from the stores you
+            follow.
+          </p>
+        </div>
+        <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
+          Taylor
+        </span>
+      </div>
+
+      <div
+        className="animate-message flex w-full flex-col items-start"
+        style={{ animationDelay: "220ms" }}
+      >
+        <div className="mb-4 max-w-[85%] rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
+          <p className="text-pretty text-sm leading-relaxed">
+            Once you follow a store, I'll only share deals that match what you
+            actually buy. Here's an example of how a personalised pick looks:
+          </p>
+        </div>
+
+        <article className="w-full max-w-[92%] overflow-hidden rounded-3xl border border-border bg-card shadow-sm ring-1 ring-black/5">
+          <img
+            src={sourdoughImg}
+            alt="Artisanal sourdough loaf on a wooden kitchen counter"
+            width={1024}
+            height={768}
+            loading="lazy"
+            className="aspect-[3/2] w-full object-cover"
+          />
+          <div className="p-4">
+            <div className="mb-2 flex items-start justify-between">
+              <div>
+                <h3
+                  className="text-lg italic tracking-tight"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Sample: Artisanal Sourdough
+                </h3>
+                <p className="text-xs text-muted">Example only — 800g</p>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-primary">R45.00</p>
+                <p className="text-[10px] text-muted line-through">R58.00</p>
+              </div>
+            </div>
+
+            <div className="mt-4 border-t border-dashed border-border pt-4">
+              <div className="flex items-start gap-3">
+                <div className="animate-shimmer mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-[8px] font-bold text-primary">!</span>
+                </div>
+                <div>
+                  <p className="mb-1 font-mono text-[10px] font-medium uppercase tracking-tighter text-primary">
+                    Why Taylor would pick this
+                  </p>
+                  <p className="text-[11px] leading-snug text-muted">
+                    Once stores are connected, Taylor only shows deals that
+                    match your preferences. This card is illustrative — real
+                    deals arrive once you follow a store.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
+          Taylor
+        </span>
+      </div>
+    </>
+  );
+}
