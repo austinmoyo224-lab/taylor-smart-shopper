@@ -1,0 +1,14 @@
+{
+  "name": "Taylor Intelligence",
+  "short_name": "Taylor",
+  "description": "Your AI shopping companion — deals, recipes, and reminders from the stores you love.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f2ea",
+  "theme_color": "#b54e1e",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}
