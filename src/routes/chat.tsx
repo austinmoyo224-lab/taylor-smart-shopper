@@ -95,9 +95,26 @@ function ChatScreen() {
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+    if ((!trimmed && !attachedFile) || isLoading) return;
+
+    if (attachedFile) {
+      const dt = new DataTransfer();
+      dt.items.add(attachedFile);
+      const files = dt.files;
+      setAttachedFile(null);
+      setInput("");
+      void sendMessage(trimmed ? { text: trimmed, files } : { files });
+      return;
+    }
+
     setInput("");
     void sendMessage({ text: trimmed });
+  }
+
+  function onFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) setAttachedFile(file);
+    if (e.target) e.target.value = "";
   }
 
   const showIntro = messages.length === 0;
