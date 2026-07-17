@@ -14,12 +14,6 @@
 
 import { TAYLOR_SYSTEM_PROMPT } from "./ai-gateway.server";
 
-type SupabaseAdmin = Awaited<
-  ReturnType<
-    (typeof import("@/integrations/supabase/client.server"))["_adminType"]
-  >
->;
-
 export async function buildTaylorSystemPrompt(userId: string | null): Promise<string> {
   if (!userId) return TAYLOR_SYSTEM_PROMPT;
 
@@ -202,5 +196,3 @@ function flatten(obj: unknown): string {
 
 // Re-export the anonymous fallback for callers that want it explicitly.
 export { TAYLOR_SYSTEM_PROMPT } from "./ai-gateway.server";
-// Type-only helper so TS narrows the admin client without a top-level import at server modules.
-export type { SupabaseAdmin };
