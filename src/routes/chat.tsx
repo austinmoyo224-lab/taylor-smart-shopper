@@ -167,19 +167,14 @@ function ChatScreen() {
       >
         {showIntro && <IntroMessages />}
 
-        {messages.map((message, i) => {
-          const text = message.parts
-            .map((p) => (p.type === "text" ? p.text : ""))
-            .join("");
-          return (
-            <MessageRow
-              key={message.id}
-              role={message.role}
-              text={text}
-              delay={i * 60}
-            />
-          );
-        })}
+        {messages.map((message, i) => (
+          <MessageRow
+            key={message.id}
+            role={message.role}
+            parts={message.parts}
+            delay={i * 60}
+          />
+        ))}
 
         {status === "submitted" && (
           <div className="animate-message flex max-w-[85%] flex-col items-start">
