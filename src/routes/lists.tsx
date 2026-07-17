@@ -65,15 +65,25 @@ function ListsScreen() {
   return (
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Plan
-        </p>
-        <h1
-          className="text-3xl italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Shopping lists
-        </h1>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+              Plan
+            </p>
+            <h1
+              className="text-3xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Shopping lists
+            </h1>
+          </div>
+          <Link
+            to="/vision"
+            className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
+          >
+            <Camera className="size-3" /> Scan
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
