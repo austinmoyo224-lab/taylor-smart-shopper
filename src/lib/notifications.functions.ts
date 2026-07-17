@@ -101,7 +101,7 @@ export const listCampaigns = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("campaigns")
       .select(
-        "id, name, scope, store_id, is_active, starts_at, ends_at, audience, metadata, created_at, stores(name)",
+        "id, name, scope, store_id, is_active, starts_at, ends_at, audience, schedule, metadata, created_at, stores(name)",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)

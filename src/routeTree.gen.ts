@@ -28,6 +28,7 @@ import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
+import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -130,6 +131,11 @@ const PortalCouponsRoute = PortalCouponsRouteImport.update({
   path: '/coupons',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalCampaignsRoute = PortalCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => PortalRoute,
+} as any)
 const JoinSlugRoute = JoinSlugRouteImport.update({
   id: '/join/$slug',
   path: '/join/$slug',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
+    | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
+    | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
+    | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/products'
     | '/portal/promotions'
@@ -476,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCouponsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/campaigns': {
+      id: '/portal/campaigns'
+      path: '/campaigns'
+      fullPath: '/portal/campaigns'
+      preLoaderRoute: typeof PortalCampaignsRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/join/$slug': {
       id: '/join/$slug'
       path: '/join/$slug'
@@ -540,6 +559,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PortalRouteChildren {
+  PortalCampaignsRoute: typeof PortalCampaignsRoute
   PortalCouponsRoute: typeof PortalCouponsRoute
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
@@ -548,6 +568,7 @@ interface PortalRouteChildren {
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalCampaignsRoute: PortalCampaignsRoute,
   PortalCouponsRoute: PortalCouponsRoute,
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
