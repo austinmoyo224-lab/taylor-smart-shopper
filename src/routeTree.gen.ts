@@ -18,6 +18,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PantryRouteImport } from './routes/pantry'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as HouseholdRouteImport } from './routes/household'
 import { Route as DealsRouteImport } from './routes/deals'
@@ -84,6 +85,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoyaltyRoute = LoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListsRoute = ListsRouteImport.update({
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
@@ -238,6 +245,7 @@ export interface FileRoutesByTo {
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
   '/lists': typeof ListsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
@@ -306,6 +315,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/household'
     | '/lists'
+    | '/loyalty'
     | '/notifications'
     | '/onboarding'
     | '/pantry'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/household'
     | '/lists'
+    | '/loyalty'
     | '/notifications'
     | '/onboarding'
     | '/pantry'
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/deals'
     | '/household'
     | '/lists'
+    | '/loyalty'
     | '/notifications'
     | '/onboarding'
     | '/pantry'
@@ -404,6 +416,7 @@ export interface RootRouteChildren {
   DealsRoute: typeof DealsRoute
   HouseholdRoute: typeof HouseholdRoute
   ListsRoute: typeof ListsRoute
+  LoyaltyRoute: typeof LoyaltyRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   PantryRoute: typeof PantryRoute
@@ -480,6 +493,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loyalty': {
+      id: '/loyalty'
+      path: '/loyalty'
+      fullPath: '/loyalty'
+      preLoaderRoute: typeof LoyaltyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lists': {
@@ -689,6 +709,7 @@ const rootRouteChildren: RootRouteChildren = {
   DealsRoute: DealsRoute,
   HouseholdRoute: HouseholdRoute,
   ListsRoute: ListsRoute,
+  LoyaltyRoute: LoyaltyRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   PantryRoute: PantryRoute,
