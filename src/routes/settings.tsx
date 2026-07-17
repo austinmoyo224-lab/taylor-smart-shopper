@@ -82,7 +82,7 @@ function SettingsScreen() {
   async function testPush() {
     setPushState((s) => ({ ...s, busy: true, msg: null }));
     try {
-      const r = await sendTestPush({ data: undefined });
+      const r = await sendTestPush();
       setPushState((s) => ({
         ...s,
         busy: false,
