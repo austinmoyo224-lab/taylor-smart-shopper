@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
@@ -12,7 +12,7 @@ import {
   listMyShoppingLists,
   toggleListItem,
 } from "@/lib/lists.functions";
-import { Plus, Trash2, ChevronLeft } from "lucide-react";
+import { Camera, Plus, Trash2, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/lists")({
   ssr: false,
