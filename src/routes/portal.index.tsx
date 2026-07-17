@@ -37,11 +37,11 @@ function PortalHome() {
         </h2>
         {orgStores.length === 0 ? (
           <p className="mt-2 text-sm text-muted">
-            No stores yet. Head to{" "}
-            <Link to="/portal/stores" className="text-primary underline">
-              Stores
+            No stores yet. Run the{" "}
+            <Link to="/onboarding" className="text-primary underline">
+              onboarding wizard
             </Link>{" "}
-            to add your first one.
+            to add a store, import products and print your QR poster.
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-border">
