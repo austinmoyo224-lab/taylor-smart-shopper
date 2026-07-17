@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StoresRouteImport } from './routes/stores'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -35,11 +34,6 @@ import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 
-const StoresRoute = StoresRouteImport.update({
-  id: '/stores',
-  path: '/stores',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -174,7 +168,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
-  '/stores': typeof StoresRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
@@ -199,7 +192,6 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
-  '/stores': typeof StoresRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
@@ -227,7 +219,6 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/settings': typeof SettingsRoute
-  '/stores': typeof StoresRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
@@ -256,7 +247,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
-    | '/stores'
     | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
@@ -281,7 +271,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
-    | '/stores'
     | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
@@ -308,7 +297,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
-    | '/stores'
     | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
@@ -336,20 +324,12 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   SettingsRoute: typeof SettingsRoute
-  StoresRoute: typeof StoresRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stores': {
-      id: '/stores'
-      path: '/stores'
-      fullPath: '/stores'
-      preLoaderRoute: typeof StoresRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -571,7 +551,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   SettingsRoute: SettingsRoute,
-  StoresRoute: StoresRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
 }
