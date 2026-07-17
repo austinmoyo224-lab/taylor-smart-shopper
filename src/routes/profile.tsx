@@ -199,6 +199,14 @@ function ProfileScreen() {
           </Link>
         )}
 
+        <Link
+          to="/portal"
+          className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm"
+        >
+          <span>Store portal</span>
+          <span aria-hidden className="text-muted">→</span>
+        </Link>
+
         <Section title="About you">
           <TextField
             label="Display name"
