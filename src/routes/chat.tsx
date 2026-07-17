@@ -2,10 +2,11 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Mic, Plus, LogIn, X } from "lucide-react";
+import { ArrowUp, Mic, Plus, LogIn, X, Download, Sparkles, ScanLine, Tag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
+import heroImg from "@/assets/chat-hero.jpg";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
