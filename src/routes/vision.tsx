@@ -222,7 +222,7 @@ function VisionScreen() {
               </button>
             </div>
             <ScanHistory
-              scans={history.data ?? []}
+              scans={(history.data ?? []) as VisionScan[]}
               onSelect={loadScan}
               onDelete={(id) => removeScan.mutate(id)}
               isDeleting={removeScan.isPending}
