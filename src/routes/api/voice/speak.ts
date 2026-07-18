@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/voice/speak")({
           });
         }
 
-        const voice = typeof body.voice === "string" ? body.voice : "alloy";
+        const voice = typeof body.voice === "string" ? body.voice : "shimmer";
         const format = typeof body.format === "string" ? body.format : "mp3";
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/voice/speak")({
             input: text,
             response_format: format,
             instructions:
-              "Speak in a warm, calm South African high-street shopkeeper tone. Friendly and unhurried.",
+              "You are Taylor, a South African woman. Speak with a warm, chatty, friendly South African female voice — like a trusted friend in a Cape Town or Johannesburg kitchen. Natural, unhurried, feminine warmth, gentle upward lilt on questions. Never sound robotic or masculine.",
           }),
         });
 

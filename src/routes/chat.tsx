@@ -409,7 +409,7 @@ function ChatScreen() {
               {cancelPending
                 ? "Release to cancel"
                 : locked
-                  ? "Hands-free on — tap mic to send"
+                  ? "Hands-free on — tap stop to send"
                   : "Listening… release to send, slide up to cancel"}
             </div>
             <button
