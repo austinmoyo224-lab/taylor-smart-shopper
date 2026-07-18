@@ -1,12 +1,13 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageCircle, Store, UtensilsCrossed, ListChecks, User } from "lucide-react";
+import { Sparkles, Store, UtensilsCrossed, ListChecks, User } from "lucide-react";
 
+// Stores is the landing tab and sits in the centre of the bottom nav.
 const tabs = [
-  { to: "/chat", label: "Chat", icon: MessageCircle },
-  { to: "/stores", label: "Stores", icon: Store },
-  { to: "/lists", label: "Lists", icon: ListChecks },
-  { to: "/recipes", label: "Recipes", icon: UtensilsCrossed },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/sparkles", label: "Taylor", icon: Sparkles, target: "/chat" as const },
+  { to: "/lists", label: "Lists", icon: ListChecks, target: "/lists" as const },
+  { to: "/stores", label: "Stores", icon: Store, target: "/stores" as const },
+  { to: "/recipes", label: "Recipes", icon: UtensilsCrossed, target: "/recipes" as const },
+  { to: "/profile", label: "Profile", icon: User, target: "/profile" as const },
 ] as const;
 
 export function BottomNav() {
@@ -16,12 +17,15 @@ export function BottomNav() {
       aria-label="Primary"
       className="sticky bottom-0 z-30 flex items-center justify-between border-t border-border bg-card px-6 pb-8 pt-2"
     >
-      {tabs.map(({ to, label, icon: Icon }) => {
-        const active = pathname === to || (to === "/chat" && pathname === "/");
+      {tabs.map(({ target, label, icon: Icon }) => {
+        const active =
+          pathname === target ||
+          (target === "/stores" && pathname === "/") ||
+          (target === "/chat" && pathname.startsWith("/chat"));
         return (
           <Link
-            key={to}
-            to={to}
+            key={target}
+            to={target}
             className={
               "flex flex-col items-center gap-1 transition-colors " +
               (active ? "text-primary" : "text-muted hover:text-foreground")
