@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 type Mode = "signin" | "signup";
 type Channel = "email" | "mobile";
+type AccountType = "user" | "store_owner";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -26,6 +27,7 @@ function AuthScreen() {
   const { user, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [channel, setChannel] = useState<Channel>("email");
+  const [accountType, setAccountType] = useState<AccountType>("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -48,10 +50,14 @@ function AuthScreen() {
           } else {
             const { data } = await supabase
               .from("profiles")
-              .select("onboarding_completed")
+              .select("onboarding_completed, account_type")
               .eq("id", user.id)
               .maybeSingle();
-            if (!data?.onboarding_completed) dest = "/profile?welcome=1";
+            if (data?.account_type === "store_owner") {
+              dest = "/store-onboarding";
+            } else if (!data?.onboarding_completed) {
+              dest = "/profile?welcome=1";
+            }
           }
         } catch {
           // ignore
@@ -73,10 +79,27 @@ function AuthScreen() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/stores`,
-            data: { first_name: firstName, display_name: firstName },
+            data: {
+              first_name: firstName,
+              display_name: firstName,
+              account_type: accountType,
+            },
           },
         });
         if (error) throw error;
+        // Persist account_type on profile after signup completes
+        try {
+          const { data: session } = await supabase.auth.getSession();
+          const uid = session.session?.user.id;
+          if (uid) {
+            await supabase
+              .from("profiles")
+              .update({ account_type: accountType })
+              .eq("id", uid);
+          }
+        } catch {
+          // ignore
+        }
         setInfo("Check your inbox to confirm your email, then sign in.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
