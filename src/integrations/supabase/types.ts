@@ -2529,7 +2529,7 @@ export type Database = {
         | "promotion"
         | "coupon"
         | "catalogue"
-      store_status: "draft" | "active" | "paused" | "archived"
+      store_status: "draft" | "pending" | "active" | "paused" | "archived"
       subscription_target:
         | "store"
         | "department"
@@ -2717,7 +2717,7 @@ export const Constants = {
         "coupon",
         "catalogue",
       ],
-      store_status: ["draft", "active", "paused", "archived"],
+      store_status: ["draft", "pending", "active", "paused", "archived"],
       subscription_target: [
         "store",
         "department",

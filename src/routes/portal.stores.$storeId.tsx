@@ -117,7 +117,7 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           store_id: store.id,
           name: form.name,
           slug: form.slug,
-          status: form.status as "draft" | "active" | "paused" | "archived",
+          status: form.status as "draft" | "pending" | "active" | "paused" | "archived",
           description: form.description ?? null,
           logo_url: form.logo_url ?? null,
           hero_image_url: form.hero_image_url ?? null,
@@ -204,6 +204,7 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
             className="input"
           >
             <option value="draft">Draft</option>
+            <option value="pending">Pending review</option>
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="archived">Archived</option>

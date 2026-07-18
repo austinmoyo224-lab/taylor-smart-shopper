@@ -9,6 +9,7 @@ import {
   getStoreSubscriberDashboard,
   regenerateStoreCode,
   updateStore,
+  approveStore,
 } from "@/lib/portal.functions";
 import { BarChart3, Copy, Edit3, LayoutDashboard, MapPin, Plus, QrCode, Trash2, Users } from "lucide-react";
 import QRCode from "qrcode";
@@ -129,16 +130,29 @@ function StoresPage() {
                   <td className="px-4 py-3 text-muted">
                     {[s.city, s.country_code].filter(Boolean).join(", ") || "—"}
                   </td>
-                  <td className="px-4 py-3 capitalize">{s.status}</td>
+                  <td className="px-4 py-3">
+                    <StatusPill status={s.status} />
+                  </td>
                   <td className="px-4 py-3">{s.is_public ? "Yes" : "No"}</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStoreId(s.id)}
-                      className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
-                    >
-                      <Edit3 className="size-3" /> Control
-                    </button>
+                    <div className="inline-flex items-center gap-2">
+                      {s.status === "pending" && (
+                        <ApproveButton
+                          storeId={s.id}
+                          onDone={() => {
+                            void qc.invalidateQueries({ queryKey: ["admin", "stores"] });
+                            void qc.invalidateQueries({ queryKey: ["admin", "store", s.id] });
+                          }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStoreId(s.id)}
+                        className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
+                      >
+                        <Edit3 className="size-3" /> Control
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -173,7 +187,7 @@ function NewStoreForm({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [city, setCity] = useState("");
-  const [status, setStatus] = useState<"draft" | "active" | "paused" | "archived">("draft");
+  const [status, setStatus] = useState<"draft" | "pending" | "active" | "paused" | "archived">("pending");
   const [error, setError] = useState<string | null>(null);
   const country =
     organisations.find((o) => o.id === orgId)?.country_code?.toUpperCase() || "ZA";
@@ -339,7 +353,7 @@ function StoreProfileForm({ store, onSaved }: { store: StoreData; onSaved: () =>
           store_id: store.id,
           name: form.name,
           slug: form.slug,
-          status: form.status as "draft" | "active" | "paused" | "archived",
+          status: form.status as "draft" | "pending" | "active" | "paused" | "archived",
           description: form.description ?? null,
           logo_url: form.logo_url ?? null,
           hero_image_url: form.hero_image_url ?? null,
@@ -413,6 +427,7 @@ function StoreProfileForm({ store, onSaved }: { store: StoreData; onSaved: () =>
         <Field label="Status">
           <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as StoreData["status"] }))} className={inputClass}>
             <option value="draft">Draft</option>
+            <option value="pending">Pending review</option>
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="archived">Archived</option>
@@ -648,5 +663,39 @@ function Field({
       </span>
       {children}
     </label>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    pending: "bg-amber-500/15 text-amber-600",
+    active: "bg-primary/15 text-primary",
+    draft: "bg-muted/30 text-muted",
+    paused: "bg-orange-500/15 text-orange-600",
+    archived: "bg-destructive/10 text-destructive",
+  };
+  const cls = map[status] ?? "bg-muted/30 text-muted";
+  return (
+    <span className={`inline-flex rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest ${cls}`}>
+      {status}
+    </span>
+  );
+}
+
+function ApproveButton({ storeId, onDone }: { storeId: string; onDone: () => void }) {
+  const mut = useMutation({
+    mutationFn: () => approveStore({ data: { store_id: storeId, status: "active" } }),
+    onSuccess: onDone,
+  });
+  return (
+    <button
+      type="button"
+      onClick={() => mut.mutate()}
+      disabled={mut.isPending}
+      className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+      title="Approve and take live"
+    >
+      {mut.isPending ? "Approving…" : "Approve"}
+    </button>
   );
 }

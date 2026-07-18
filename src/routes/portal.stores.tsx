@@ -217,7 +217,7 @@ function NewStoreForm({ orgId, onDone }: { orgId: string; onDone: () => void }) 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [city, setCity] = useState("");
-  const [status, setStatus] = useState<"draft" | "active" | "paused" | "archived">("draft");
+  const [status, setStatus] = useState<"draft" | "pending" | "active" | "paused" | "archived">("pending");
   const [error, setError] = useState<string | null>(null);
   const mut = useMutation({
     mutationFn: () =>
@@ -276,6 +276,7 @@ function NewStoreForm({ orgId, onDone }: { orgId: string; onDone: () => void }) 
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
         >
           <option value="draft">Draft</option>
+          <option value="pending">Pending review</option>
           <option value="active">Active</option>
           <option value="paused">Paused</option>
           <option value="archived">Archived</option>
