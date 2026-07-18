@@ -39,10 +39,12 @@ import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AdminVaultRouteImport } from './routes/admin.vault'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaylorRouteImport } from './routes/admin.taylor'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
+import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
@@ -200,6 +202,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVaultRoute = AdminVaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -218,6 +225,11 @@ const AdminStoresRoute = AdminStoresRouteImport.update({
 const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
   id: '/organisations',
   path: '/organisations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminKnowledgeRoute = AdminKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -271,10 +283,12 @@ export interface FileRoutesByFullPath {
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -311,10 +325,12 @@ export interface FileRoutesByTo {
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -354,10 +370,12 @@ export interface FileRoutesById {
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -398,10 +416,12 @@ export interface FileRouteTypes {
     | '/stores'
     | '/vision'
     | '/admin/audit'
+    | '/admin/knowledge'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
+    | '/admin/vault'
     | '/api/chat'
     | '/join/$slug'
     | '/portal/analytics'
@@ -438,10 +458,12 @@ export interface FileRouteTypes {
     | '/stores'
     | '/vision'
     | '/admin/audit'
+    | '/admin/knowledge'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
+    | '/admin/vault'
     | '/api/chat'
     | '/join/$slug'
     | '/portal/analytics'
@@ -480,10 +502,12 @@ export interface FileRouteTypes {
     | '/stores'
     | '/vision'
     | '/admin/audit'
+    | '/admin/knowledge'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
+    | '/admin/vault'
     | '/api/chat'
     | '/join/$slug'
     | '/portal/analytics'
@@ -742,6 +766,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/vault': {
+      id: '/admin/vault'
+      path: '/vault'
+      fullPath: '/admin/vault'
+      preLoaderRoute: typeof AdminVaultRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -768,6 +799,13 @@ declare module '@tanstack/react-router' {
       path: '/organisations'
       fullPath: '/admin/organisations'
       preLoaderRoute: typeof AdminOrganisationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/knowledge': {
+      id: '/admin/knowledge'
+      path: '/knowledge'
+      fullPath: '/admin/knowledge'
+      preLoaderRoute: typeof AdminKnowledgeRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/audit': {
@@ -817,19 +855,23 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminKnowledgeRoute: typeof AdminKnowledgeRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
   AdminStoresRoute: typeof AdminStoresRoute
   AdminTaylorRoute: typeof AdminTaylorRoute
   AdminUsersRoute: typeof AdminUsersRoute
+  AdminVaultRoute: typeof AdminVaultRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
+  AdminKnowledgeRoute: AdminKnowledgeRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
   AdminStoresRoute: AdminStoresRoute,
   AdminTaylorRoute: AdminTaylorRoute,
   AdminUsersRoute: AdminUsersRoute,
+  AdminVaultRoute: AdminVaultRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
