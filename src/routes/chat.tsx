@@ -83,7 +83,7 @@ function ChatScreen() {
     return () => stopSpeaking();
   }, []);
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, setMessages, status } = useChat({
     id: user?.id ?? "anon",
     transport: new DefaultChatTransport({
       api: "/api/chat",
