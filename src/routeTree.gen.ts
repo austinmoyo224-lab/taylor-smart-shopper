@@ -45,6 +45,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaylorRouteImport } from './routes/admin.taylor'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
+import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
@@ -233,6 +234,11 @@ const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
   path: '/organisations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminOnboardingRoute = AdminOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminKnowledgeRoute = AdminKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
@@ -380,6 +388,7 @@ export interface FileRoutesById {
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/vision'
     | '/admin/audit'
     | '/admin/knowledge'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/vision'
     | '/admin/audit'
     | '/admin/knowledge'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/vision'
     | '/admin/audit'
     | '/admin/knowledge'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
@@ -821,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrganisationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/onboarding': {
+      id: '/admin/onboarding'
+      path: '/onboarding'
+      fullPath: '/admin/onboarding'
+      preLoaderRoute: typeof AdminOnboardingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/knowledge': {
       id: '/admin/knowledge'
       path: '/knowledge'
@@ -876,6 +895,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminKnowledgeRoute: typeof AdminKnowledgeRoute
+  AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
   AdminStoresRoute: typeof AdminStoresRoute
   AdminTaylorRoute: typeof AdminTaylorRoute
@@ -887,6 +907,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminKnowledgeRoute: AdminKnowledgeRoute,
+  AdminOnboardingRoute: AdminOnboardingRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
   AdminStoresRoute: AdminStoresRoute,
   AdminTaylorRoute: AdminTaylorRoute,
