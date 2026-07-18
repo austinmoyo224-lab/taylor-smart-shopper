@@ -22,6 +22,7 @@ export type PortalCtx = {
   }[];
   activeOrgId: string;
   setActiveOrgId: (id: string) => void;
+  isSuperAdmin: boolean;
 };
 
 export const PortalContext = createContext<PortalCtx | null>(null);
