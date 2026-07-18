@@ -126,8 +126,12 @@ function ProfileScreen() {
             display_name: profile.display_name,
             first_name: profile.first_name,
             last_name: profile.last_name,
+            city: profile.city,
+            locale: profile.locale,
+            avatar_url: profile.avatar_url,
             preferred_greeting: profile.preferred_greeting,
             communication_style: profile.communication_style,
+            onboarding_completed: true,
           })
           .eq("id", user.id),
         supabase
@@ -141,8 +145,30 @@ function ProfileScreen() {
           .eq("user_id", user.id),
       ]);
       setSavedAt(Date.now());
+      if (isWelcome) void navigate({ to: "/stores" });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onAvatarPicked(file: File) {
+    if (!user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed?.signedUrl && profile) {
+        setProfile({ ...profile, avatar_url: signed.signedUrl });
+      }
+    } finally {
+      setUploading(false);
     }
   }
 
