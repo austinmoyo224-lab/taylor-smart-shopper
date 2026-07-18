@@ -63,6 +63,7 @@ function PortalLayout() {
         stores: data.stores,
         activeOrgId,
         setActiveOrgId,
+        isSuperAdmin: !!data.isSuperAdmin,
       }}
     >
       <div className="flex min-h-screen w-full bg-background">
@@ -70,6 +71,7 @@ function PortalLayout() {
           organisations={data.organisations}
           activeOrgId={activeOrgId}
           onOrgChange={setActiveOrgId}
+          isSuperAdmin={!!data.isSuperAdmin}
         />
         <main className="flex min-h-screen flex-1 flex-col">
           <Outlet />
