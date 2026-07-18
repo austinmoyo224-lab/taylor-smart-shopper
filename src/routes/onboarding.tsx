@@ -348,7 +348,7 @@ function StoreStep({
           slug,
           city,
           country_code: "ZA",
-          status: "active",
+          status: "pending",
         },
       });
       onDone(res.id, slug);
