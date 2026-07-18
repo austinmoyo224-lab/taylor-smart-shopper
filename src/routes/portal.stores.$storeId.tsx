@@ -204,6 +204,7 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
             className="input"
           >
             <option value="draft">Draft</option>
+            <option value="pending">Pending review</option>
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="archived">Archived</option>
