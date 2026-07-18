@@ -187,7 +187,7 @@ function NewStoreForm({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [city, setCity] = useState("");
-  const [status, setStatus] = useState<"draft" | "active" | "paused" | "archived">("draft");
+  const [status, setStatus] = useState<"draft" | "pending" | "active" | "paused" | "archived">("pending");
   const [error, setError] = useState<string | null>(null);
   const country =
     organisations.find((o) => o.id === orgId)?.country_code?.toUpperCase() || "ZA";
@@ -353,7 +353,7 @@ function StoreProfileForm({ store, onSaved }: { store: StoreData; onSaved: () =>
           store_id: store.id,
           name: form.name,
           slug: form.slug,
-          status: form.status as "draft" | "active" | "paused" | "archived",
+          status: form.status as "draft" | "pending" | "active" | "paused" | "archived",
           description: form.description ?? null,
           logo_url: form.logo_url ?? null,
           hero_image_url: form.hero_image_url ?? null,
@@ -427,6 +427,7 @@ function StoreProfileForm({ store, onSaved }: { store: StoreData; onSaved: () =>
         <Field label="Status">
           <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as StoreData["status"] }))} className={inputClass}>
             <option value="draft">Draft</option>
+            <option value="pending">Pending review</option>
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="archived">Archived</option>
