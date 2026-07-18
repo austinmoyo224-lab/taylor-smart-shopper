@@ -234,6 +234,7 @@ const updateStoreSchema = z.object({
   contact_phone: z.string().max(40).optional().nullable().or(z.literal("")),
   is_public: z.boolean().optional(),
   trading_hours: z.record(z.string(), z.any()).optional(),
+  brand_colors: z.record(z.string(), z.any()).optional().nullable(),
 });
 
 export const updateStore = createServerFn({ method: "POST" })
