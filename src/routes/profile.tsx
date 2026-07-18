@@ -202,15 +202,45 @@ function ProfileScreen() {
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
         <div className="flex items-start justify-between">
-          <div>
-            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">You</p>
-            <h1
-              className="text-3xl italic tracking-tight"
-              style={{ fontFamily: "var(--font-display)" }}
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="relative size-16 overflow-hidden rounded-full border border-border bg-card"
+              aria-label="Upload profile picture"
             >
-              {profile.display_name || profile.first_name || "Your profile"}
-            </h1>
-            <p className="mt-1 text-xs text-muted">{profile.email ?? profile.phone ?? ""}</p>
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="flex size-full items-center justify-center text-muted">
+                  <Camera className="size-5" />
+                </span>
+              )}
+              <span className="absolute inset-x-0 bottom-0 bg-black/50 py-0.5 text-center text-[9px] text-white">
+                {uploading ? "…" : "Edit"}
+              </span>
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void onAvatarPicked(f);
+                e.target.value = "";
+              }}
+            />
+            <div>
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">You</p>
+              <h1
+                className="text-2xl italic tracking-tight"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {profile.display_name || profile.first_name || "Your profile"}
+              </h1>
+              <p className="mt-1 text-xs text-muted">{profile.email ?? profile.phone ?? ""}</p>
+            </div>
           </div>
           <Link
             to="/settings"
@@ -220,6 +250,11 @@ function ProfileScreen() {
             <Settings2 className="size-4" />
           </Link>
         </div>
+        {isWelcome && (
+          <p className="mt-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
+            Welcome to Taylor! Fill in a bit about you and your home so I can help you shop smarter.
+          </p>
+        )}
       </header>
 
       <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
