@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQuery } from "@tanstack/react-query";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { addRecipeToShoppingList, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
@@ -77,19 +77,19 @@ function RecipeBody() {
     enabled: !!user && !publicData,
   });
   const data = publicData ?? mine.data ?? null;
-
-  if (!data) {
-    if (mine.isLoading) return <div className="p-8 text-sm text-muted">Loading…</div>;
-    return <div className="p-8 text-sm text-muted">Recipe not found.</div>;
-  }
-  const { recipe, ingredients } = data;
-  const baseServings = Math.max(1, Number(recipe.servings ?? 1));
+  const recipe = data?.recipe ?? null;
+  const ingredients = data?.ingredients ?? [];
+  const baseServings = Math.max(1, Number(recipe?.servings ?? 1));
   const [servings, setServings] = useState<number>(baseServings);
   const [skipPantry, setSkipPantry] = useState(true);
   const [targetListId, setTargetListId] = useState<string>("new");
   const [result, setResult] = useState<{ added: number; skipped: number; list_id: string } | null>(
     null,
   );
+
+  useEffect(() => {
+    if (recipe?.id) setServings(Math.max(1, Number(recipe.servings ?? 1)));
+  }, [recipe?.id, recipe?.servings]);
 
   const lists = useQuery({
     queryKey: ["lists", "mine"],
@@ -99,6 +99,8 @@ function RecipeBody() {
 
   const send = useMutation({
     mutationFn: () =>
+      recipe
+        ?
       addRecipeToShoppingList({
         data: {
           recipe_id: recipe.id,
@@ -106,9 +108,15 @@ function RecipeBody() {
           skip_pantry: skipPantry,
           list_id: targetListId === "new" ? undefined : targetListId,
         },
-      }),
+      })
+        : Promise.reject(new Error("Recipe not loaded")),
     onSuccess: (r) => setResult(r),
   });
+
+  if (!data || !recipe) {
+    if (mine.isLoading) return <div className="p-8 text-sm text-muted">Loading…</div>;
+    return <div className="p-8 text-sm text-muted">Recipe not found.</div>;
+  }
 
   const scale = servings / baseServings;
   const rawInstructions: unknown = recipe.instructions;

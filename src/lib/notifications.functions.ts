@@ -75,15 +75,24 @@ export const markAllNotificationsRead = createServerFn({ method: "POST" })
 
 async function assertOrgAccess(userId: string, orgId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("user_roles")
-    .select("role, organisation_id")
-    .eq("user_id", userId);
+  const [{ data }, { data: staff }] = await Promise.all([
+    supabaseAdmin.from("user_roles").select("role, organisation_id").eq("user_id", userId),
+    supabaseAdmin
+      .from("store_staff")
+      .select("store_id, stores(organisation_id)")
+      .eq("user_id", userId)
+      .eq("is_active", true),
+  ]);
   const ok = (data ?? []).some(
     (r) =>
       r.role === "super_admin" ||
       ((r.role === "retailer_admin" || r.role === "store_manager") && r.organisation_id === orgId),
-  );
+  ) ||
+    (staff ?? []).some((row) => {
+      const stores = (row as { stores?: { organisation_id?: string } | { organisation_id?: string }[] | null }).stores;
+      const store = Array.isArray(stores) ? stores[0] : stores;
+      return store?.organisation_id === orgId;
+    });
   if (!ok) throw new Error("Forbidden");
 }
 

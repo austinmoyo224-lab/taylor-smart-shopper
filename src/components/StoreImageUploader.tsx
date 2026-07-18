@@ -14,6 +14,7 @@ export function StoreImageUploader({
   onChange,
   label,
   aspect = "square",
+  recommendedSize,
   accept = "image/*",
   className,
 }: {
@@ -24,6 +25,7 @@ export function StoreImageUploader({
   onChange: (url: string | null) => void;
   label: string;
   aspect?: "square" | "wide" | "tall";
+  recommendedSize?: string;
   accept?: string;
   className?: string;
 }) {
@@ -62,6 +64,11 @@ export function StoreImageUploader({
   return (
     <div className={className}>
       <span className="mb-1 block text-[11px] font-medium text-muted">{label}</span>
+      {recommendedSize && (
+        <span className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted">
+          Recommended {recommendedSize}
+        </span>
+      )}
       <div
         className={`relative flex ${aspectCls} w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-background`}
       >
@@ -85,7 +92,9 @@ export function StoreImageUploader({
           >
             <ImagePlus className="size-6 text-primary/70" />
             <span>Click to upload</span>
-            <span className="text-[10px]">PNG, JPG, WEBP up to 20MB</span>
+            <span className="text-[10px]">
+              PNG, JPG, WEBP up to 20MB{recommendedSize ? ` · ${recommendedSize}` : ""}
+            </span>
           </button>
         )}
       </div>

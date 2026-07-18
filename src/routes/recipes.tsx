@@ -113,11 +113,16 @@ function MyRecipes() {
 
 function RecipeGrid() {
   const { data } = useSuspenseQuery(recipesQO);
+  const { user } = useAuth();
+  const myRecipes = useQuery({
+    queryKey: ["recipes", "mine"],
+    queryFn: () => listMyRecipes(),
+    enabled: !!user,
+  });
   if (data.length === 0)
-    return (
+    return user && (myRecipes.isLoading || (myRecipes.data ?? []).length > 0) ? null : (
       <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
-        No recipes published yet. Taylor will start pairing recipes with the specials at stores you
-        follow.
+        Ask Taylor for a recipe and it will appear here automatically.
       </div>
     );
   return (
