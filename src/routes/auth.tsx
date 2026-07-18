@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -111,6 +112,21 @@ function AuthScreen() {
       if (error) throw error;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onGoogle() {
+    setError(null);
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign in with Google.");
     } finally {
       setBusy(false);
     }
@@ -242,6 +258,22 @@ function AuthScreen() {
           </p>
         )}
 
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <button
+          type="button"
+          onClick={onGoogle}
+          disabled={busy}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/10 disabled:opacity-60"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </button>
+
         <div className="mt-6 text-center text-xs text-muted">
           {mode === "signin" ? "New to Taylor?" : "Already have an account?"}{" "}
           <button
@@ -302,5 +334,13 @@ function PrimaryButton({ busy, children }: { busy: boolean; children: React.Reac
     >
       {busy ? "One moment…" : children}
     </button>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12S6.7 21.6 12 21.6c6.9 0 9.6-4.8 9.6-7.3 0-.5 0-.9-.1-1.3H12z"/>
+    </svg>
   );
 }
