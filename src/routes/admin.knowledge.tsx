@@ -103,14 +103,14 @@ function KnowledgePage() {
                 <input
                   value={editing.title}
                   onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-                  className="input"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </Field>
               <Field label="Category">
                 <input
                   value={editing.category ?? ""}
                   onChange={(e) => setEditing({ ...editing, category: e.target.value })}
-                  className="input"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </Field>
               <Field label="Tags (comma separated)">
@@ -125,14 +125,14 @@ function KnowledgePage() {
                         .filter(Boolean),
                     })
                   }
-                  className="input"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </Field>
               <Field label="Source URL">
                 <input
                   value={editing.source_url ?? ""}
                   onChange={(e) => setEditing({ ...editing, source_url: e.target.value })}
-                  className="input"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </Field>
             </div>
@@ -141,7 +141,7 @@ function KnowledgePage() {
                 value={editing.content}
                 onChange={(e) => setEditing({ ...editing, content: e.target.value })}
                 rows={8}
-                className="input resize-y"
+                className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </Field>
             <label className="mt-3 flex items-center gap-2 text-xs text-muted">
