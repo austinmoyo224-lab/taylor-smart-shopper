@@ -385,10 +385,11 @@ function ProfileScreen() {
 
         <MemorySection
           title="Lifestyle"
-          description="Life moments Taylor should remember. Fully opt-in."
+          description="Pets, cooking time and any life details Taylor should remember. Fully opt-in."
           value={memory.lifestyle}
           onChange={(v) => setMemory({ ...memory, lifestyle: v })}
           fields={[
+            { key: "pets", label: "Pets (types and names)", type: "text" },
             { key: "cooking_time", label: "Time you have for cooking on weeknights", type: "text" },
             { key: "kids_ages", label: "Kids in the home (ages)", type: "text" },
             { key: "notes", label: "Anything else Taylor should know", type: "textarea" },
