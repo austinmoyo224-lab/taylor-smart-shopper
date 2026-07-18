@@ -142,7 +142,7 @@ const createStoreSchema = z.object({
     .regex(/^[a-z0-9-]+$/),
   city: z.string().trim().max(120).optional().or(z.literal("")),
   country_code: z.string().length(2).default("ZA"),
-  status: z.enum(["draft", "active", "paused", "archived"]).default("draft"),
+  status: z.enum(["draft", "pending", "active", "paused", "archived"]).default("pending"),
 });
 
 export const createStore = createServerFn({ method: "POST" })
@@ -152,6 +152,9 @@ export const createStore = createServerFn({ method: "POST" })
     await assertOrgAccess(context.userId, data.organisation_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const qrSlug = await makeUniqueStoreCode(supabaseAdmin, data.slug);
+    const scope = await getPortalScope(context.userId);
+    // Only super admins can create a store already live. Everyone else lands in pending.
+    const status = scope.isSuperAdmin ? data.status : data.status === "active" ? "pending" : data.status;
     const { data: row, error } = await supabaseAdmin
       .from("stores")
       .insert({
@@ -160,7 +163,7 @@ export const createStore = createServerFn({ method: "POST" })
         slug: data.slug,
         city: data.city || null,
         country_code: data.country_code,
-        status: data.status,
+        status,
         qr_slug: qrSlug,
       })
       .select("id")
@@ -214,7 +217,7 @@ const updateStoreSchema = z.object({
   store_id: z.string().uuid(),
   name: z.string().trim().min(1).max(200).optional(),
   slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9-]+$/).optional(),
-  status: z.enum(["draft", "active", "paused", "archived"]).optional(),
+  status: z.enum(["draft", "pending", "active", "paused", "archived"]).optional(),
   description: z.string().max(2000).optional().nullable(),
   logo_url: z.string().url().max(2000).optional().nullable(),
   hero_image_url: z.string().url().max(2000).optional().nullable(),
@@ -240,10 +243,15 @@ export const updateStore = createServerFn({ method: "POST" })
     await assertStoreAccess(context.userId, data.store_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { store_id, ...rest } = data;
+    const scope = await getPortalScope(context.userId);
     const patch: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(rest)) {
       if (v === undefined) continue;
       patch[k] = v === "" ? null : v;
+    }
+    // Retailers cannot flip a store live — only a super admin approves it.
+    if (!scope.isSuperAdmin && patch.status === "active") {
+      patch.status = "pending";
     }
     const { error } = await supabaseAdmin
       .from("stores")
