@@ -367,17 +367,8 @@ function ProfileScreen() {
           />
         </Section>
 
-        <MemorySection
-          title="Shopping"
-          description="Favourite stores, budget, who you shop for. Taylor uses this to pick better deals."
-          value={memory.shopping}
-          onChange={(v) => setMemory({ ...memory, shopping: v })}
-          fields={[
-            { key: "budget_per_shop", label: "Typical budget per shop (R)", type: "number" },
-            { key: "household_size", label: "People in the household", type: "number" },
-            { key: "notes", label: "Anything else about how you shop", type: "textarea" },
-          ]}
-        />
+        <HouseholdSection memory={memory} setMemory={setMemory} />
+        <ShoppingSection memory={memory} setMemory={setMemory} />
 
         <MemorySection
           title="Food & diet"
