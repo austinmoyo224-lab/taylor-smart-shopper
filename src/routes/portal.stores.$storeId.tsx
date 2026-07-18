@@ -82,6 +82,8 @@ function StoreDetailPage() {
           <CodePanel
             storeId={store.data.id}
             qrSlug={store.data.qr_slug}
+            storeName={store.data.name}
+            logoUrl={store.data.logo_url ?? null}
             onChanged={() => qc.invalidateQueries({ queryKey: ["portal", "store", storeId] })}
           />
           <StoreDashboardPanel storeId={store.data.id} storeName={store.data.name} />
