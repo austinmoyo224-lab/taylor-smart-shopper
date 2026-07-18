@@ -26,6 +26,8 @@ import {
   BarChart3,
   Users,
   ExternalLink,
+  Palette,
+  Clock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/portal/stores/$storeId")({
