@@ -665,3 +665,37 @@ function Field({
     </label>
   );
 }
+
+function StatusPill({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    pending: "bg-amber-500/15 text-amber-600",
+    active: "bg-primary/15 text-primary",
+    draft: "bg-muted/30 text-muted",
+    paused: "bg-orange-500/15 text-orange-600",
+    archived: "bg-destructive/10 text-destructive",
+  };
+  const cls = map[status] ?? "bg-muted/30 text-muted";
+  return (
+    <span className={`inline-flex rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest ${cls}`}>
+      {status}
+    </span>
+  );
+}
+
+function ApproveButton({ storeId, onDone }: { storeId: string; onDone: () => void }) {
+  const mut = useMutation({
+    mutationFn: () => approveStore({ data: { store_id: storeId, status: "active" } }),
+    onSuccess: onDone,
+  });
+  return (
+    <button
+      type="button"
+      onClick={() => mut.mutate()}
+      disabled={mut.isPending}
+      className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+      title="Approve and take live"
+    >
+      {mut.isPending ? "Approving…" : "Approve"}
+    </button>
+  );
+}
