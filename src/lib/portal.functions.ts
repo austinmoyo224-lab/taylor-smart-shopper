@@ -336,6 +336,8 @@ export const regenerateStoreCode = createServerFn({ method: "POST" })
       .select("id")
       .eq("target_id", data.store_id)
       .eq("type", "store_invite")
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
     const qrWrite = existingQr
       ? await supabaseAdmin
