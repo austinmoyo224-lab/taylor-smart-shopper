@@ -1718,9 +1718,11 @@ export type Database = {
           organisation_id: string | null
           servings: number | null
           slug: string
+          source: string | null
           sponsor_brand_id: string | null
           title: string
           updated_at: string
+          user_id: string | null
           weather_tags: string[]
         }
         Insert: {
@@ -1739,9 +1741,11 @@ export type Database = {
           organisation_id?: string | null
           servings?: number | null
           slug: string
+          source?: string | null
           sponsor_brand_id?: string | null
           title: string
           updated_at?: string
+          user_id?: string | null
           weather_tags?: string[]
         }
         Update: {
@@ -1760,9 +1764,11 @@ export type Database = {
           organisation_id?: string | null
           servings?: number | null
           slug?: string
+          source?: string | null
           sponsor_brand_id?: string | null
           title?: string
           updated_at?: string
+          user_id?: string | null
           weather_tags?: string[]
         }
         Relationships: [

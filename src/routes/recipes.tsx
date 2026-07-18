@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
-import { listPublishedRecipes } from "@/lib/recipes.functions";
-import { Clock, Users } from "lucide-react";
+import { listMyRecipes, listPublishedRecipes } from "@/lib/recipes.functions";
+import { useAuth } from "@/hooks/useAuth";
+import { Clock, Sparkles, Users } from "lucide-react";
 
 const recipesQO = queryOptions({
   queryKey: ["recipes", "published"],
@@ -48,11 +49,65 @@ function RecipesScreen() {
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4">
         <Suspense fallback={<p className="px-2 py-6 text-sm text-muted">Loading…</p>}>
+          <MyRecipes />
           <RecipeGrid />
         </Suspense>
       </main>
       <BottomNav />
     </AppShell>
+  );
+}
+
+function MyRecipes() {
+  const { user } = useAuth();
+  const q = useQuery({
+    queryKey: ["recipes", "mine"],
+    queryFn: () => listMyRecipes(),
+    enabled: !!user,
+  });
+  const items = q.data ?? [];
+  if (!user || items.length === 0) return null;
+  return (
+    <section className="mb-6">
+      <div className="mb-2 flex items-center gap-2 px-2">
+        <Sparkles className="size-3.5 text-primary" />
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          Your recipes from Taylor
+        </p>
+      </div>
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {items.map((r) => (
+          <li
+            key={r.id}
+            className="overflow-hidden rounded-2xl border border-primary/30 bg-card transition hover:border-primary/60"
+          >
+            <Link to="/recipes/$slug" params={{ slug: r.slug }} className="block p-4">
+              <p className="text-sm font-medium leading-snug">{r.title}</p>
+              {r.description && (
+                <p className="mt-1 line-clamp-2 text-xs text-muted">{r.description}</p>
+              )}
+              <div className="mt-2 flex gap-3 font-mono text-[10px] text-muted">
+                {r.cooking_time_minutes && (
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="size-3" />
+                    {r.cooking_time_minutes}m
+                  </span>
+                )}
+                {r.servings && (
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="size-3" />
+                    {r.servings}
+                  </span>
+                )}
+                {r.source && (
+                  <span className="uppercase tracking-widest">{r.source}</span>
+                )}
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

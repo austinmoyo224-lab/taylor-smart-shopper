@@ -228,6 +228,18 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     "- If asked why, answer with the specific signals: their followed store, their diet, an active promo.",
   );
 
+  lines.push("");
+  lines.push("SAVING FOR THE SUBSCRIBER (tools — use them, don't just describe)");
+  lines.push(
+    "- Whenever you propose a shopping list (from a chat request, a pantry check, a fridge review, or a scanned receipt), CALL the save_shopping_list tool with a short name and the full item array BEFORE finishing your reply. Then mention 'I've saved this to your Lists' with a brief summary.",
+  );
+  lines.push(
+    "- Whenever you share a recipe, CALL the save_recipe tool with title, servings, cooking_time_minutes, difficulty, ingredients and step-by-step instructions BEFORE finishing your reply. Set source to 'chat', 'pantry', 'fridge', or 'receipt' depending on context. Then mention 'I've added it to your Recipes'.",
+  );
+  lines.push(
+    "- Never invent that you've saved something without actually calling the tool. If a tool call fails, tell the subscriber honestly.",
+  );
+
   return lines.join("\n");
 }
 

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
-import { addRecipeToShoppingList, getRecipeBySlug } from "@/lib/recipes.functions";
+import { addRecipeToShoppingList, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronLeft, Clock, Users, ShoppingBasket, Minus, Plus } from "lucide-react";
@@ -68,11 +68,18 @@ function RecipeDetail() {
 
 function RecipeBody() {
   const { slug } = Route.useParams();
-  const { data } = useSuspenseQuery(recipeQO(slug));
+  const { data: publicData } = useSuspenseQuery(recipeQO(slug));
   const { user } = useAuth();
   const navigate = useNavigate();
+  const mine = useQuery({
+    queryKey: ["recipe", "mine", slug],
+    queryFn: () => getMyRecipeBySlug({ data: { slug } }),
+    enabled: !!user && !publicData,
+  });
+  const data = publicData ?? mine.data ?? null;
 
   if (!data) {
+    if (mine.isLoading) return <div className="p-8 text-sm text-muted">Loading…</div>;
     return <div className="p-8 text-sm text-muted">Recipe not found.</div>;
   }
   const { recipe, ingredients } = data;
@@ -104,10 +111,19 @@ function RecipeBody() {
   });
 
   const scale = servings / baseServings;
-  const instructions: string[] = Array.isArray(recipe.instructions)
-    ? (recipe.instructions as unknown as string[])
-    : typeof recipe.instructions === "string"
-      ? [recipe.instructions]
+  const rawInstructions: unknown = recipe.instructions;
+  const instructions: string[] = Array.isArray(rawInstructions)
+    ? rawInstructions
+        .map((s) =>
+          typeof s === "string"
+            ? s
+            : s && typeof s === "object" && "text" in (s as Record<string, unknown>)
+              ? String((s as Record<string, unknown>).text ?? "")
+              : "",
+        )
+        .filter((s) => s.length > 0)
+    : typeof rawInstructions === "string"
+      ? [rawInstructions]
       : [];
 
   return (
