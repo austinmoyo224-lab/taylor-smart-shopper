@@ -152,7 +152,7 @@ export async function speakText(text: string, opts?: { voice?: string }): Promis
   const res = await fetch("/api/voice/speak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, voice: opts?.voice ?? "alloy" }),
+    body: JSON.stringify({ text, voice: opts?.voice ?? "shimmer" }),
   });
   if (!res.ok) throw new Error(`Speech failed (${res.status})`);
   const buf = await res.arrayBuffer();
