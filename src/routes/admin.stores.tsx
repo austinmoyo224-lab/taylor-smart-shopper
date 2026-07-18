@@ -604,9 +604,17 @@ function DeleteStore({ store, onDeleted }: { store: StoreData; onDeleted: () => 
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  className,
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="block">
+    <label className={"block " + (className ?? "")}>
       <span className="mb-1 block text-[11px] font-mono uppercase tracking-widest text-muted">
         {label}
       </span>
