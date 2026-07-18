@@ -82,7 +82,7 @@ export const getPortalContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const scope = await getPortalScope(context.userId);
-    if (scope.roles.length === 0) {
+    if (scope.roles.length === 0 && scope.staffStoreIds.length === 0) {
       return { hasAccess: false as const, organisations: [], stores: [] };
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -194,7 +194,14 @@ async function assertStoreAccess(userId: string, storeId: string) {
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!store) throw new Error("Store not found");
-  await assertOrgAccess(userId, store.organisation_id);
+  const scope = await getPortalScope(userId);
+  if (
+    !scope.isSuperAdmin &&
+    !scope.orgRoleIds.includes(store.organisation_id) &&
+    !scope.staffStoreIds.includes(storeId)
+  ) {
+    throw new Error("Forbidden: no access to this store");
+  }
   return store;
 }
 
@@ -520,7 +527,7 @@ export const listPromotions = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("promotions")
       .select(
-        "id, title, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, stores(name)",
+        "id, title, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, stores(name), promotion_products(products(name))",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)

@@ -94,12 +94,13 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     storeIds.length
       ? supabaseAdmin
           .from("stores")
-          .select("id, name, city, country_code")
+          .select("id, organisation_id, name, city, country_code")
           .in("id", storeIds)
           .is("deleted_at", null)
       : Promise.resolve({
           data: [] as {
             id: string;
+            organisation_id: string;
             name: string;
             city: string | null;
             country_code: string | null;
@@ -120,7 +121,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   ]);
 
   const stores = storesRes.data ?? [];
-  const orgIds = Array.from(new Set(stores.map((s) => s.id && s).map((s) => s.organisation_id).filter(Boolean)));
+  const orgIds = Array.from(new Set(stores.map((s) => s.organisation_id).filter(Boolean)));
   const campaignsRes = orgIds.length
     ? await supabaseAdmin
         .from("campaigns")
