@@ -543,3 +543,193 @@ function MemorySection({
     </section>
   );
 }
+
+function HouseholdSection({
+  memory,
+  setMemory,
+}: {
+  memory: Memory;
+  setMemory: (m: Memory) => void;
+}) {
+  const members = ((memory.personal.household_members as HouseholdMember[] | undefined) ?? []).map(
+    (m) => ({ name: m.name ?? "", age: String(m.age ?? ""), favourite_food: m.favourite_food ?? "" }),
+  );
+  const setMembers = (next: HouseholdMember[]) =>
+    setMemory({ ...memory, personal: { ...memory.personal, household_members: next } });
+  return (
+    <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
+      <div>
+        <h2 className="text-lg italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+          Household
+        </h2>
+        <p className="mt-1 text-[11px] leading-snug text-muted">
+          Who lives with you. Names, ages and favourite foods help Taylor plan meals everyone loves.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted">Adults</span>
+          <input
+            type="number"
+            min={0}
+            value={String(memory.personal.adults ?? "")}
+            onChange={(e) =>
+              setMemory({
+                ...memory,
+                personal: {
+                  ...memory.personal,
+                  adults: e.target.value === "" ? "" : Number(e.target.value),
+                },
+              })
+            }
+            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted">Children</span>
+          <input
+            type="number"
+            min={0}
+            value={String(memory.personal.children ?? "")}
+            onChange={(e) =>
+              setMemory({
+                ...memory,
+                personal: {
+                  ...memory.personal,
+                  children: e.target.value === "" ? "" : Number(e.target.value),
+                },
+              })
+            }
+            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+          />
+        </label>
+      </div>
+      <div className="space-y-2">
+        <span className="block text-[11px] font-medium text-muted">Members</span>
+        {members.map((m, i) => (
+          <div key={i} className="grid grid-cols-[1fr_60px_1fr_28px] gap-2">
+            <input
+              placeholder="Name"
+              value={m.name}
+              onChange={(e) => {
+                const next = [...members];
+                next[i] = { ...next[i], name: e.target.value };
+                setMembers(next);
+              }}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
+            />
+            <input
+              placeholder="Age"
+              inputMode="numeric"
+              value={m.age}
+              onChange={(e) => {
+                const next = [...members];
+                next[i] = { ...next[i], age: e.target.value };
+                setMembers(next);
+              }}
+              className="rounded-xl border border-border bg-background px-2 py-2 text-sm outline-none focus:border-primary/40"
+            />
+            <input
+              placeholder="Favourite food"
+              value={m.favourite_food}
+              onChange={(e) => {
+                const next = [...members];
+                next[i] = { ...next[i], favourite_food: e.target.value };
+                setMembers(next);
+              }}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
+            />
+            <button
+              type="button"
+              aria-label="Remove"
+              onClick={() => setMembers(members.filter((_, idx) => idx !== i))}
+              className="flex items-center justify-center rounded-lg border border-border text-muted hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setMembers([...members, { name: "", age: "", favourite_food: "" }])}
+          className="flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-[11px] text-muted hover:text-foreground"
+        >
+          <Plus className="size-3" /> Add member
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ShoppingSection({
+  memory,
+  setMemory,
+}: {
+  memory: Memory;
+  setMemory: (m: Memory) => void;
+}) {
+  const favSupermarkets = (memory.shopping.favourite_supermarkets as string[] | undefined) ?? [];
+  return (
+    <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
+      <div>
+        <h2 className="text-lg italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+          Shopping
+        </h2>
+        <p className="mt-1 text-[11px] leading-snug text-muted">
+          Budget and favourite stores. Taylor uses this to find the best deals for you.
+        </p>
+      </div>
+      <label className="block">
+        <span className="mb-1 block text-[11px] font-medium text-muted">
+          Monthly grocery budget (R)
+        </span>
+        <input
+          type="number"
+          min={0}
+          value={String(memory.shopping.monthly_budget ?? "")}
+          onChange={(e) =>
+            setMemory({
+              ...memory,
+              shopping: {
+                ...memory.shopping,
+                monthly_budget: e.target.value === "" ? "" : Number(e.target.value),
+              },
+            })
+          }
+          className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+        />
+      </label>
+      <div>
+        <span className="mb-2 block text-[11px] font-medium text-muted">Favourite supermarkets</span>
+        <div className="flex flex-wrap gap-2">
+          {SUPERMARKETS.map((s) => {
+            const on = favSupermarkets.includes(s);
+            return (
+              <button
+                type="button"
+                key={s}
+                onClick={() => {
+                  const next = on
+                    ? favSupermarkets.filter((x) => x !== s)
+                    : [...favSupermarkets, s];
+                  setMemory({
+                    ...memory,
+                    shopping: { ...memory.shopping, favourite_supermarkets: next },
+                  });
+                }}
+                className={
+                  "rounded-full border px-3 py-1 text-[11px] " +
+                  (on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted hover:text-foreground")
+                }
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
