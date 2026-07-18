@@ -39,16 +39,17 @@ function slugSafe(value: string) {
   );
 }
 
-async function makeUniqueStoreCode(supabaseAdmin: any, preferred: string) {
+async function makeUniqueStoreCode(supabaseAdmin: unknown, preferred: string) {
   const base = slugSafe(preferred).slice(0, 72);
   for (let attempt = 0; attempt < 8; attempt++) {
     const candidate = attempt === 0 ? base : `${base}-${randomSlug(4)}`;
-    const storeQuery = supabaseAdmin.from("stores") as {
+    const client = supabaseAdmin as { from: (table: string) => unknown };
+    const storeQuery = client.from("stores") as {
       select: (columns: string) => {
         eq: (column: string, value: string) => { maybeSingle: () => PromiseLike<{ data: unknown }> };
       };
     };
-    const qrQuery = supabaseAdmin.from("qr_codes") as {
+    const qrQuery = client.from("qr_codes") as {
       select: (columns: string) => {
         eq: (column: string, value: string) => { maybeSingle: () => PromiseLike<{ data: unknown }> };
       };
