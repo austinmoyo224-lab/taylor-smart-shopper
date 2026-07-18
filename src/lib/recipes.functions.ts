@@ -36,6 +36,57 @@ export const listPublishedRecipes = createServerFn({ method: "GET" }).handler(as
   return data ?? [];
 });
 
+export const listMyRecipes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("recipes")
+      .select(
+        "id, slug, title, description, hero_image_url, cooking_time_minutes, servings, difficulty, cuisine_tags, source, created_at",
+      )
+      .eq("user_id", context.userId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(120);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const getMyRecipeBySlug = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: recipe } = await context.supabase
+      .from("recipes")
+      .select(
+        "id, slug, title, description, hero_image_url, cooking_time_minutes, servings, difficulty, cuisine_tags, instructions, nutrition, is_sponsored, source",
+      )
+      .eq("slug", data.slug)
+      .eq("user_id", context.userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (!recipe) return null;
+    const { data: ingredients } = await context.supabase
+      .from("recipe_ingredients")
+      .select("id, name, quantity, unit, notes, is_sponsored, sort_order")
+      .eq("recipe_id", recipe.id)
+      .order("sort_order", { ascending: true });
+    return { recipe, ingredients: ingredients ?? [] };
+  });
+
+export const deleteMyRecipe = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("recipes")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getRecipeBySlug = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data }) => {
