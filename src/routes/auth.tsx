@@ -38,7 +38,7 @@ function AuthScreen() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      let dest = "/chat";
+      let dest = "/stores";
       try {
         const pending = localStorage.getItem("taylor.join.pending");
         if (pending && pending.startsWith("/join/")) {
