@@ -72,6 +72,10 @@ function ProfileScreen() {
   const [memory, setMemory] = useState<Memory | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const isWelcome =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("welcome");
 
   const adminStatus = useQuery({
     queryKey: ["admin", "status"],
