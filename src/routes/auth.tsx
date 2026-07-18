@@ -63,7 +63,7 @@ function AuthScreen() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/chat`,
+            emailRedirectTo: `${window.location.origin}/stores`,
             data: { first_name: firstName, display_name: firstName },
           },
         });
