@@ -4,6 +4,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type PortalRole = "super_admin" | "retailer_admin" | "store_manager" | "staff";
 
+type SupabaseAdminClient = Awaited<
+  ReturnType<typeof import("@/integrations/supabase/client.server")["supabaseAdmin"]["from"]>
+> extends never
+  ? never
+  : never;
+
 /** Returns the caller's portal-relevant roles and the orgs they can act in. */
 async function getPortalScope(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -28,6 +34,37 @@ async function assertOrgAccess(userId: string, orgId: string) {
   if (scope.isSuperAdmin) return scope;
   if (!scope.orgIds.includes(orgId)) throw new Error("Forbidden: no access to this organisation");
   return scope;
+}
+
+function slugSafe(value: string) {
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || randomSlug(8)
+  );
+}
+
+async function makeUniqueStoreCode(
+  supabaseAdmin: {
+    from: (table: "stores" | "qr_codes") => {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => { maybeSingle: () => Promise<{ data: unknown }> };
+      };
+    };
+  },
+  preferred: string,
+) {
+  const base = slugSafe(preferred).slice(0, 72);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const candidate = attempt === 0 ? base : `${base}-${randomSlug(4)}`;
+    const [storeMatch, qrMatch] = await Promise.all([
+      supabaseAdmin.from("stores").select("id").eq("qr_slug", candidate).maybeSingle(),
+      supabaseAdmin.from("qr_codes").select("id").eq("slug", candidate).maybeSingle(),
+    ]);
+    if (!storeMatch.data && !qrMatch.data) return candidate;
+  }
+  return `${base}-${randomSlug(8)}`;
 }
 
 export const getPortalContext = createServerFn({ method: "GET" })
@@ -86,6 +123,7 @@ export const createStore = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertOrgAccess(context.userId, data.organisation_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const qrSlug = await makeUniqueStoreCode(supabaseAdmin, data.slug);
     const { data: row, error } = await supabaseAdmin
       .from("stores")
       .insert({
@@ -95,11 +133,20 @@ export const createStore = createServerFn({ method: "POST" })
         city: data.city || null,
         country_code: data.country_code,
         status: data.status,
-        qr_slug: data.slug,
+        qr_slug: qrSlug,
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    const { error: qrError } = await supabaseAdmin.from("qr_codes").insert({
+      organisation_id: data.organisation_id,
+      type: "store_invite",
+      target_id: row.id,
+      slug: qrSlug,
+      label: data.name,
+      is_active: true,
+    });
+    if (qrError) throw new Error(qrError.message);
     return { id: row.id };
   });
 
@@ -171,6 +218,33 @@ export const updateStore = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteStore = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => storeIdInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const store = await assertStoreAccess(context.userId, data.store_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date().toISOString();
+    const { error } = await supabaseAdmin
+      .from("stores")
+      .update({ status: "archived", deleted_at: now })
+      .eq("id", data.store_id);
+    if (error) throw new Error(error.message);
+    await Promise.all([
+      supabaseAdmin
+        .from("qr_codes")
+        .update({ is_active: false })
+        .eq("target_id", data.store_id)
+        .eq("type", "store_invite"),
+      supabaseAdmin
+        .from("subscriber_store_subs")
+        .update({ is_active: false })
+        .eq("target_id", data.store_id)
+        .eq("target_type", "store"),
+    ]);
+    return { ok: true, organisation_id: store.organisation_id };
+  });
+
 function randomSlug(len = 8) {
   const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
   let out = "";
@@ -182,23 +256,72 @@ export const regenerateStoreCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => storeIdInput.parse(d))
   .handler(async ({ data, context }) => {
+    const store = await assertStoreAccess(context.userId, data.store_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const candidate = await makeUniqueStoreCode(supabaseAdmin, randomSlug(8));
+    const { data: row, error } = await supabaseAdmin
+      .from("stores")
+      .update({ qr_slug: candidate })
+      .eq("id", data.store_id)
+      .select("qr_slug")
+      .maybeSingle();
+    if (error || !row) throw new Error(error?.message ?? "Could not generate a unique store code");
+
+    const { data: existingQr } = await supabaseAdmin
+      .from("qr_codes")
+      .select("id")
+      .eq("target_id", data.store_id)
+      .eq("type", "store_invite")
+      .maybeSingle();
+    const qrWrite = existingQr
+      ? await supabaseAdmin
+          .from("qr_codes")
+          .update({ slug: candidate, label: store.name, is_active: true })
+          .eq("id", existingQr.id)
+      : await supabaseAdmin.from("qr_codes").insert({
+          organisation_id: store.organisation_id,
+          type: "store_invite",
+          target_id: data.store_id,
+          slug: candidate,
+          label: store.name,
+          is_active: true,
+        });
+    if (qrWrite.error) throw new Error(qrWrite.error.message);
+    return { qr_slug: row.qr_slug };
+  });
+
+export const getStoreSubscriberDashboard = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => storeIdInput.parse(d))
+  .handler(async ({ data, context }) => {
     await assertStoreAccess(context.userId, data.store_id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // retry a few times in case of unique-collision on qr_slug
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const candidate = randomSlug(8);
-      const { data: row, error } = await supabaseAdmin
-        .from("stores")
-        .update({ qr_slug: candidate })
-        .eq("id", data.store_id)
-        .select("qr_slug")
-        .maybeSingle();
-      if (!error && row) return { qr_slug: row.qr_slug };
-      if (error && !`${error.message}`.toLowerCase().includes("duplicate")) {
-        throw new Error(error.message);
-      }
-    }
-    throw new Error("Could not generate a unique store code");
+    const { data: subs, count, error } = await supabaseAdmin
+      .from("subscriber_store_subs")
+      .select("user_id, created_at, source", { count: "exact" })
+      .eq("target_type", "store")
+      .eq("target_id", data.store_id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    const ids = (subs ?? []).map((s) => s.user_id);
+    const { data: profiles } = ids.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, display_name, first_name, email, phone, avatar_url")
+          .in("id", ids)
+      : { data: [] as never[] };
+    const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+    return {
+      count: count ?? 0,
+      recent: (subs ?? []).map((sub) => ({
+        user_id: sub.user_id,
+        subscribed_at: sub.created_at,
+        source: sub.source,
+        profile: byId.get(sub.user_id) ?? null,
+      })),
+    };
   });
 
 // ---------- STORE ASSETS ----------
