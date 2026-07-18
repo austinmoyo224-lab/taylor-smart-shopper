@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { createOrganisation, listOrganisations } from "@/lib/admin.functions";
-import { Plus } from "lucide-react";
+import {
+  createOrganisation,
+  listOrganisations,
+  updateOrganisation,
+  deleteOrganisation,
+} from "@/lib/admin.functions";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/organisations")({
   ssr: false,
@@ -12,9 +17,20 @@ export const Route = createFileRoute("/admin/organisations")({
 function OrganisationsPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<OrgRow | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "orgs"],
     queryFn: () => listOrganisations(),
+  });
+
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["admin", "orgs"] });
+    void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+  };
+
+  const del = useMutation({
+    mutationFn: (id: string) => deleteOrganisation({ data: { id } }),
+    onSuccess: invalidate,
   });
 
   return (
@@ -42,8 +58,18 @@ function OrganisationsPage() {
         <NewOrgForm
           onCreated={() => {
             setShowForm(false);
-            void qc.invalidateQueries({ queryKey: ["admin", "orgs"] });
-            void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+            invalidate();
+          }}
+        />
+      )}
+
+      {editing && (
+        <EditOrgForm
+          org={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            invalidate();
           }}
         />
       )}
@@ -59,19 +85,20 @@ function OrganisationsPage() {
               <th className="px-4 py-3">Currency</th>
               <th className="px-4 py-3">Contact</th>
               <th className="px-4 py-3">Active</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td className="px-4 py-6 text-muted" colSpan={7}>
+                <td className="px-4 py-6 text-muted" colSpan={8}>
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && (data?.length ?? 0) === 0 && (
               <tr>
-                <td className="px-4 py-6 text-muted" colSpan={7}>
+                <td className="px-4 py-6 text-muted" colSpan={8}>
                   No organisations yet. Create the first one to onboard a retailer, brand or
                   partner.
                 </td>
@@ -96,12 +123,179 @@ function OrganisationsPage() {
                     </span>
                   )}
                 </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setEditing(o as OrgRow)}
+                      className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-accent"
+                    >
+                      <Pencil className="size-3" /> Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `Delete organisation "${o.name}"? This archives it and hides it from the platform.`,
+                          )
+                        )
+                          del.mutate(o.id);
+                      }}
+                      disabled={del.isPending}
+                      className="inline-flex items-center gap-1 rounded-full border border-destructive/40 px-2.5 py-1 text-[11px] text-destructive hover:bg-destructive/10 disabled:opacity-60"
+                    >
+                      <Trash2 className="size-3" /> Delete
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+type OrgRow = {
+  id: string;
+  name: string;
+  slug: string;
+  type: "retail_group" | "brand" | "partner" | "independent";
+  country_code: string;
+  default_currency: string;
+  contact_email: string | null;
+  is_active: boolean;
+};
+
+function EditOrgForm({
+  org,
+  onSaved,
+  onClose,
+}: {
+  org: OrgRow;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(org.name);
+  const [slug, setSlug] = useState(org.slug);
+  const [type, setType] = useState<OrgRow["type"]>(org.type);
+  const [contactEmail, setContactEmail] = useState(org.contact_email ?? "");
+  const [country, setCountry] = useState(org.country_code);
+  const [currency, setCurrency] = useState(org.default_currency);
+  const [isActive, setIsActive] = useState(org.is_active);
+  const [error, setError] = useState<string | null>(null);
+
+  const mut = useMutation({
+    mutationFn: () =>
+      updateOrganisation({
+        data: {
+          id: org.id,
+          name,
+          slug,
+          type,
+          country_code: country,
+          default_currency: currency,
+          contact_email: contactEmail,
+          is_active: isActive,
+        },
+      }),
+    onSuccess: onSaved,
+    onError: (e: Error) => setError(e.message),
+  });
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(null);
+        mut.mutate();
+      }}
+      className="mb-8 grid grid-cols-1 gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-5 md:grid-cols-2"
+    >
+      <div className="md:col-span-2 flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+          Editing · {org.name}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-[11px] text-muted hover:text-foreground"
+        >
+          Cancel
+        </button>
+      </div>
+      <FormField label="Name">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
+      </FormField>
+      <FormField label="Slug">
+        <input
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          required
+          pattern="[a-z0-9-]+"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
+        />
+      </FormField>
+      <FormField label="Type">
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value as OrgRow["type"])}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="retail_group">Retail group</option>
+          <option value="brand">Brand</option>
+          <option value="partner">Partner</option>
+          <option value="independent">Independent</option>
+        </select>
+      </FormField>
+      <FormField label="Contact email">
+        <input
+          type="email"
+          value={contactEmail}
+          onChange={(e) => setContactEmail(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
+      </FormField>
+      <FormField label="Country">
+        <input
+          value={country}
+          onChange={(e) => setCountry(e.target.value.toUpperCase())}
+          maxLength={2}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
+      </FormField>
+      <FormField label="Currency">
+        <input
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+          maxLength={3}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
+      </FormField>
+      <label className="flex items-center gap-2 text-xs md:col-span-2">
+        <input
+          type="checkbox"
+          checked={isActive}
+          onChange={(e) => setIsActive(e.target.checked)}
+        />
+        Active
+      </label>
+      <div className="md:col-span-2 flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={mut.isPending}
+          className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+        >
+          {mut.isPending ? "Saving…" : "Save changes"}
+        </button>
+        {error && <p className="text-xs text-destructive">{error}</p>}
+      </div>
+    </form>
   );
 }
 
