@@ -844,3 +844,106 @@ function Full({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+const DAYS: { key: string; label: string }[] = [
+  { key: "mon", label: "Monday" },
+  { key: "tue", label: "Tuesday" },
+  { key: "wed", label: "Wednesday" },
+  { key: "thu", label: "Thursday" },
+  { key: "fri", label: "Friday" },
+  { key: "sat", label: "Saturday" },
+  { key: "sun", label: "Sunday" },
+];
+
+function BrandColorsEditor({
+  value,
+  onChange,
+}: {
+  value: Record<string, string> | null;
+  onChange: (v: Record<string, string>) => void;
+}) {
+  const v = value ?? {};
+  const set = (k: string, val: string) => onChange({ ...v, [k]: val });
+  const swatches: { key: string; label: string; fallback: string }[] = [
+    { key: "primary", label: "Primary", fallback: "#22c55e" },
+    { key: "accent", label: "Accent", fallback: "#0F1B3D" },
+    { key: "background", label: "Background", fallback: "#ffffff" },
+  ];
+  return (
+    <div className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-background p-4 md:grid-cols-3">
+      {swatches.map((s) => (
+        <label key={s.key} className="flex items-center gap-3">
+          <input
+            type="color"
+            value={v[s.key] ?? s.fallback}
+            onChange={(e) => set(s.key, e.target.value)}
+            className="size-10 cursor-pointer rounded-lg border border-border bg-transparent"
+          />
+          <div className="flex-1">
+            <p className="text-[11px] font-medium">{s.label}</p>
+            <input
+              value={v[s.key] ?? ""}
+              placeholder={s.fallback}
+              onChange={(e) => set(s.key, e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-2 py-1 font-mono text-[11px]"
+            />
+          </div>
+        </label>
+      ))}
+      <p className="md:col-span-3 text-[10px] text-muted">
+        Used on your store hero, banners and Taylor recommendations.
+      </p>
+    </div>
+  );
+}
+
+type Hours = Record<string, { open: string; close: string; closed?: boolean }>;
+
+function TradingHoursEditor({
+  value,
+  onChange,
+}: {
+  value: Hours | null;
+  onChange: (v: Hours) => void;
+}) {
+  const v: Hours = value ?? {};
+  const upd = (day: string, patch: Partial<{ open: string; close: string; closed: boolean }>) => {
+    const cur = v[day] ?? { open: "08:00", close: "18:00", closed: false };
+    onChange({ ...v, [day]: { ...cur, ...patch } });
+  };
+  return (
+    <div className="space-y-2 rounded-xl border border-border bg-background p-4">
+      {DAYS.map((d) => {
+        const row = v[d.key] ?? { open: "08:00", close: "18:00", closed: false };
+        return (
+          <div key={d.key} className="flex flex-wrap items-center gap-2">
+            <span className="w-24 text-[11px] font-medium">{d.label}</span>
+            <label className="flex items-center gap-1 text-[11px] text-muted">
+              <input
+                type="checkbox"
+                checked={!!row.closed}
+                onChange={(e) => upd(d.key, { closed: e.target.checked })}
+              />
+              Closed
+            </label>
+            <input
+              type="time"
+              value={row.open}
+              disabled={row.closed}
+              onChange={(e) => upd(d.key, { open: e.target.value })}
+              className="rounded-md border border-border bg-background px-2 py-1 font-mono text-[11px] disabled:opacity-50"
+            />
+            <span className="text-[11px] text-muted">to</span>
+            <input
+              type="time"
+              value={row.close}
+              disabled={row.closed}
+              onChange={(e) => upd(d.key, { close: e.target.value })}
+              className="rounded-md border border-border bg-background px-2 py-1 font-mono text-[11px] disabled:opacity-50"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
