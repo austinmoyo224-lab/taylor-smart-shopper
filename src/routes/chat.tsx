@@ -622,11 +622,15 @@ function MessageRow({
   parts,
   delay,
   canVoice,
+  taylorAvatar,
+  userAvatar,
 }: {
   role: string;
   parts: UIMessage["parts"];
   delay: number;
   canVoice?: boolean;
+  taylorAvatar?: string;
+  userAvatar?: string | null;
 }) {
   const isUser = role === "user";
   const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
@@ -652,9 +656,11 @@ function MessageRow({
 
   return (
     <div
-      className={"animate-message flex w-full flex-col " + (isUser ? "items-end" : "items-start")}
+      className={"animate-message flex w-full " + (isUser ? "justify-end" : "justify-start")}
       style={{ animationDelay: `${delay}ms` }}
     >
+      {!isUser && <Avatar src={taylorAvatar} label="T" className="mr-2 mt-1" />}
+      <div className={"flex max-w-[85%] flex-col " + (isUser ? "items-end" : "items-start")}>
       <div
         className={
           "max-w-[85%] space-y-2 px-4 py-3 " +
@@ -705,6 +711,34 @@ function MessageRow({
           </button>
         )}
       </div>
+      </div>
+      {isUser && <Avatar src={userAvatar ?? undefined} label="You" className="ml-2 mt-1" />}
+    </div>
+  );
+}
+
+function Avatar({
+  src,
+  label,
+  className = "",
+}: {
+  src?: string;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={
+        "flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary " +
+        className
+      }
+      style={{ fontFamily: "var(--font-display)" }}
+    >
+      {src ? (
+        <img src={src} alt="" className="size-full object-cover" />
+      ) : (
+        <span>{label.slice(0, 2).toUpperCase()}</span>
+      )}
     </div>
   );
 }
