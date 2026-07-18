@@ -4,12 +4,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type PortalRole = "super_admin" | "retailer_admin" | "store_manager" | "staff";
 
-type SupabaseAdminClient = Awaited<
-  ReturnType<typeof import("@/integrations/supabase/client.server")["supabaseAdmin"]["from"]>
-> extends never
-  ? never
-  : never;
-
 /** Returns the caller's portal-relevant roles and the orgs they can act in. */
 async function getPortalScope(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -45,22 +39,23 @@ function slugSafe(value: string) {
   );
 }
 
-async function makeUniqueStoreCode(
-  supabaseAdmin: {
-    from: (table: "stores" | "qr_codes") => {
-      select: (columns: string) => {
-        eq: (column: string, value: string) => { maybeSingle: () => Promise<{ data: unknown }> };
-      };
-    };
-  },
-  preferred: string,
-) {
+async function makeUniqueStoreCode(supabaseAdmin: { from: (table: string) => unknown }, preferred: string) {
   const base = slugSafe(preferred).slice(0, 72);
   for (let attempt = 0; attempt < 8; attempt++) {
     const candidate = attempt === 0 ? base : `${base}-${randomSlug(4)}`;
+    const storeQuery = supabaseAdmin.from("stores") as {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => { maybeSingle: () => PromiseLike<{ data: unknown }> };
+      };
+    };
+    const qrQuery = supabaseAdmin.from("qr_codes") as {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => { maybeSingle: () => PromiseLike<{ data: unknown }> };
+      };
+    };
     const [storeMatch, qrMatch] = await Promise.all([
-      supabaseAdmin.from("stores").select("id").eq("qr_slug", candidate).maybeSingle(),
-      supabaseAdmin.from("qr_codes").select("id").eq("slug", candidate).maybeSingle(),
+      storeQuery.select("id").eq("qr_slug", candidate).maybeSingle(),
+      qrQuery.select("id").eq("slug", candidate).maybeSingle(),
     ]);
     if (!storeMatch.data && !qrMatch.data) return candidate;
   }
