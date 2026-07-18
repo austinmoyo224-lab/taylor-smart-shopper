@@ -197,6 +197,8 @@ export const ensureStoreQrCode = createServerFn({ method: "POST" })
       .select("id, slug, scan_count, conversion_count")
       .eq("target_id", store.id)
       .eq("type", "store_invite")
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
     if (existing) {
       if (existing.slug !== store.qr_slug) {
