@@ -453,7 +453,11 @@ export const listVaultFiles = createServerFn({ method: "GET" })
         .from("admin-vault")
         .createSignedUrls(paths, SIGNED_URL_TTL);
       if (sErr) throw new Error(sErr.message);
-      urls = Object.fromEntries((signed ?? []).map((s) => [s.path ?? "", s.signedUrl]));
+      urls = Object.fromEntries(
+        (signed ?? [])
+          .filter((s): s is { path: string; signedUrl: string; error: null } => !!s.path)
+          .map((s) => [s.path, s.signedUrl]),
+      );
     }
     return files.map((f) => ({
       name: f.name,
