@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createStore } from "@/lib/portal.functions";
 import { ensureStoreQrCode } from "@/lib/subscriptions.functions";
 import { usePortal } from "@/lib/portal-context";
-import { Plus, QrCode as QrIcon } from "lucide-react";
+import { Plus, QrCode as QrIcon, Copy, Edit3 } from "lucide-react";
 import QRCode from "qrcode";
 
 export const Route = createFileRoute("/portal/stores")({
@@ -57,35 +57,64 @@ function StoresPage() {
           <thead className="bg-background/60 text-[10px] uppercase tracking-widest text-muted">
             <tr>
               <th className="px-4 py-3">Store</th>
-              <th className="px-4 py-3">Slug</th>
+              <th className="px-4 py-3">Store ID</th>
+              <th className="px-4 py-3">Code</th>
+              <th className="px-4 py-3">Location</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Public</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {orgStores.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-muted">
+                <td colSpan={7} className="px-4 py-6 text-muted">
                   No stores yet. Add your first one.
                 </td>
               </tr>
             )}
-            {orgStores.map((s) => (
-              <tr key={s.id} className="border-t border-border">
-                <td className="px-4 py-3 font-medium">{s.name}</td>
-                <td className="px-4 py-3 font-mono text-xs text-muted">{s.slug}</td>
-                <td className="px-4 py-3 capitalize">{s.status}</td>
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    to="/portal/stores/$storeId"
-                    params={{ storeId: s.id }}
-                    className="rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
-                  >
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {orgStores.map((s) => {
+              const row = s as typeof s & {
+                qr_slug?: string | null;
+                city?: string | null;
+                country_code?: string | null;
+                is_public?: boolean | null;
+              };
+              return (
+                <tr key={s.id} className="border-t border-border">
+                  <td className="px-4 py-3 font-medium">
+                    {s.name}
+                    <div className="font-mono text-[10px] text-muted">{s.slug}</div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-[10px] text-muted">
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(s.id)}
+                      className="inline-flex max-w-[150px] items-center gap-1 truncate hover:text-primary"
+                      title="Copy Store ID"
+                    >
+                      <Copy className="size-3 shrink-0" />
+                      <span className="truncate">{s.id}</span>
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs">{row.qr_slug ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted">
+                    {[row.city, row.country_code].filter(Boolean).join(", ") || "—"}
+                  </td>
+                  <td className="px-4 py-3 capitalize">{s.status}</td>
+                  <td className="px-4 py-3">{row.is_public ? "Yes" : "No"}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      to="/portal/stores/$storeId"
+                      params={{ storeId: s.id }}
+                      className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
+                    >
+                      <Edit3 className="size-3" /> Control
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
