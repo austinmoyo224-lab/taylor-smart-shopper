@@ -9,6 +9,7 @@ import {
   getStoreSubscriberDashboard,
   regenerateStoreCode,
   updateStore,
+  approveStore,
 } from "@/lib/portal.functions";
 import { BarChart3, Copy, Edit3, LayoutDashboard, MapPin, Plus, QrCode, Trash2, Users } from "lucide-react";
 import QRCode from "qrcode";
@@ -129,16 +130,29 @@ function StoresPage() {
                   <td className="px-4 py-3 text-muted">
                     {[s.city, s.country_code].filter(Boolean).join(", ") || "—"}
                   </td>
-                  <td className="px-4 py-3 capitalize">{s.status}</td>
+                  <td className="px-4 py-3">
+                    <StatusPill status={s.status} />
+                  </td>
                   <td className="px-4 py-3">{s.is_public ? "Yes" : "No"}</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStoreId(s.id)}
-                      className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
-                    >
-                      <Edit3 className="size-3" /> Control
-                    </button>
+                    <div className="inline-flex items-center gap-2">
+                      {s.status === "pending" && (
+                        <ApproveButton
+                          storeId={s.id}
+                          onDone={() => {
+                            void qc.invalidateQueries({ queryKey: ["admin", "stores"] });
+                            void qc.invalidateQueries({ queryKey: ["admin", "store", s.id] });
+                          }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStoreId(s.id)}
+                        className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
+                      >
+                        <Edit3 className="size-3" /> Control
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
