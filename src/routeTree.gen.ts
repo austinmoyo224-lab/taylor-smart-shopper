@@ -40,6 +40,7 @@ import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTaylorRouteImport } from './routes/admin.taylor'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
@@ -202,6 +203,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTaylorRoute = AdminTaylorRouteImport.update({
+  id: '/taylor',
+  path: '/taylor',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminStoresRoute = AdminStoresRouteImport.update({
   id: '/stores',
   path: '/stores',
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
+  '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
@@ -292,6 +299,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
+  '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
@@ -332,6 +340,7 @@ export interface FileRoutesById {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
+  '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/join/$slug': typeof JoinSlugRoute
@@ -373,6 +382,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
+    | '/admin/taylor'
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
+    | '/admin/taylor'
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/organisations'
     | '/admin/stores'
+    | '/admin/taylor'
     | '/admin/users'
     | '/api/chat'
     | '/join/$slug'
@@ -711,6 +723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/taylor': {
+      id: '/admin/taylor'
+      path: '/taylor'
+      fullPath: '/admin/taylor'
+      preLoaderRoute: typeof AdminTaylorRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/stores': {
       id: '/admin/stores'
       path: '/stores'
@@ -760,6 +779,7 @@ interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
   AdminStoresRoute: typeof AdminStoresRoute
+  AdminTaylorRoute: typeof AdminTaylorRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -768,6 +788,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
   AdminStoresRoute: AdminStoresRoute,
+  AdminTaylorRoute: AdminTaylorRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

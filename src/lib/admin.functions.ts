@@ -246,3 +246,118 @@ export const listAuditLog = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data;
   });
+
+// ---------------- Taylor settings & training ----------------
+
+export const getTaylorSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("taylor_settings")
+      .select("*")
+      .eq("singleton", true)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+const taylorSettingsSchema = z.object({
+  display_name: z.string().trim().min(1).max(60),
+  tagline: z.string().trim().max(200).optional().nullable(),
+  avatar_url: z.string().trim().max(1000).optional().nullable(),
+  voice: z.string().trim().min(1).max(40),
+  personality_traits: z.string().trim().max(2000).optional().nullable(),
+  system_prompt_addon: z.string().trim().max(6000).optional().nullable(),
+  temperature: z.number().min(0).max(2),
+  is_active: z.boolean(),
+});
+
+export const updateTaylorSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => taylorSettingsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("taylor_settings")
+      .update({
+        display_name: data.display_name,
+        tagline: data.tagline || null,
+        avatar_url: data.avatar_url || null,
+        voice: data.voice,
+        personality_traits: data.personality_traits || null,
+        system_prompt_addon: data.system_prompt_addon || null,
+        temperature: data.temperature,
+        is_active: data.is_active,
+      })
+      .eq("singleton", true);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listTaylorTraining = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("taylor_training_examples")
+      .select("id, prompt, ideal_response, category, is_active, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+const trainingSchema = z.object({
+  prompt: z.string().trim().min(1).max(2000),
+  ideal_response: z.string().trim().min(1).max(4000),
+  category: z.string().trim().max(60).optional().nullable(),
+});
+
+export const createTaylorTraining = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => trainingSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("taylor_training_examples").insert({
+      prompt: data.prompt,
+      ideal_response: data.ideal_response,
+      category: data.category || null,
+      created_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const toggleTaylorTraining = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), is_active: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("taylor_training_examples")
+      .update({ is_active: data.is_active })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteTaylorTraining = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("taylor_training_examples")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

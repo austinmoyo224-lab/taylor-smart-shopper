@@ -15,9 +15,48 @@
 import { TAYLOR_SYSTEM_PROMPT } from "./ai-gateway.server";
 
 export async function buildTaylorSystemPrompt(userId: string | null): Promise<string> {
-  if (!userId) return TAYLOR_SYSTEM_PROMPT;
-
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  // Admin-configured Taylor profile & training (always loaded).
+  const [settingsRes, trainingRes] = await Promise.all([
+    supabaseAdmin.from("taylor_settings").select("*").eq("singleton", true).maybeSingle(),
+    supabaseAdmin
+      .from("taylor_training_examples")
+      .select("prompt, ideal_response, category")
+      .eq("is_active", true)
+      .limit(40),
+  ]);
+  const settings = settingsRes.data;
+  const training = trainingRes.data ?? [];
+
+  const adminBlock: string[] = [];
+  if (settings) {
+    adminBlock.push("");
+    adminBlock.push("---");
+    adminBlock.push("ADMIN-CONFIGURED TAYLOR PROFILE");
+    adminBlock.push(`Name: ${settings.display_name}`);
+    if (settings.tagline) adminBlock.push(`Tagline: ${settings.tagline}`);
+    if (settings.personality_traits)
+      adminBlock.push(`Personality: ${settings.personality_traits}`);
+    if (settings.system_prompt_addon) {
+      adminBlock.push("");
+      adminBlock.push("ADDITIONAL INSTRUCTIONS FROM ADMIN (obey these):");
+      adminBlock.push(settings.system_prompt_addon);
+    }
+  }
+  if (training.length) {
+    adminBlock.push("");
+    adminBlock.push("TRAINING EXAMPLES (mirror this tone and structure):");
+    for (const t of training) {
+      adminBlock.push(`Q: ${t.prompt}`);
+      adminBlock.push(`A: ${t.ideal_response}`);
+      adminBlock.push("");
+    }
+  }
+
+  if (!userId) {
+    return [TAYLOR_SYSTEM_PROMPT, ...adminBlock].join("\n");
+  }
 
   const [profileRes, memoryRes, momentsRes, subsRes] = await Promise.all([
     supabaseAdmin
@@ -105,6 +144,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
 
   // ---- Build the personalised block ----
   const lines: string[] = [TAYLOR_SYSTEM_PROMPT, ""];
+  if (adminBlock.length) lines.push(...adminBlock);
 
   lines.push("---");
   lines.push("SUBSCRIBER CONTEXT (use to personalise; never invent beyond this)");

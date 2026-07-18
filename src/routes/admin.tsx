@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminStatus } from "@/lib/admin.functions";
-import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -51,12 +51,19 @@ function AdminLayout() {
 }
 
 const nav: {
-  to: "/admin" | "/admin/organisations" | "/admin/stores" | "/admin/users" | "/admin/audit";
+  to:
+    | "/admin"
+    | "/admin/organisations"
+    | "/admin/stores"
+    | "/admin/users"
+    | "/admin/audit"
+    | "/admin/taylor";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
 }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/taylor", label: "Taylor AI", icon: Sparkles },
   { to: "/admin/organisations", label: "Organisations", icon: Building2 },
   { to: "/admin/stores", label: "Stores", icon: Store },
   { to: "/admin/users", label: "Users & roles", icon: Users },
