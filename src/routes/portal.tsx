@@ -63,6 +63,7 @@ function PortalLayout() {
         stores: data.stores,
         activeOrgId,
         setActiveOrgId,
+        isSuperAdmin: !!data.isSuperAdmin,
       }}
     >
       <div className="flex min-h-screen w-full bg-background">
@@ -70,6 +71,7 @@ function PortalLayout() {
           organisations={data.organisations}
           activeOrgId={activeOrgId}
           onOrgChange={setActiveOrgId}
+          isSuperAdmin={!!data.isSuperAdmin}
         />
         <main className="flex min-h-screen flex-1 flex-col">
           <Outlet />
@@ -107,12 +109,15 @@ function Sidebar({
   organisations,
   activeOrgId,
   onOrgChange,
+  isSuperAdmin,
 }: {
   organisations: PortalCtx["organisations"];
   activeOrgId: string;
   onOrgChange: (id: string) => void;
+  isSuperAdmin: boolean;
 }) {
   const { pathname } = useLocation();
+  const visibleNav = nav.filter((n) => n.to !== "/portal/stores" || isSuperAdmin);
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-8 md:flex">
       <Link
@@ -159,7 +164,7 @@ function Sidebar({
       )}
 
       <nav className="space-y-1">
-        {nav.map(({ to, label, icon: Icon, exact }) => {
+        {visibleNav.map(({ to, label, icon: Icon, exact }) => {
           const active = exact ? pathname === to : pathname.startsWith(to);
           return (
             <Link
