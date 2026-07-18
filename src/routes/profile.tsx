@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift } from "lucide-react";
+import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
 
@@ -31,6 +31,8 @@ type Profile = {
   locale: string;
   country_code: string;
   currency_code: string;
+  city: string | null;
+  avatar_url: string | null;
   preferred_greeting: string | null;
   communication_style: string | null;
 };
@@ -42,6 +44,27 @@ type Memory = {
   lifestyle: Record<string, unknown>;
 };
 
+type HouseholdMember = { name: string; age: string; favourite_food: string };
+
+const SA_LANGUAGES = [
+  { value: "en-ZA", label: "English" },
+  { value: "af-ZA", label: "Afrikaans" },
+  { value: "zu-ZA", label: "isiZulu" },
+  { value: "xh-ZA", label: "isiXhosa" },
+  { value: "st-ZA", label: "Sesotho" },
+  { value: "tn-ZA", label: "Setswana" },
+  { value: "nso-ZA", label: "Sepedi" },
+  { value: "ts-ZA", label: "Xitsonga" },
+  { value: "ss-ZA", label: "siSwati" },
+  { value: "ve-ZA", label: "Tshivenda" },
+  { value: "nr-ZA", label: "isiNdebele" },
+];
+
+const SUPERMARKETS = [
+  "Checkers", "Shoprite", "Pick n Pay", "Woolworths", "SPAR", "Food Lover's Market",
+  "Makro", "Game", "OK Foods", "Boxer", "Cambridge Food", "Usave",
+];
+
 function ProfileScreen() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -49,6 +72,10 @@ function ProfileScreen() {
   const [memory, setMemory] = useState<Memory | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const isWelcome =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("welcome");
 
   const adminStatus = useQuery({
     queryKey: ["admin", "status"],
@@ -67,7 +94,7 @@ function ProfileScreen() {
         supabase
           .from("profiles")
           .select(
-            "display_name, first_name, last_name, email, phone, locale, country_code, currency_code, preferred_greeting, communication_style",
+            "display_name, first_name, last_name, email, phone, locale, country_code, currency_code, city, avatar_url, preferred_greeting, communication_style",
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -99,8 +126,12 @@ function ProfileScreen() {
             display_name: profile.display_name,
             first_name: profile.first_name,
             last_name: profile.last_name,
+            city: profile.city,
+            locale: profile.locale,
+            avatar_url: profile.avatar_url,
             preferred_greeting: profile.preferred_greeting,
             communication_style: profile.communication_style,
+            onboarding_completed: true,
           })
           .eq("id", user.id),
         supabase
@@ -114,8 +145,30 @@ function ProfileScreen() {
           .eq("user_id", user.id),
       ]);
       setSavedAt(Date.now());
+      if (isWelcome) void navigate({ to: "/stores" });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onAvatarPicked(file: File) {
+    if (!user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed?.signedUrl && profile) {
+        setProfile({ ...profile, avatar_url: signed.signedUrl });
+      }
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -149,15 +202,45 @@ function ProfileScreen() {
     <AppShell>
       <header className="border-b border-border bg-background px-6 pb-4 pt-10">
         <div className="flex items-start justify-between">
-          <div>
-            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">You</p>
-            <h1
-              className="text-3xl italic tracking-tight"
-              style={{ fontFamily: "var(--font-display)" }}
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="relative size-16 overflow-hidden rounded-full border border-border bg-card"
+              aria-label="Upload profile picture"
             >
-              {profile.display_name || profile.first_name || "Your profile"}
-            </h1>
-            <p className="mt-1 text-xs text-muted">{profile.email ?? profile.phone ?? ""}</p>
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="flex size-full items-center justify-center text-muted">
+                  <Camera className="size-5" />
+                </span>
+              )}
+              <span className="absolute inset-x-0 bottom-0 bg-black/50 py-0.5 text-center text-[9px] text-white">
+                {uploading ? "…" : "Edit"}
+              </span>
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void onAvatarPicked(f);
+                e.target.value = "";
+              }}
+            />
+            <div>
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">You</p>
+              <h1
+                className="text-2xl italic tracking-tight"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {profile.display_name || profile.first_name || "Your profile"}
+              </h1>
+              <p className="mt-1 text-xs text-muted">{profile.email ?? profile.phone ?? ""}</p>
+            </div>
           </div>
           <Link
             to="/settings"
@@ -167,6 +250,11 @@ function ProfileScreen() {
             <Settings2 className="size-4" />
           </Link>
         </div>
+        {isWelcome && (
+          <p className="mt-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
+            Welcome to Taylor! Fill in a bit about you and your home so I can help you shop smarter.
+          </p>
+        )}
       </header>
 
       <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
@@ -250,6 +338,18 @@ function ProfileScreen() {
             />
           </div>
           <TextField
+            label="Location (city or area)"
+            placeholder="e.g. Sandton, Johannesburg"
+            value={profile.city ?? ""}
+            onChange={(v) => setProfile({ ...profile, city: v })}
+          />
+          <SelectField
+            label="Preferred language"
+            value={profile.locale || "en-ZA"}
+            options={SA_LANGUAGES}
+            onChange={(v) => setProfile({ ...profile, locale: v })}
+          />
+          <TextField
             label="How should Taylor greet you?"
             placeholder="Howzit, morning, hello…"
             value={profile.preferred_greeting ?? ""}
@@ -267,17 +367,8 @@ function ProfileScreen() {
           />
         </Section>
 
-        <MemorySection
-          title="Shopping"
-          description="Favourite stores, budget, who you shop for. Taylor uses this to pick better deals."
-          value={memory.shopping}
-          onChange={(v) => setMemory({ ...memory, shopping: v })}
-          fields={[
-            { key: "budget_per_shop", label: "Typical budget per shop (R)", type: "number" },
-            { key: "household_size", label: "People in the household", type: "number" },
-            { key: "notes", label: "Anything else about how you shop", type: "textarea" },
-          ]}
-        />
+        <HouseholdSection memory={memory} setMemory={setMemory} />
+        <ShoppingSection memory={memory} setMemory={setMemory} />
 
         <MemorySection
           title="Food & diet"
@@ -294,10 +385,11 @@ function ProfileScreen() {
 
         <MemorySection
           title="Lifestyle"
-          description="Life moments Taylor should remember. Fully opt-in."
+          description="Pets, cooking time and any life details Taylor should remember. Fully opt-in."
           value={memory.lifestyle}
           onChange={(v) => setMemory({ ...memory, lifestyle: v })}
           fields={[
+            { key: "pets", label: "Pets (types and names)", type: "text" },
             { key: "cooking_time", label: "Time you have for cooking on weeknights", type: "text" },
             { key: "kids_ages", label: "Kids in the home (ages)", type: "text" },
             { key: "notes", label: "Anything else Taylor should know", type: "textarea" },
@@ -448,6 +540,196 @@ function MemorySection({
           </label>
         );
       })}
+    </section>
+  );
+}
+
+function HouseholdSection({
+  memory,
+  setMemory,
+}: {
+  memory: Memory;
+  setMemory: (m: Memory) => void;
+}) {
+  const members = ((memory.personal.household_members as HouseholdMember[] | undefined) ?? []).map(
+    (m) => ({ name: m.name ?? "", age: String(m.age ?? ""), favourite_food: m.favourite_food ?? "" }),
+  );
+  const setMembers = (next: HouseholdMember[]) =>
+    setMemory({ ...memory, personal: { ...memory.personal, household_members: next } });
+  return (
+    <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
+      <div>
+        <h2 className="text-lg italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+          Household
+        </h2>
+        <p className="mt-1 text-[11px] leading-snug text-muted">
+          Who lives with you. Names, ages and favourite foods help Taylor plan meals everyone loves.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted">Adults</span>
+          <input
+            type="number"
+            min={0}
+            value={String(memory.personal.adults ?? "")}
+            onChange={(e) =>
+              setMemory({
+                ...memory,
+                personal: {
+                  ...memory.personal,
+                  adults: e.target.value === "" ? "" : Number(e.target.value),
+                },
+              })
+            }
+            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted">Children</span>
+          <input
+            type="number"
+            min={0}
+            value={String(memory.personal.children ?? "")}
+            onChange={(e) =>
+              setMemory({
+                ...memory,
+                personal: {
+                  ...memory.personal,
+                  children: e.target.value === "" ? "" : Number(e.target.value),
+                },
+              })
+            }
+            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+          />
+        </label>
+      </div>
+      <div className="space-y-2">
+        <span className="block text-[11px] font-medium text-muted">Members</span>
+        {members.map((m, i) => (
+          <div key={i} className="grid grid-cols-[1fr_60px_1fr_28px] gap-2">
+            <input
+              placeholder="Name"
+              value={m.name}
+              onChange={(e) => {
+                const next = [...members];
+                next[i] = { ...next[i], name: e.target.value };
+                setMembers(next);
+              }}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
+            />
+            <input
+              placeholder="Age"
+              inputMode="numeric"
+              value={m.age}
+              onChange={(e) => {
+                const next = [...members];
+                next[i] = { ...next[i], age: e.target.value };
+                setMembers(next);
+              }}
+              className="rounded-xl border border-border bg-background px-2 py-2 text-sm outline-none focus:border-primary/40"
+            />
+            <input
+              placeholder="Favourite food"
+              value={m.favourite_food}
+              onChange={(e) => {
+                const next = [...members];
+                next[i] = { ...next[i], favourite_food: e.target.value };
+                setMembers(next);
+              }}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
+            />
+            <button
+              type="button"
+              aria-label="Remove"
+              onClick={() => setMembers(members.filter((_, idx) => idx !== i))}
+              className="flex items-center justify-center rounded-lg border border-border text-muted hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setMembers([...members, { name: "", age: "", favourite_food: "" }])}
+          className="flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-[11px] text-muted hover:text-foreground"
+        >
+          <Plus className="size-3" /> Add member
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ShoppingSection({
+  memory,
+  setMemory,
+}: {
+  memory: Memory;
+  setMemory: (m: Memory) => void;
+}) {
+  const favSupermarkets = (memory.shopping.favourite_supermarkets as string[] | undefined) ?? [];
+  return (
+    <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4">
+      <div>
+        <h2 className="text-lg italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+          Shopping
+        </h2>
+        <p className="mt-1 text-[11px] leading-snug text-muted">
+          Budget and favourite stores. Taylor uses this to find the best deals for you.
+        </p>
+      </div>
+      <label className="block">
+        <span className="mb-1 block text-[11px] font-medium text-muted">
+          Monthly grocery budget (R)
+        </span>
+        <input
+          type="number"
+          min={0}
+          value={String(memory.shopping.monthly_budget ?? "")}
+          onChange={(e) =>
+            setMemory({
+              ...memory,
+              shopping: {
+                ...memory.shopping,
+                monthly_budget: e.target.value === "" ? "" : Number(e.target.value),
+              },
+            })
+          }
+          className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
+        />
+      </label>
+      <div>
+        <span className="mb-2 block text-[11px] font-medium text-muted">Favourite supermarkets</span>
+        <div className="flex flex-wrap gap-2">
+          {SUPERMARKETS.map((s) => {
+            const on = favSupermarkets.includes(s);
+            return (
+              <button
+                type="button"
+                key={s}
+                onClick={() => {
+                  const next = on
+                    ? favSupermarkets.filter((x) => x !== s)
+                    : [...favSupermarkets, s];
+                  setMemory({
+                    ...memory,
+                    shopping: { ...memory.shopping, favourite_supermarkets: next },
+                  });
+                }}
+                className={
+                  "rounded-full border px-3 py-1 text-[11px] " +
+                  (on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted hover:text-foreground")
+                }
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }

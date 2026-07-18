@@ -38,17 +38,26 @@ function AuthScreen() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      let dest = "/stores";
-      try {
-        const pending = localStorage.getItem("taylor.join.pending");
-        if (pending && pending.startsWith("/join/")) {
-          dest = pending;
-          localStorage.removeItem("taylor.join.pending");
+      (async () => {
+        let dest = "/stores";
+        try {
+          const pending = localStorage.getItem("taylor.join.pending");
+          if (pending && pending.startsWith("/join/")) {
+            dest = pending;
+            localStorage.removeItem("taylor.join.pending");
+          } else {
+            const { data } = await supabase
+              .from("profiles")
+              .select("onboarding_completed")
+              .eq("id", user.id)
+              .maybeSingle();
+            if (!data?.onboarding_completed) dest = "/profile?welcome=1";
+          }
+        } catch {
+          // ignore
         }
-      } catch {
-        // ignore
-      }
-      window.location.href = dest;
+        window.location.href = dest;
+      })();
     }
   }, [user, authLoading, navigate]);
 
