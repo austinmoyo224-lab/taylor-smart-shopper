@@ -38,7 +38,7 @@ function AuthScreen() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      let dest = "/chat";
+      let dest = "/stores";
       try {
         const pending = localStorage.getItem("taylor.join.pending");
         if (pending && pending.startsWith("/join/")) {
@@ -63,7 +63,7 @@ function AuthScreen() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/chat`,
+            emailRedirectTo: `${window.location.origin}/stores`,
             data: { first_name: firstName, display_name: firstName },
           },
         });

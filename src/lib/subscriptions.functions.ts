@@ -222,3 +222,26 @@ export const ensureStoreQrCode = createServerFn({ method: "POST" })
       conversions: created.conversion_count,
     };
   });
+
+/**
+ * Public feed of active, published promotions for the Stores landing carousel.
+ * Returns a small list of promotions ordered by sponsored-first, most recent.
+ */
+export const listFeaturedAds = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("promotions")
+      .select(
+        "id, title, description, type, is_sponsored, original_price, sale_price, currency_code, hero_image_url, ends_at, store_id, stores(id, name, slug, logo_url, hero_image_url, qr_slug)",
+      )
+      .eq("is_published", true)
+      .is("deleted_at", null)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .order("is_sponsored", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(8);
+    if (error) return [];
+    return data ?? [];
+  });
