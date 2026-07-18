@@ -24,6 +24,7 @@ import ReactMarkdown from "react-markdown";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";
+import taylorAvatarAsset from "@/assets/taylor-avatar.png.asset.json";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -73,6 +74,9 @@ function ChatScreen() {
   const [autoSpeak, setAutoSpeakState] = useState(false);
   const lastSpokenIdRef = useRef<string | null>(null);
   const canVoice = voiceSupported();
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const taylorAvatarUrl = taylorAvatarAsset.url;
 
   useEffect(() => {
     setAutoSpeakState(getAutoSpeak());
@@ -80,6 +84,7 @@ function ChatScreen() {
   }, []);
 
   const { messages, sendMessage, status } = useChat({
+    id: user?.id ?? "anon",
     transport: new DefaultChatTransport({
       api: "/api/chat",
       // Attach the subscriber's bearer so the server can personalise Taylor.
@@ -94,6 +99,53 @@ function ChatScreen() {
   });
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  // Load prior Taylor ↔ user history + user avatar once authenticated.
+  useEffect(() => {
+    if (!user) {
+      setHistoryLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const [{ data: profile }, { data: convo }] = await Promise.all([
+        supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("conversations")
+          .select("id")
+          .eq("user_id", user.id)
+          .order("last_message_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      if (cancelled) return;
+      if (profile?.avatar_url) setUserAvatar(profile.avatar_url);
+      if (convo?.id) {
+        conversationIdRef.current = convo.id;
+        const { data: msgs } = await supabase
+          .from("messages")
+          .select("id, role, parts")
+          .eq("conversation_id", convo.id)
+          .order("created_at", { ascending: true })
+          .limit(200);
+        if (!cancelled && msgs?.length) {
+          const restored = msgs.map((m) => {
+            persistedIdsRef.current.add(m.id);
+            return {
+              id: m.id,
+              role: m.role as "user" | "assistant",
+              parts: Array.isArray(m.parts) ? (m.parts as UIMessage["parts"]) : [],
+            } satisfies UIMessage;
+          });
+          setMessages(restored);
+        }
+      }
+      if (!cancelled) setHistoryLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // Auto-speak the latest completed assistant message when enabled.
   useEffect(() => {
@@ -359,11 +411,14 @@ function ChatScreen() {
             parts={message.parts}
             delay={i * 60}
             canVoice={canVoice}
+            taylorAvatar={taylorAvatarUrl}
+            userAvatar={userAvatar}
           />
         ))}
 
         {status === "submitted" && (
-          <div className="animate-message flex max-w-[85%] flex-col items-start">
+          <div className="animate-message flex items-start gap-2">
+            <Avatar src={taylorAvatarUrl} label="T" />
             <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
               <span className="animate-shimmer text-sm leading-relaxed">Taylor is thinking...</span>
             </div>
