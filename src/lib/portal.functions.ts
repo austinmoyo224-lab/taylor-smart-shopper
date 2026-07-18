@@ -96,13 +96,23 @@ export const getPortalContext = createServerFn({ method: "GET" })
           .in("id", scope.orgIds.length ? scope.orgIds : ["00000000-0000-0000-0000-000000000000"])
           .order("name");
     const orgIds = (orgs ?? []).map((o) => o.id);
-    const allStoreRows: { id: string; name: string; slug: string; status: string; city: string | null; organisation_id: string }[] = [];
+    const allStoreRows: {
+      id: string;
+      name: string;
+      slug: string;
+      status: string;
+      city: string | null;
+      country_code: string | null;
+      qr_slug: string | null;
+      is_public: boolean | null;
+      organisation_id: string;
+    }[] = [];
     if (scope.isSuperAdmin || scope.orgRoleIds.length > 0) {
       const allowedOrgIds = scope.isSuperAdmin ? orgIds : scope.orgRoleIds;
       const { data: roleStores } = allowedOrgIds.length
         ? await supabaseAdmin
             .from("stores")
-            .select("id, name, slug, status, city, organisation_id")
+            .select("id, name, slug, status, city, country_code, qr_slug, is_public, organisation_id")
             .in("organisation_id", allowedOrgIds)
             .is("deleted_at", null)
             .order("name")
@@ -112,7 +122,7 @@ export const getPortalContext = createServerFn({ method: "GET" })
     if (!scope.isSuperAdmin && scope.staffStoreIds.length > 0) {
       const { data: staffStores } = await supabaseAdmin
         .from("stores")
-        .select("id, name, slug, status, city, organisation_id")
+        .select("id, name, slug, status, city, country_code, qr_slug, is_public, organisation_id")
         .in("id", scope.staffStoreIds)
         .is("deleted_at", null)
         .order("name");
