@@ -65,6 +65,11 @@ function ChatScreen() {
   const [transcribing, setTranscribing] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recorderRef = useRef<VoiceRecorder | null>(null);
+  const holdStartRef = useRef<number>(0);
+  const holdStartYRef = useRef<number>(0);
+  const lockedRef = useRef(false);
+  const [locked, setLocked] = useState(false);
+  const [cancelPending, setCancelPending] = useState(false);
   const [autoSpeak, setAutoSpeakState] = useState(false);
   const lastSpokenIdRef = useRef<string | null>(null);
   const canVoice = voiceSupported();
@@ -125,6 +130,9 @@ function ChatScreen() {
     if (!rec) return;
     recorderRef.current = null;
     setRecording(false);
+    setLocked(false);
+    lockedRef.current = false;
+    setCancelPending(false);
     if (!send) {
       rec.cancel();
       return;
@@ -148,6 +156,46 @@ function ChatScreen() {
     } finally {
       setTranscribing(false);
     }
+  }
+
+  // Push-to-talk gesture handlers on the mic button.
+  function onMicPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!canVoice || transcribing || isLoading) return;
+    // If already locked-recording, this press stops-and-sends instead.
+    if (lockedRef.current) {
+      void stopRecording(true);
+      return;
+    }
+    e.preventDefault();
+    (e.currentTarget as HTMLButtonElement).setPointerCapture?.(e.pointerId);
+    holdStartRef.current = Date.now();
+    holdStartYRef.current = e.clientY;
+    setCancelPending(false);
+    void startRecording();
+  }
+  function onMicPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!recording || lockedRef.current) return;
+    const dy = holdStartYRef.current - e.clientY;
+    setCancelPending(dy > 80);
+  }
+  function onMicPointerUp() {
+    if (lockedRef.current) return; // locked mode is stopped via a fresh press
+    if (!recording) return;
+    const held = Date.now() - holdStartRef.current;
+    if (cancelPending) {
+      void stopRecording(false);
+      return;
+    }
+    if (held < 350) {
+      // Quick tap → hands-free lock: keep recording until user taps again.
+      lockedRef.current = true;
+      setLocked(true);
+      return;
+    }
+    void stopRecording(true);
+  }
+  function onMicPointerCancel() {
+    if (recording && !lockedRef.current) void stopRecording(false);
   }
 
   function toggleAutoSpeak() {
