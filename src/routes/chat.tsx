@@ -65,6 +65,11 @@ function ChatScreen() {
   const [transcribing, setTranscribing] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recorderRef = useRef<VoiceRecorder | null>(null);
+  const holdStartRef = useRef<number>(0);
+  const holdStartYRef = useRef<number>(0);
+  const lockedRef = useRef(false);
+  const [locked, setLocked] = useState(false);
+  const [cancelPending, setCancelPending] = useState(false);
   const [autoSpeak, setAutoSpeakState] = useState(false);
   const lastSpokenIdRef = useRef<string | null>(null);
   const canVoice = voiceSupported();
@@ -125,6 +130,9 @@ function ChatScreen() {
     if (!rec) return;
     recorderRef.current = null;
     setRecording(false);
+    setLocked(false);
+    lockedRef.current = false;
+    setCancelPending(false);
     if (!send) {
       rec.cancel();
       return;
@@ -148,6 +156,46 @@ function ChatScreen() {
     } finally {
       setTranscribing(false);
     }
+  }
+
+  // Push-to-talk gesture handlers on the mic button.
+  function onMicPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!canVoice || transcribing || isLoading) return;
+    // If already locked-recording, this press stops-and-sends instead.
+    if (lockedRef.current) {
+      void stopRecording(true);
+      return;
+    }
+    e.preventDefault();
+    (e.currentTarget as HTMLButtonElement).setPointerCapture?.(e.pointerId);
+    holdStartRef.current = Date.now();
+    holdStartYRef.current = e.clientY;
+    setCancelPending(false);
+    void startRecording();
+  }
+  function onMicPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!recording || lockedRef.current) return;
+    const dy = holdStartYRef.current - e.clientY;
+    setCancelPending(dy > 80);
+  }
+  function onMicPointerUp() {
+    if (lockedRef.current) return; // locked mode is stopped via a fresh press
+    if (!recording) return;
+    const held = Date.now() - holdStartRef.current;
+    if (cancelPending) {
+      void stopRecording(false);
+      return;
+    }
+    if (held < 350) {
+      // Quick tap → hands-free lock: keep recording until user taps again.
+      lockedRef.current = true;
+      setLocked(true);
+      return;
+    }
+    void stopRecording(true);
+  }
+  function onMicPointerCancel() {
+    if (recording && !lockedRef.current) void stopRecording(false);
   }
 
   function toggleAutoSpeak() {
@@ -330,13 +378,39 @@ function ChatScreen() {
           </div>
         )}
         {recording && (
-          <div className="mb-2 flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/10 px-3 py-2">
-            <div className="flex items-center gap-2 text-[12px] text-primary">
+          <div
+            className={
+              "mb-2 flex items-center justify-between rounded-2xl border px-3 py-2 " +
+              (cancelPending
+                ? "border-destructive/40 bg-destructive/10"
+                : "border-primary/30 bg-primary/10")
+            }
+          >
+            <div
+              className={
+                "flex items-center gap-2 text-[12px] " +
+                (cancelPending ? "text-destructive" : "text-primary")
+              }
+            >
               <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
-                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+                <span
+                  className={
+                    "absolute inline-flex size-full animate-ping rounded-full " +
+                    (cancelPending ? "bg-destructive/60" : "bg-primary/60")
+                  }
+                />
+                <span
+                  className={
+                    "relative inline-flex size-2 rounded-full " +
+                    (cancelPending ? "bg-destructive" : "bg-primary")
+                  }
+                />
               </span>
-              Listening… tap the square to send.
+              {cancelPending
+                ? "Release to cancel"
+                : locked
+                  ? "Hands-free on — tap mic to send"
+                  : "Listening… release to send, slide up to cancel"}
             </div>
             <button
               type="button"
@@ -437,20 +511,34 @@ function ChatScreen() {
           {canVoice && (
             <button
               type="button"
-              aria-label={recording ? "Stop recording and send" : "Record voice message"}
-              onClick={() => (recording ? stopRecording(true) : startRecording())}
+              aria-label={
+                locked
+                  ? "Tap to stop and send"
+                  : recording
+                    ? "Release to send, slide up to cancel"
+                    : "Hold to talk, or tap to lock"
+              }
+              onPointerDown={onMicPointerDown}
+              onPointerMove={onMicPointerMove}
+              onPointerUp={onMicPointerUp}
+              onPointerCancel={onMicPointerCancel}
+              onContextMenu={(e) => e.preventDefault()}
               disabled={transcribing || isLoading}
               className={
-                "flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-50 " +
-                (recording
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted hover:text-primary")
+                "flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-50 touch-none select-none " +
+                (cancelPending
+                  ? "bg-destructive text-destructive-foreground"
+                  : recording
+                    ? "bg-primary text-primary-foreground animate-pulse"
+                    : "text-muted hover:text-primary")
               }
             >
               {transcribing ? (
                 <Loader2 className="size-4 animate-spin" />
-              ) : recording ? (
+              ) : recording && locked ? (
                 <Square className="size-3.5" strokeWidth={3} />
+              ) : recording ? (
+                <Mic className="size-4" strokeWidth={2.5} />
               ) : (
                 <Mic className="size-4" strokeWidth={2} />
               )}
