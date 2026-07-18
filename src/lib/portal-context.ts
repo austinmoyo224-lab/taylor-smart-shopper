@@ -15,6 +15,10 @@ export type PortalCtx = {
     slug: string;
     status: string;
     organisation_id: string;
+    city?: string | null;
+    country_code?: string | null;
+    qr_slug?: string | null;
+    is_public?: boolean | null;
   }[];
   activeOrgId: string;
   setActiveOrgId: (id: string) => void;
