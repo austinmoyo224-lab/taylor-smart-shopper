@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createCampaign, listCampaigns, sendCampaignNow } from "@/lib/notifications.functions";
 import { usePortal } from "@/lib/portal-context";
 import { Plus, Send } from "lucide-react";
+import { StoreImageUploader } from "@/components/StoreImageUploader";
 
 export const Route = createFileRoute("/portal/campaigns")({
   ssr: false,
@@ -144,6 +145,7 @@ function NewCampaignForm({
     "promotion" | "coupon" | "campaign" | "recipe" | "reminder" | "system"
   >("campaign");
   const [sendNow, setSendNow] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ delivered: number } | null>(null);
 
@@ -159,6 +161,7 @@ function NewCampaignForm({
           body,
           category,
           send_now: sendNow,
+          image_url: imageUrl,
         },
       }),
     onSuccess: (res) => {
@@ -213,6 +216,17 @@ function NewCampaignForm({
             className={cls}
           />
         </F>
+      </div>
+      <div className="md:col-span-2">
+        <StoreImageUploader
+          organisationId={orgId}
+          storeId={storeId || null}
+          folder="campaigns"
+          value={imageUrl}
+          onChange={setImageUrl}
+          label="Campaign image"
+          aspect="wide"
+        />
       </div>
       <F label="Category">
         <select

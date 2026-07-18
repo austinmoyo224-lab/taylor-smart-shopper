@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createPromotion, listPromotions } from "@/lib/portal.functions";
 import { usePortal } from "@/lib/portal-context";
 import { Plus } from "lucide-react";
+import { StoreImageUploader } from "@/components/StoreImageUploader";
 
 export const Route = createFileRoute("/portal/promotions")({
   ssr: false,
@@ -152,6 +153,7 @@ function NewPromoForm({
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [publish, setPublish] = useState(false);
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const mut = useMutation({
@@ -170,6 +172,7 @@ function NewPromoForm({
           starts_at: startsAt ? new Date(startsAt).toISOString() : "",
           ends_at: endsAt ? new Date(endsAt).toISOString() : "",
           is_published: publish,
+          hero_image_url: heroImageUrl,
         },
       }),
     onSuccess: onDone,
@@ -252,6 +255,17 @@ function NewPromoForm({
             className={cls}
           />
         </F>
+      </div>
+      <div className="md:col-span-2">
+        <StoreImageUploader
+          organisationId={orgId}
+          storeId={storeId || null}
+          folder="promotions"
+          value={heroImageUrl}
+          onChange={setHeroImageUrl}
+          label="Promotion image"
+          aspect="wide"
+        />
       </div>
       <label className="flex items-center gap-2 text-xs">
         <input

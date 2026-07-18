@@ -177,8 +177,8 @@ const updateStoreSchema = z.object({
   slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9-]+$/).optional(),
   status: z.enum(["draft", "active", "paused", "archived"]).optional(),
   description: z.string().max(2000).optional().nullable(),
-  logo_url: z.string().url().max(1000).optional().nullable(),
-  hero_image_url: z.string().url().max(1000).optional().nullable(),
+  logo_url: z.string().url().max(2000).optional().nullable(),
+  hero_image_url: z.string().url().max(2000).optional().nullable(),
   address_line1: z.string().max(200).optional().nullable(),
   address_line2: z.string().max(200).optional().nullable(),
   city: z.string().max(120).optional().nullable(),
@@ -380,6 +380,38 @@ export const deleteStoreAsset = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Uploads a file to store-assets and returns a long-lived signed URL that can
+ *  be persisted in logo_url / hero_image_url / promotion image etc. Path must
+ *  already exist in the bucket (client uploaded it first). */
+export const signStoreAssetUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        organisation_id: z.string().uuid(),
+        path: z.string().min(3).max(500),
+        expires_in_seconds: z
+          .number()
+          .int()
+          .positive()
+          .max(60 * 60 * 24 * 365 * 20)
+          .default(60 * 60 * 24 * 365 * 10),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    if (!data.path.startsWith(`${data.organisation_id}/`)) {
+      throw new Error("Path outside organisation");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("store-assets")
+      .createSignedUrl(data.path, data.expires_in_seconds);
+    if (error || !signed) throw new Error(error?.message ?? "Could not sign URL");
+    return { url: signed.signedUrl, path: data.path };
+  });
+
 // ---------- PRODUCTS ----------
 
 const orgIdInput = z.object({ organisation_id: z.string().uuid() });
@@ -479,6 +511,7 @@ const createPromotionSchema = z.object({
   starts_at: z.string().datetime().optional().or(z.literal("")),
   ends_at: z.string().datetime().optional().or(z.literal("")),
   is_published: z.boolean().default(false),
+  hero_image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
 });
 
 export const createPromotion = createServerFn({ method: "POST" })
@@ -502,6 +535,7 @@ export const createPromotion = createServerFn({ method: "POST" })
         starts_at: data.starts_at || undefined,
         ends_at: data.ends_at || undefined,
         is_published: data.is_published,
+        hero_image_url: data.hero_image_url || null,
       })
       .select("id")
       .single();
