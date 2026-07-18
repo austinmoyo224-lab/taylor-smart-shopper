@@ -94,7 +94,7 @@ function ProfileScreen() {
         supabase
           .from("profiles")
           .select(
-            "display_name, first_name, last_name, email, phone, locale, country_code, currency_code, preferred_greeting, communication_style",
+            "display_name, first_name, last_name, email, phone, locale, country_code, currency_code, city, avatar_url, preferred_greeting, communication_style",
           )
           .eq("id", user.id)
           .maybeSingle(),
