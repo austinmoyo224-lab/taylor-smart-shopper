@@ -338,6 +338,18 @@ function ProfileScreen() {
             />
           </div>
           <TextField
+            label="Location (city or area)"
+            placeholder="e.g. Sandton, Johannesburg"
+            value={profile.city ?? ""}
+            onChange={(v) => setProfile({ ...profile, city: v })}
+          />
+          <SelectField
+            label="Preferred language"
+            value={profile.locale || "en-ZA"}
+            options={SA_LANGUAGES}
+            onChange={(v) => setProfile({ ...profile, locale: v })}
+          />
+          <TextField
             label="How should Taylor greet you?"
             placeholder="Howzit, morning, hello…"
             value={profile.preferred_greeting ?? ""}
