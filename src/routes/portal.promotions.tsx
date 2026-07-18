@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { createPromotion, listPromotions } from "@/lib/portal.functions";
+import { createPromotion, listProducts, listPromotions } from "@/lib/portal.functions";
 import { usePortal } from "@/lib/portal-context";
 import { Plus } from "lucide-react";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
@@ -74,6 +74,7 @@ function PromotionsPage() {
               <th className="px-4 py-3">Title</th>
               <th className="px-4 py-3">Type</th>
               <th className="px-4 py-3">Store</th>
+              <th className="px-4 py-3">Items</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Window</th>
               <th className="px-4 py-3">Status</th>
@@ -82,20 +83,28 @@ function PromotionsPage() {
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-muted">
+                <td colSpan={7} className="px-4 py-6 text-muted">
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && (data?.length ?? 0) === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-muted">
+                <td colSpan={7} className="px-4 py-6 text-muted">
                   No promotions yet.
                 </td>
               </tr>
             )}
             {(data ?? []).map((p) => {
               const s = (p as { stores?: { name: string } | null }).stores;
+              const items = ((p as { promotion_products?: { products?: { name?: string | null } | { name?: string | null }[] | null }[] }).promotion_products ?? [])
+                .flatMap((row) => {
+                  const products = row.products;
+                  if (!products) return [];
+                  return Array.isArray(products) ? products : [products];
+                })
+                .map((product) => product.name)
+                .filter(Boolean);
               return (
                 <tr key={p.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">
@@ -108,6 +117,10 @@ function PromotionsPage() {
                   </td>
                   <td className="px-4 py-3 capitalize">{p.type.replace("_", " ")}</td>
                   <td className="px-4 py-3 text-muted">{s?.name ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs text-muted">
+                    {items.length ? items.slice(0, 4).join(", ") : "—"}
+                    {items.length > 4 ? ` +${items.length - 4}` : ""}
+                  </td>
                   <td className="px-4 py-3">
                     {p.sale_price != null ? `${p.currency_code} ${p.sale_price}` : "—"}
                     {p.original_price && (
@@ -154,7 +167,13 @@ function NewPromoForm({
   const [endsAt, setEndsAt] = useState("");
   const [publish, setPublish] = useState(false);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [productIds, setProductIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const products = useQuery({
+    queryKey: ["portal", "products", orgId],
+    queryFn: () => listProducts({ data: { organisation_id: orgId } }),
+  });
 
   const mut = useMutation({
     mutationFn: () =>
@@ -173,6 +192,7 @@ function NewPromoForm({
           ends_at: endsAt ? new Date(endsAt).toISOString() : "",
           is_published: publish,
           hero_image_url: heroImageUrl,
+          product_ids: productIds,
         },
       }),
     onSuccess: onDone,
@@ -265,7 +285,30 @@ function NewPromoForm({
           onChange={setHeroImageUrl}
           label="Promotion image"
           aspect="wide"
+          recommendedSize="1600×900px advert or 1080×1350px social card"
         />
+      </div>
+      <div className="md:col-span-2">
+        <F label="Promotion items Taylor can use in recipes">
+          <select
+            multiple
+            value={productIds}
+            onChange={(e) =>
+              setProductIds(Array.from(e.currentTarget.selectedOptions).map((option) => option.value))
+            }
+            className={cls + " min-h-32"}
+          >
+            {(products.data ?? []).map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+                {product.unit_amount && product.unit ? ` · ${product.unit_amount}${product.unit}` : ""}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-muted">
+            Hold Ctrl/Cmd to select multiple items. Taylor reads these when suggesting meals.
+          </p>
+        </F>
       </div>
       <label className="flex items-center gap-2 text-xs">
         <input

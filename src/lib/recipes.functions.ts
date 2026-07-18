@@ -130,17 +130,31 @@ export const addRecipeToShoppingList = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    // Fetch recipe + ingredients via public client (recipes are public read).
+    // Fetch recipe + ingredients. Public recipes are available anonymously;
+    // Taylor-generated personal recipes are visible only to the owner.
     const supa = pub();
-    const { data: recipe, error: rErr } = await supa
+    let { data: recipe, error: rErr } = await supa
       .from("recipes")
       .select("id, title, servings")
       .eq("id", data.recipe_id)
       .eq("is_published", true)
       .is("deleted_at", null)
       .maybeSingle();
+    let ingredientClient = supa;
+    if (rErr || !recipe) {
+      const mine = await context.supabase
+        .from("recipes")
+        .select("id, title, servings")
+        .eq("id", data.recipe_id)
+        .eq("user_id", context.userId)
+        .is("deleted_at", null)
+        .maybeSingle();
+      recipe = mine.data;
+      rErr = mine.error;
+      ingredientClient = context.supabase;
+    }
     if (rErr || !recipe) throw new Error("Recipe not found");
-    const { data: ingredients } = await supa
+    const { data: ingredients } = await ingredientClient
       .from("recipe_ingredients")
       .select("name, quantity, unit, notes, sort_order")
       .eq("recipe_id", recipe.id)

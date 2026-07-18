@@ -7,20 +7,35 @@ type PortalRole = "super_admin" | "retailer_admin" | "store_manager" | "staff";
 /** Returns the caller's portal-relevant roles and the orgs they can act in. */
 async function getPortalScope(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role, organisation_id")
-    .eq("user_id", userId);
+  const [{ data, error }, { data: staffRows, error: staffError }] = await Promise.all([
+    supabaseAdmin.from("user_roles").select("role, organisation_id").eq("user_id", userId),
+    supabaseAdmin
+      .from("store_staff")
+      .select("store_id, role")
+      .eq("user_id", userId)
+      .eq("is_active", true),
+  ]);
   if (error) throw new Error(error.message);
+  if (staffError) throw new Error(staffError.message);
   const roles = (data ?? []).filter(
     (r): r is { role: PortalRole; organisation_id: string | null } =>
       ["super_admin", "retailer_admin", "store_manager", "staff"].includes(r.role),
   );
   const isSuperAdmin = roles.some((r) => r.role === "super_admin");
-  const orgIds = Array.from(
+  const orgRoleIds = Array.from(
     new Set(roles.map((r) => r.organisation_id).filter((v): v is string => !!v)),
   );
-  return { roles, isSuperAdmin, orgIds };
+  const staffStoreIds = Array.from(new Set((staffRows ?? []).map((s) => s.store_id)));
+  const { data: staffStores } = staffStoreIds.length
+    ? await supabaseAdmin
+        .from("stores")
+        .select("id, organisation_id")
+        .in("id", staffStoreIds)
+        .is("deleted_at", null)
+    : { data: [] as { id: string; organisation_id: string }[] };
+  const staffOrgIds = Array.from(new Set((staffStores ?? []).map((s) => s.organisation_id)));
+  const orgIds = Array.from(new Set([...orgRoleIds, ...staffOrgIds]));
+  return { roles, isSuperAdmin, orgIds, orgRoleIds, staffStoreIds };
 }
 
 async function assertOrgAccess(userId: string, orgId: string) {
@@ -67,7 +82,7 @@ export const getPortalContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const scope = await getPortalScope(context.userId);
-    if (scope.roles.length === 0) {
+    if (scope.roles.length === 0 && scope.staffStoreIds.length === 0) {
       return { hasAccess: false as const, organisations: [], stores: [] };
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -81,19 +96,36 @@ export const getPortalContext = createServerFn({ method: "GET" })
           .in("id", scope.orgIds.length ? scope.orgIds : ["00000000-0000-0000-0000-000000000000"])
           .order("name");
     const orgIds = (orgs ?? []).map((o) => o.id);
-    const { data: stores } = orgIds.length
-      ? await supabaseAdmin
-          .from("stores")
-          .select("id, name, slug, status, city, organisation_id")
-          .in("organisation_id", orgIds)
-          .is("deleted_at", null)
-          .order("name")
-      : { data: [] as never[] };
+    const allStoreRows: { id: string; name: string; slug: string; status: string; city: string | null; organisation_id: string }[] = [];
+    if (scope.isSuperAdmin || scope.orgRoleIds.length > 0) {
+      const allowedOrgIds = scope.isSuperAdmin ? orgIds : scope.orgRoleIds;
+      const { data: roleStores } = allowedOrgIds.length
+        ? await supabaseAdmin
+            .from("stores")
+            .select("id, name, slug, status, city, organisation_id")
+            .in("organisation_id", allowedOrgIds)
+            .is("deleted_at", null)
+            .order("name")
+        : { data: [] as never[] };
+      allStoreRows.push(...(roleStores ?? []));
+    }
+    if (!scope.isSuperAdmin && scope.staffStoreIds.length > 0) {
+      const { data: staffStores } = await supabaseAdmin
+        .from("stores")
+        .select("id, name, slug, status, city, organisation_id")
+        .in("id", scope.staffStoreIds)
+        .is("deleted_at", null)
+        .order("name");
+      allStoreRows.push(...(staffStores ?? []));
+    }
+    const stores = Array.from(new Map(allStoreRows.map((s) => [s.id, s])).values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
     return {
       hasAccess: true as const,
       isSuperAdmin: scope.isSuperAdmin,
       organisations: orgs ?? [],
-      stores: stores ?? [],
+      stores,
     };
   });
 
@@ -162,7 +194,14 @@ async function assertStoreAccess(userId: string, storeId: string) {
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!store) throw new Error("Store not found");
-  await assertOrgAccess(userId, store.organisation_id);
+  const scope = await getPortalScope(userId);
+  if (
+    !scope.isSuperAdmin &&
+    !scope.orgRoleIds.includes(store.organisation_id) &&
+    !scope.staffStoreIds.includes(storeId)
+  ) {
+    throw new Error("Forbidden: no access to this store");
+  }
   return store;
 }
 
@@ -488,7 +527,7 @@ export const listPromotions = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("promotions")
       .select(
-        "id, title, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, stores(name)",
+        "id, title, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, stores(name), promotion_products(products(name))",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)
@@ -512,6 +551,7 @@ const createPromotionSchema = z.object({
   ends_at: z.string().datetime().optional().or(z.literal("")),
   is_published: z.boolean().default(false),
   hero_image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
+  product_ids: z.array(z.string().uuid()).max(80).optional().default([]),
 });
 
 export const createPromotion = createServerFn({ method: "POST" })
@@ -540,6 +580,15 @@ export const createPromotion = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    if (data.product_ids.length > 0) {
+      const { error: linkError } = await supabaseAdmin.from("promotion_products").insert(
+        data.product_ids.map((product_id) => ({
+          promotion_id: row.id,
+          product_id,
+        })),
+      );
+      if (linkError) throw new Error(linkError.message);
+    }
     return { id: row.id };
   });
 

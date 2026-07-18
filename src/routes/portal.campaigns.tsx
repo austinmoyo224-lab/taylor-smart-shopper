@@ -226,6 +226,7 @@ function NewCampaignForm({
           onChange={setImageUrl}
           label="Campaign image"
           aspect="wide"
+          recommendedSize="1600×900px campaign banner or 1080×1350px advert"
         />
       </div>
       <F label="Category">

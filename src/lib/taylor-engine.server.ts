@@ -94,12 +94,13 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     storeIds.length
       ? supabaseAdmin
           .from("stores")
-          .select("id, name, city, country_code")
+          .select("id, organisation_id, name, city, country_code")
           .in("id", storeIds)
           .is("deleted_at", null)
       : Promise.resolve({
           data: [] as {
             id: string;
+            organisation_id: string;
             name: string;
             city: string | null;
             country_code: string | null;
@@ -109,7 +110,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
       ? supabaseAdmin
           .from("promotions")
           .select(
-            "title, type, is_sponsored, original_price, sale_price, currency_code, starts_at, ends_at, store_id, description",
+            "id, title, type, is_sponsored, original_price, sale_price, currency_code, starts_at, ends_at, store_id, description, rules, metadata, promotion_products(products(name, description, unit, unit_amount, base_price, currency_code))",
           )
           .in("store_id", storeIds)
           .eq("is_published", true)
@@ -120,7 +121,19 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   ]);
 
   const stores = storesRes.data ?? [];
+  const orgIds = Array.from(new Set(stores.map((s) => s.organisation_id).filter(Boolean)));
+  const campaignsRes = orgIds.length
+    ? await supabaseAdmin
+        .from("campaigns")
+        .select("id, name, organisation_id, store_id, schedule, starts_at, ends_at, is_active")
+        .in("organisation_id", orgIds)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(30)
+    : { data: [] as never[] };
   const promos = (promosRes.data ?? []) as {
+    id: string;
     title: string;
     type: string;
     is_sponsored: boolean;
@@ -131,12 +144,31 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     ends_at: string | null;
     store_id: string | null;
     description: string | null;
+    rules?: unknown;
+    metadata?: unknown;
+    promotion_products?: { products?: PromotionProduct | PromotionProduct[] | null }[] | null;
+  }[];
+  const campaigns = (campaignsRes.data ?? []) as {
+    id: string;
+    name: string;
+    organisation_id: string;
+    store_id: string | null;
+    schedule: unknown;
+    starts_at: string | null;
+    ends_at: string | null;
+    is_active: boolean;
   }[];
 
   const now = new Date();
   const activePromos = promos.filter((p) => {
     if (p.starts_at && new Date(p.starts_at) > now) return false;
     if (p.ends_at && new Date(p.ends_at) < now) return false;
+    return true;
+  });
+  const activeCampaigns = campaigns.filter((c) => {
+    if (c.store_id && !storeIds.includes(c.store_id)) return false;
+    if (c.starts_at && new Date(c.starts_at) > now) return false;
+    if (c.ends_at && new Date(c.ends_at) < now) return false;
     return true;
   });
 
@@ -209,7 +241,30 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
           }`
         : "price on request";
       const sponsored = p.is_sponsored ? " [SPONSORED]" : "";
-      lines.push(`- ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}`);
+      const items = promotionItems(p)
+        .map((item) => formatPromotionItem(item))
+        .filter(Boolean)
+        .slice(0, 12)
+        .join(", ");
+      const detail = [p.description, items ? `Items: ${items}` : null].filter(Boolean).join(" | ");
+      lines.push(`- ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}${detail ? ` — ${detail}` : ""}`);
+    }
+  }
+
+  if (activeCampaigns.length) {
+    lines.push("");
+    lines.push(
+      "LIVE STORE CAMPAIGNS — these are active adverts/messages from followed stores. Use their title/body and any listed promotion items when suggesting meals or recipes.",
+    );
+    for (const c of activeCampaigns.slice(0, 15)) {
+      const store = c.store_id ? storeById.get(c.store_id)?.name : null;
+      const schedule = objectRecord(c.schedule);
+      const title = stringVal(schedule.title) || c.name;
+      const body = stringVal(schedule.body);
+      const category = stringVal(schedule.category);
+      lines.push(
+        `- ${title}${category ? ` [${category}]` : ""}${store ? ` @ ${store}` : ""}${body ? ` — ${body}` : ""}`,
+      );
     }
   }
 
@@ -226,6 +281,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   );
   lines.push(
     "- If asked why, answer with the specific signals: their followed store, their diet, an active promo.",
+  );
+  lines.push(
+    "- When active promotions or campaigns list food items, combine those exact items into practical meal suggestions or full recipes. Save any full recipe you create.",
   );
 
   lines.push("");
@@ -249,6 +307,37 @@ function flatten(obj: unknown): string {
     ([, v]) => v !== null && v !== undefined && v !== "",
   );
   return entries.map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("; ");
+}
+
+type PromotionProduct = {
+  name?: string | null;
+  description?: string | null;
+  unit?: string | null;
+  unit_amount?: number | string | null;
+  base_price?: number | string | null;
+  currency_code?: string | null;
+};
+
+function promotionItems(promo: { promotion_products?: { products?: PromotionProduct | PromotionProduct[] | null }[] | null }) {
+  return (promo.promotion_products ?? []).flatMap((row) => {
+    const products = row.products;
+    if (!products) return [];
+    return Array.isArray(products) ? products : [products];
+  });
+}
+
+function formatPromotionItem(item: PromotionProduct) {
+  if (!item.name) return "";
+  const amount = item.unit_amount ? `${item.unit_amount}${item.unit ? ` ${item.unit}` : ""}` : "";
+  return amount ? `${item.name} (${amount})` : item.name;
+}
+
+function objectRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function stringVal(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : "";
 }
 
 // Re-export the anonymous fallback for callers that want it explicitly.

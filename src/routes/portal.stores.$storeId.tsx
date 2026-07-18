@@ -256,6 +256,7 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))}
           label="Store logo"
           aspect="square"
+          recommendedSize="512×512px transparent PNG or WEBP"
         />
         <StoreImageUploader
           organisationId={store.organisation_id}
@@ -265,6 +266,7 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           onChange={(url) => setForm((f) => ({ ...f, hero_image_url: url }))}
           label="Hero image"
           aspect="wide"
+          recommendedSize="1920×640px banner"
         />
       </div>
 
@@ -712,6 +714,9 @@ function AssetsPanel({
           <p className="mt-1 text-xs text-muted">
             Upload logos, hero images, campaign banners, promotion artwork and PDFs. Copy a URL to
             drop it into a promotion or campaign.
+          </p>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+            Logo 512×512 · Store banner 1920×640 · Promotion/ad 1600×900 · Social advert 1080×1350
           </p>
         </div>
         <button
