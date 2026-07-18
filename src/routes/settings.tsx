@@ -1,9 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, BellRing, BellOff, Send } from "lucide-react";
+import { LogOut, BellRing, BellOff, Send, Store as StoreIcon } from "lucide-react";
 import {
   enablePush,
   disablePush,
@@ -161,6 +161,31 @@ function SettingsScreen() {
       <main className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
         <section className="space-y-3">
           <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">Region</h2>
+
+        </section>
+
+        <section>
+          <Link
+            to="/store-onboarding"
+            className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 text-sm hover:border-primary/40"
+          >
+            <span className="flex items-center gap-3">
+              <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <StoreIcon className="size-4" />
+              </span>
+              <span>
+                <span className="block font-medium">List my store on Taylor</span>
+                <span className="block text-[11px] text-muted">
+                  Apply to become a store owner
+                </span>
+              </span>
+            </span>
+            <span className="text-xs text-muted">→</span>
+          </Link>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">Region v2</h2>
           <label className="block">
             <span className="mb-1 block text-[11px] font-medium text-muted">Language</span>
             <select
