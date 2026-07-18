@@ -1344,6 +1344,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
           avatar_url: string | null
           city: string | null
           communication_style: string | null
@@ -1364,6 +1365,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"]
           avatar_url?: string | null
           city?: string | null
           communication_style?: string | null
@@ -1384,6 +1386,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
           avatar_url?: string | null
           city?: string | null
           communication_style?: string | null
@@ -2056,6 +2059,102 @@ export type Database = {
           },
         ]
       }
+      store_onboarding_requests: {
+        Row: {
+          admin_notes: string | null
+          brand_color: string | null
+          business_email: string | null
+          business_name: string
+          business_type: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          organisation_id: string | null
+          proposed_slug: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          short_description: string | null
+          status: string
+          store_address: string | null
+          store_city: string | null
+          store_id: string | null
+          store_name: string
+          store_province: string | null
+          trading_hours: Json
+          trading_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          brand_color?: string | null
+          business_email?: string | null
+          business_name: string
+          business_type?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          organisation_id?: string | null
+          proposed_slug: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          short_description?: string | null
+          status?: string
+          store_address?: string | null
+          store_city?: string | null
+          store_id?: string | null
+          store_name: string
+          store_province?: string | null
+          trading_hours?: Json
+          trading_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          brand_color?: string | null
+          business_email?: string | null
+          business_name?: string
+          business_type?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          organisation_id?: string | null
+          proposed_slug?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          short_description?: string | null
+          status?: string
+          store_address?: string | null
+          store_city?: string | null
+          store_id?: string | null
+          store_name?: string
+          store_province?: string | null
+          trading_hours?: Json
+          trading_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_onboarding_requests_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_onboarding_requests_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_staff: {
         Row: {
           created_at: string
@@ -2524,6 +2623,7 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
+      account_type: "user" | "store_owner"
       app_role:
         | "super_admin"
         | "retailer_admin"
@@ -2706,6 +2806,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_type: ["user", "store_owner"],
       app_role: [
         "super_admin",
         "retailer_admin",

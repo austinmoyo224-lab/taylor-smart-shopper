@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisionRouteImport } from './routes/vision'
 import { Route as StoresRouteImport } from './routes/stores'
+import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -44,6 +45,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaylorRouteImport } from './routes/admin.taylor'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
+import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
@@ -60,6 +62,11 @@ const VisionRoute = VisionRouteImport.update({
 const StoresRoute = StoresRouteImport.update({
   id: '/stores',
   path: '/stores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreOnboardingRoute = StoreOnboardingRouteImport.update({
+  id: '/store-onboarding',
+  path: '/store-onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -227,6 +234,11 @@ const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
   path: '/organisations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminOnboardingRoute = AdminOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminKnowledgeRoute = AdminKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
@@ -280,10 +292,12 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
@@ -322,10 +336,12 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
@@ -367,10 +383,12 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
@@ -413,10 +431,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
+    | '/store-onboarding'
     | '/stores'
     | '/vision'
     | '/admin/audit'
     | '/admin/knowledge'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
@@ -455,10 +475,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
+    | '/store-onboarding'
     | '/stores'
     | '/vision'
     | '/admin/audit'
     | '/admin/knowledge'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
@@ -499,10 +521,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
+    | '/store-onboarding'
     | '/stores'
     | '/vision'
     | '/admin/audit'
     | '/admin/knowledge'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/stores'
     | '/admin/taylor'
@@ -544,6 +568,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
+  StoreOnboardingRoute: typeof StoreOnboardingRoute
   StoresRoute: typeof StoresRoute
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -568,6 +593,13 @@ declare module '@tanstack/react-router' {
       path: '/stores'
       fullPath: '/stores'
       preLoaderRoute: typeof StoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store-onboarding': {
+      id: '/store-onboarding'
+      path: '/store-onboarding'
+      fullPath: '/store-onboarding'
+      preLoaderRoute: typeof StoreOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -801,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrganisationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/onboarding': {
+      id: '/admin/onboarding'
+      path: '/onboarding'
+      fullPath: '/admin/onboarding'
+      preLoaderRoute: typeof AdminOnboardingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/knowledge': {
       id: '/admin/knowledge'
       path: '/knowledge'
@@ -856,6 +895,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminKnowledgeRoute: typeof AdminKnowledgeRoute
+  AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
   AdminStoresRoute: typeof AdminStoresRoute
   AdminTaylorRoute: typeof AdminTaylorRoute
@@ -867,6 +907,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminKnowledgeRoute: AdminKnowledgeRoute,
+  AdminOnboardingRoute: AdminOnboardingRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
   AdminStoresRoute: AdminStoresRoute,
   AdminTaylorRoute: AdminTaylorRoute,
@@ -942,6 +983,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRouteWithChildren,
   SettingsRoute: SettingsRoute,
+  StoreOnboardingRoute: StoreOnboardingRoute,
   StoresRoute: StoresRoute,
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
