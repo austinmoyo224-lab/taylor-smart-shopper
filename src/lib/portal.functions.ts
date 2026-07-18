@@ -39,7 +39,7 @@ function slugSafe(value: string) {
   );
 }
 
-async function makeUniqueStoreCode(supabaseAdmin: { from: (table: string) => unknown }, preferred: string) {
+async function makeUniqueStoreCode(supabaseAdmin: any, preferred: string) {
   const base = slugSafe(preferred).slice(0, 72);
   for (let attempt = 0; attempt < 8; attempt++) {
     const candidate = attempt === 0 ? base : `${base}-${randomSlug(4)}`;
