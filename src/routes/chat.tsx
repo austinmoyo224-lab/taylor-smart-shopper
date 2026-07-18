@@ -485,20 +485,34 @@ function ChatScreen() {
           {canVoice && (
             <button
               type="button"
-              aria-label={recording ? "Stop recording and send" : "Record voice message"}
-              onClick={() => (recording ? stopRecording(true) : startRecording())}
+              aria-label={
+                locked
+                  ? "Tap to stop and send"
+                  : recording
+                    ? "Release to send, slide up to cancel"
+                    : "Hold to talk, or tap to lock"
+              }
+              onPointerDown={onMicPointerDown}
+              onPointerMove={onMicPointerMove}
+              onPointerUp={onMicPointerUp}
+              onPointerCancel={onMicPointerCancel}
+              onContextMenu={(e) => e.preventDefault()}
               disabled={transcribing || isLoading}
               className={
-                "flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-50 " +
-                (recording
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted hover:text-primary")
+                "flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-50 touch-none select-none " +
+                (cancelPending
+                  ? "bg-destructive text-destructive-foreground"
+                  : recording
+                    ? "bg-primary text-primary-foreground animate-pulse"
+                    : "text-muted hover:text-primary")
               }
             >
               {transcribing ? (
                 <Loader2 className="size-4 animate-spin" />
-              ) : recording ? (
+              ) : recording && locked ? (
                 <Square className="size-3.5" strokeWidth={3} />
+              ) : recording ? (
+                <Mic className="size-4" strokeWidth={2.5} />
               ) : (
                 <Mic className="size-4" strokeWidth={2} />
               )}
