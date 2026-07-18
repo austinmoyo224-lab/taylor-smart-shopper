@@ -511,6 +511,7 @@ const createPromotionSchema = z.object({
   starts_at: z.string().datetime().optional().or(z.literal("")),
   ends_at: z.string().datetime().optional().or(z.literal("")),
   is_published: z.boolean().default(false),
+  hero_image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
 });
 
 export const createPromotion = createServerFn({ method: "POST" })
@@ -534,6 +535,7 @@ export const createPromotion = createServerFn({ method: "POST" })
         starts_at: data.starts_at || undefined,
         ends_at: data.ends_at || undefined,
         is_published: data.is_published,
+        hero_image_url: data.hero_image_url || null,
       })
       .select("id")
       .single();
