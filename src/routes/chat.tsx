@@ -378,13 +378,39 @@ function ChatScreen() {
           </div>
         )}
         {recording && (
-          <div className="mb-2 flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/10 px-3 py-2">
-            <div className="flex items-center gap-2 text-[12px] text-primary">
+          <div
+            className={
+              "mb-2 flex items-center justify-between rounded-2xl border px-3 py-2 " +
+              (cancelPending
+                ? "border-destructive/40 bg-destructive/10"
+                : "border-primary/30 bg-primary/10")
+            }
+          >
+            <div
+              className={
+                "flex items-center gap-2 text-[12px] " +
+                (cancelPending ? "text-destructive" : "text-primary")
+              }
+            >
               <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
-                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+                <span
+                  className={
+                    "absolute inline-flex size-full animate-ping rounded-full " +
+                    (cancelPending ? "bg-destructive/60" : "bg-primary/60")
+                  }
+                />
+                <span
+                  className={
+                    "relative inline-flex size-2 rounded-full " +
+                    (cancelPending ? "bg-destructive" : "bg-primary")
+                  }
+                />
               </span>
-              Listening… tap the square to send.
+              {cancelPending
+                ? "Release to cancel"
+                : locked
+                  ? "Hands-free on — tap mic to send"
+                  : "Listening… release to send, slide up to cancel"}
             </div>
             <button
               type="button"
