@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisionRouteImport } from './routes/vision'
 import { Route as StoresRouteImport } from './routes/stores'
+import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -60,6 +61,11 @@ const VisionRoute = VisionRouteImport.update({
 const StoresRoute = StoresRouteImport.update({
   id: '/stores',
   path: '/stores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreOnboardingRoute = StoreOnboardingRouteImport.update({
+  id: '/store-onboarding',
+  path: '/store-onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -322,6 +329,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -413,6 +422,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
+    | '/store-onboarding'
     | '/stores'
     | '/vision'
     | '/admin/audit'
@@ -455,6 +465,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
+    | '/store-onboarding'
     | '/stores'
     | '/vision'
     | '/admin/audit'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/settings'
+    | '/store-onboarding'
     | '/stores'
     | '/vision'
     | '/admin/audit'
@@ -544,6 +556,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
+  StoreOnboardingRoute: typeof StoreOnboardingRoute
   StoresRoute: typeof StoresRoute
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/stores'
       fullPath: '/stores'
       preLoaderRoute: typeof StoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store-onboarding': {
+      id: '/store-onboarding'
+      path: '/store-onboarding'
+      fullPath: '/store-onboarding'
+      preLoaderRoute: typeof StoreOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -942,6 +962,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRouteWithChildren,
   SettingsRoute: SettingsRoute,
+  StoreOnboardingRoute: StoreOnboardingRoute,
   StoresRoute: StoresRoute,
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
