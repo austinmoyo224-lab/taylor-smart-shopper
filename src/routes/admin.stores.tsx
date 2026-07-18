@@ -12,6 +12,8 @@ import {
 } from "@/lib/portal.functions";
 import { BarChart3, Copy, Edit3, LayoutDashboard, MapPin, Plus, QrCode, Trash2, Users } from "lucide-react";
 import QRCode from "qrcode";
+import { StoreImageUploader } from "@/components/StoreImageUploader";
+import { downloadBrandedStoreQr } from "@/lib/qr-composer";
 
 export const Route = createFileRoute("/admin/stores")({
   ssr: false,
@@ -431,12 +433,26 @@ function StoreProfileForm({ store, onSaved }: { store: StoreData; onSaved: () =>
         <Field label="Description" className="md:col-span-2">
           <textarea value={form.description ?? ""} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className={`${inputClass} min-h-24`} />
         </Field>
-        <Field label="Logo URL">
-          <input value={form.logo_url ?? ""} onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))} className={inputClass} />
-        </Field>
-        <Field label="Hero image URL">
-          <input value={form.hero_image_url ?? ""} onChange={(e) => setForm((f) => ({ ...f, hero_image_url: e.target.value }))} className={inputClass} />
-        </Field>
+        <div className="md:col-span-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <StoreImageUploader
+            organisationId={store.organisation_id}
+            storeId={store.id}
+            folder="logo"
+            value={form.logo_url}
+            onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))}
+            label="Store logo"
+            aspect="square"
+          />
+          <StoreImageUploader
+            organisationId={store.organisation_id}
+            storeId={store.id}
+            folder="hero"
+            value={form.hero_image_url}
+            onChange={(url) => setForm((f) => ({ ...f, hero_image_url: url }))}
+            label="Hero image"
+            aspect="wide"
+          />
+        </div>
       </div>
 
       <p className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">Location & GPS</p>
@@ -519,9 +535,21 @@ function StoreIdentityPanel({ store, onChanged }: { store: StoreData; onChanged:
       {dataUrl && <img src={dataUrl} alt="Unique store QR code" className="mt-3 w-full rounded-xl border border-border bg-white p-3" />}
       <div className="mt-3 flex flex-wrap gap-2">
         {dataUrl && (
-          <a href={dataUrl} download={`taylor-store-${store.qr_slug}.png`} className="rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent">
-            Download QR
-          </a>
+          <button
+            type="button"
+            onClick={() =>
+              downloadBrandedStoreQr({
+                storeName: store.name,
+                joinUrl,
+                logoUrl: store.logo_url ?? null,
+                qrCode: dataUrl,
+                filename: `taylor-${store.qr_slug}.png`,
+              })
+            }
+            className="rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
+          >
+            Download branded QR
+          </button>
         )}
         <button type="button" onClick={() => regen.mutate()} disabled={regen.isPending} className="rounded-full bg-primary px-3 py-1 text-[11px] text-primary-foreground disabled:opacity-60">
           {regen.isPending ? "Generating…" : "Regenerate code"}
