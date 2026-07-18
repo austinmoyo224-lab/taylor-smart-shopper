@@ -159,7 +159,7 @@ export const approveStoreOnboardingRequest = createServerFn({ method: "POST" })
       .insert({
         name: req.business_name,
         slug: req.proposed_slug,
-        type: req.business_type,
+        type: req.business_type as "independent" | "retail_group" | "brand" | "partner",
         country_code: "ZA",
         default_currency: "ZAR",
         contact_email: req.business_email,
