@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -29,6 +30,7 @@ function StoresScreen() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -51,27 +53,87 @@ function StoresScreen() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subs", "mine"] }),
   });
 
+  const firstName =
+    (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
+    user?.email?.split("@")[0] ??
+    null;
+  const greeting = getGreeting();
+  const allAds = ads.data ?? [];
+  const heroAd = allAds[0] ?? null;
+  const railAds = allAds.slice(1);
+
   return (
     <AppShell>
-      <header className="border-b border-border bg-background px-6 pb-4 pt-10">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Your Taylor
-        </p>
-        <h1
+      <motion.header
+        initial={reduce ? false : { opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-5 pt-10"
+      >
+        <motion.div
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="mb-1 font-mono text-[10px] uppercase tracking-widest text-primary"
+        >
+          {greeting}
+        </motion.div>
+        <motion.h1
+          initial={reduce ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="text-3xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Your stores
-        </h1>
-        <p className="mt-1 text-xs text-muted">
-          Deals, drops and shops from the brands you follow.
-        </p>
-      </header>
+          {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+        </motion.h1>
+        <motion.p
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+          className="mt-1 text-xs text-muted"
+        >
+          Fresh drops from the brands you follow.
+        </motion.p>
+      </motion.header>
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
-        <AdsCarousel ads={ads.data ?? []} />
+        {heroAd ? (
+          <HeroAd ad={heroAd} reduce={!!reduce} />
+        ) : (
+          <EmptyHero />
+        )}
 
-        <div className="mt-8 flex items-baseline justify-between">
+        {railAds.length > 0 && (
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5 }}
+            className="mt-6"
+          >
+            <div className="mb-2 flex items-baseline justify-between">
+              <h2
+                className="text-sm italic tracking-tight"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Also trending
+              </h2>
+              <span className="font-mono text-[9px] uppercase tracking-widest text-muted">
+                Swipe →
+              </span>
+            </div>
+            <AdsCarousel ads={railAds} />
+          </motion.div>
+        )}
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5 }}
+          className="mt-8 flex items-baseline justify-between"
+        >
           <h2
             className="text-lg italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
@@ -81,16 +143,25 @@ function StoresScreen() {
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
             {(subs.data ?? []).length} store{(subs.data ?? []).length === 1 ? "" : "s"}
           </span>
-        </div>
+        </motion.div>
 
         {!user || subs.isLoading ? (
           <p className="text-sm text-muted">Loading…</p>
         ) : (subs.data ?? []).length === 0 ? (
-          <div className="mt-3 rounded-2xl border border-border bg-card p-6 text-sm leading-relaxed text-muted">
+          <motion.div
+            initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-3 rounded-2xl border border-border bg-card p-6 text-sm leading-relaxed text-muted"
+          >
             <div className="flex items-start gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <motion.div
+                animate={reduce ? {} : { y: [0, -3, 0] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+              >
                 <QrCode className="size-5" />
-              </div>
+              </motion.div>
               <p>
                 You're not following any stores yet. Scan a store's QR code in their shop, or open
                 the join link they've shared with you.
@@ -104,12 +175,16 @@ function StoresScreen() {
               <li>Scan or tap to open a join link.</li>
               <li>Confirm and Taylor takes it from there.</li>
             </ol>
-          </div>
+          </motion.div>
         ) : (
           <ul className="mt-3 space-y-3">
-            {(subs.data ?? []).map((s) => (
-              <li
+            {(subs.data ?? []).map((s, i) => (
+              <motion.li
                 key={s.id}
+                initial={reduce ? false : { opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
               >
                 {s.logo_url ? (
@@ -134,7 +209,7 @@ function StoresScreen() {
                 >
                   <X className="size-3.5" />
                 </button>
-              </li>
+              </motion.li>
             ))}
           </ul>
         )}
@@ -146,6 +221,147 @@ function StoresScreen() {
 
       <BottomNav />
     </AppShell>
+  );
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "Late night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 22) return "Good evening";
+  return "Good night";
+}
+
+function HeroAd({ ad, reduce }: { ad: Ad; reduce: boolean }) {
+  const store = Array.isArray(ad.stores) ? ad.stores[0] : ad.stores;
+  const img = ad.hero_image_url ?? store?.hero_image_url ?? null;
+  const joinTo = store?.qr_slug ?? store?.slug ?? null;
+  const price =
+    ad.sale_price != null
+      ? `${ad.currency_code} ${Number(ad.sale_price).toFixed(2)}`
+      : null;
+  const original =
+    ad.original_price != null && ad.sale_price != null && ad.original_price > ad.sale_price
+      ? `${ad.currency_code} ${Number(ad.original_price).toFixed(2)}`
+      : null;
+
+  const inner = (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 20, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className="relative aspect-[4/5] w-full overflow-hidden rounded-[28px] border border-border bg-card shadow-xl"
+    >
+      {img ? (
+        <motion.img
+          src={img}
+          alt={ad.title}
+          initial={reduce ? false : { scale: 1.15 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 8, ease: "easeOut" }}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-primary/15 to-background" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+
+      <div className="absolute inset-0 flex flex-col justify-between p-5">
+        <div className="flex items-center gap-2">
+          <motion.span
+            initial={reduce ? false : { opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-primary-foreground shadow-lg"
+          >
+            <Sparkles className="size-3" />
+            Featured today
+          </motion.span>
+          {ad.is_sponsored && (
+            <span className="rounded-full bg-white/15 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-white backdrop-blur">
+              Sponsored
+            </span>
+          )}
+        </div>
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+          className="text-white"
+        >
+          {store?.name && (
+            <p className="font-mono text-[10px] uppercase tracking-widest text-white/80">
+              {store.name}
+            </p>
+          )}
+          <h3
+            className="mt-1 line-clamp-3 text-3xl italic leading-[1.05] tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {ad.title}
+          </h3>
+          {price && (
+            <p className="mt-2 flex items-baseline gap-2 text-base font-semibold">
+              <span>{price}</span>
+              {original && (
+                <span className="text-xs font-normal text-white/60 line-through">{original}</span>
+              )}
+            </p>
+          )}
+          {joinTo && (
+            <motion.div
+              animate={reduce ? {} : { scale: [1, 1.03, 1] }}
+              transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-primary shadow-lg"
+            >
+              Follow store
+              <ChevronRight className="size-3.5" />
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+
+  return joinTo ? (
+    <Link to="/join/$slug" params={{ slug: joinTo }} className="block">
+      {inner}
+    </Link>
+  ) : (
+    inner
+  );
+}
+
+function EmptyHero() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/20 via-card to-background p-8"
+    >
+      <motion.div
+        animate={{ rotate: [0, 8, -8, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="mb-3 inline-flex size-10 items-center justify-center rounded-2xl bg-primary/15 text-primary"
+      >
+        <Sparkles className="size-5" />
+      </motion.div>
+      <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+        Featured on Taylor
+      </p>
+      <h3
+        className="mt-1 text-2xl italic tracking-tight"
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        Fresh deals land here
+      </h3>
+      <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted">
+        As soon as stores you follow publish a promotion, it'll slide right into this space.
+      </p>
+    </motion.div>
   );
 }
 
