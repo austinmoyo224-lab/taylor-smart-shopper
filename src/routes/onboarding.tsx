@@ -795,12 +795,17 @@ function QrStep({
 
   return (
     <Card>
-      <h2 className="text-2xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-        You're live 🎉
-      </h2>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-2xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+          Submitted for review
+        </h2>
+        <span className="rounded-full bg-amber-500/15 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-amber-600">
+          Pending approval
+        </span>
+      </div>
       <p className="mt-1 text-sm text-muted">
-        Print or share this QR so shoppers can follow your store and get personalised deals from
-        Taylor.
+        Your store is <strong>Pending</strong> until a Taylor Intelligence admin verifies it.
+        You'll still see your QR here — sharing goes live the moment your store is approved.
       </p>
 
       <ul className="mt-4 space-y-1 text-sm">
