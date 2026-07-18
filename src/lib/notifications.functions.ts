@@ -117,6 +117,7 @@ const createCampaignSchema = z.object({
     .enum(["promotion", "coupon", "campaign", "recipe", "reminder", "system"])
     .default("campaign"),
   send_now: z.boolean().default(false),
+  image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
 });
 
 /** Creates a campaign row. If send_now, fans out an in-app notification to
@@ -137,7 +138,12 @@ export const createCampaign = createServerFn({ method: "POST" })
         name: data.name,
         scope: data.scope,
         audience: {},
-        schedule: { title: data.title, body: data.body ?? "", category: data.category },
+        schedule: {
+          title: data.title,
+          body: data.body ?? "",
+          category: data.category,
+          image_url: data.image_url || null,
+        },
         is_active: data.send_now,
         starts_at: data.send_now ? new Date().toISOString() : undefined,
       })
