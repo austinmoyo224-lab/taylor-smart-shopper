@@ -288,6 +288,27 @@ export const deleteStore = createServerFn({ method: "POST" })
     return { ok: true, organisation_id: store.organisation_id };
   });
 
+// Super-admin-only: approve a pending store and take it live.
+const approveStoreSchema = z.object({
+  store_id: z.string().uuid(),
+  status: z.enum(["active", "paused", "draft"]).default("active"),
+});
+
+export const approveStore = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => approveStoreSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const scope = await getPortalScope(context.userId);
+    if (!scope.isSuperAdmin) throw new Error("Forbidden: only super admins can approve stores");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("stores")
+      .update({ status: data.status })
+      .eq("id", data.store_id);
+    if (error) throw new Error(error.message);
+    return { ok: true, status: data.status };
+  });
+
 function randomSlug(len = 8) {
   const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
   let out = "";
