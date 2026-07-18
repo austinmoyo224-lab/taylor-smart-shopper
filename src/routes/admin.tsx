@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminStatus } from "@/lib/admin.functions";
 import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft, Sparkles } from "lucide-react";
+import { FolderOpen, BookOpen } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -57,13 +58,17 @@ const nav: {
     | "/admin/stores"
     | "/admin/users"
     | "/admin/audit"
-    | "/admin/taylor";
+    | "/admin/taylor"
+    | "/admin/knowledge"
+    | "/admin/vault";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
 }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/taylor", label: "Taylor AI", icon: Sparkles },
+  { to: "/admin/knowledge", label: "Knowledge base", icon: BookOpen },
+  { to: "/admin/vault", label: "Document vault", icon: FolderOpen },
   { to: "/admin/organisations", label: "Organisations", icon: Building2 },
   { to: "/admin/stores", label: "Stores", icon: Store },
   { to: "/admin/users", label: "Users & roles", icon: Users },
