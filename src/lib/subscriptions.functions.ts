@@ -198,12 +198,27 @@ export const ensureStoreQrCode = createServerFn({ method: "POST" })
       .eq("target_id", store.id)
       .eq("type", "store_invite")
       .maybeSingle();
-    if (existing)
+    if (existing) {
+      if (existing.slug !== store.qr_slug) {
+        const { data: updated, error: updateError } = await supabaseAdmin
+          .from("qr_codes")
+          .update({ slug: store.qr_slug, label: store.name, is_active: true })
+          .eq("id", existing.id)
+          .select("slug, scan_count, conversion_count")
+          .single();
+        if (updateError) throw new Error(updateError.message);
+        return {
+          slug: updated.slug,
+          scans: updated.scan_count,
+          conversions: updated.conversion_count,
+        };
+      }
       return {
         slug: existing.slug,
         scans: existing.scan_count,
         conversions: existing.conversion_count,
       };
+    }
 
     const { data: created, error } = await supabaseAdmin
       .from("qr_codes")
@@ -211,6 +226,7 @@ export const ensureStoreQrCode = createServerFn({ method: "POST" })
         organisation_id: store.organisation_id,
         type: "store_invite",
         target_id: store.id,
+        slug: store.qr_slug,
         label: store.name,
       })
       .select("slug, scan_count, conversion_count")

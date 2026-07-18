@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
@@ -8,6 +8,8 @@ import {
   regenerateStoreCode,
   listStoreAssets,
   deleteStoreAsset,
+  deleteStore,
+  getStoreSubscriberDashboard,
 } from "@/lib/portal.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -19,6 +21,9 @@ import {
   Trash2,
   Upload,
   Locate,
+  BarChart3,
+  Users,
+  ExternalLink,
 } from "lucide-react";
 
 export const Route = createFileRoute("/portal/stores/$storeId")({
@@ -29,6 +34,7 @@ export const Route = createFileRoute("/portal/stores/$storeId")({
 function StoreDetailPage() {
   const { storeId } = useParams({ from: "/portal/stores/$storeId" });
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const store = useQuery({
     queryKey: ["portal", "store", storeId],
     queryFn: () => getStore({ data: { store_id: storeId } }),
@@ -60,6 +66,9 @@ function StoreDetailPage() {
         <p className="mt-1 text-xs text-muted">
           {store.data.city ?? "—"} · {store.data.country_code}
         </p>
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          Unique Store ID: <span className="select-all text-foreground">{store.data.id}</span>
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -72,6 +81,16 @@ function StoreDetailPage() {
             storeId={store.data.id}
             qrSlug={store.data.qr_slug}
             onChanged={() => qc.invalidateQueries({ queryKey: ["portal", "store", storeId] })}
+          />
+          <StoreDashboardPanel storeId={store.data.id} storeName={store.data.name} />
+          <SubscriberDashboardPanel storeId={store.data.id} />
+          <DeleteStorePanel
+            storeName={store.data.name}
+            onDelete={async () => {
+              await deleteStore({ data: { store_id: store.data.id } });
+              await qc.invalidateQueries({ queryKey: ["portal", "context"] });
+              void navigate({ to: "/portal/stores" });
+            }}
           />
         </div>
       </div>
@@ -396,6 +415,11 @@ function CodePanel({
         </button>
       </div>
 
+      <div className="mb-3 rounded-lg border border-border bg-background px-3 py-2">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Store ID</p>
+        <code className="block truncate font-mono text-[11px]">{storeId}</code>
+      </div>
+
       {dataUrl && (
         <img
           src={dataUrl}
@@ -447,6 +471,137 @@ function CodePanel({
           <p className="text-[11px] text-destructive">{(regen.error as Error).message}</p>
         )}
       </div>
+    </div>
+  );
+}
+
+function StoreDashboardPanel({ storeId, storeName }: { storeId: string; storeName: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Store dashboard
+          </p>
+          <h3 className="text-lg font-medium">Manage {storeName}</h3>
+        </div>
+        <BarChart3 className="size-5 text-primary/70" />
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <Link
+          to="/portal/products"
+          className="rounded-lg border border-border px-3 py-2 hover:bg-accent"
+        >
+          Products
+        </Link>
+        <Link
+          to="/portal/promotions"
+          className="rounded-lg border border-border px-3 py-2 hover:bg-accent"
+        >
+          Promotions
+        </Link>
+        <Link
+          to="/portal/campaigns"
+          className="rounded-lg border border-border px-3 py-2 hover:bg-accent"
+        >
+          Campaigns
+        </Link>
+        <Link
+          to="/portal/analytics"
+          className="rounded-lg border border-border px-3 py-2 hover:bg-accent"
+        >
+          Analytics
+        </Link>
+      </div>
+      <a
+        href={`/join/${storeId}`}
+        onClick={(e) => e.preventDefault()}
+        className="mt-3 hidden items-center gap-1 text-[11px] text-muted"
+      >
+        <ExternalLink className="size-3" /> Internal store reference
+      </a>
+    </div>
+  );
+}
+
+function SubscriberDashboardPanel({ storeId }: { storeId: string }) {
+  const subs = useQuery({
+    queryKey: ["portal", "store", storeId, "subscribers"],
+    queryFn: () => getStoreSubscriberDashboard({ data: { store_id: storeId } }),
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Subscriber dashboard
+          </p>
+          <h3 className="text-lg font-medium">Followers</h3>
+        </div>
+        <Users className="size-5 text-primary/70" />
+      </div>
+      <p className="text-3xl font-semibold">{subs.data?.count ?? "—"}</p>
+      <p className="mb-3 text-xs text-muted">Active store subscribers</p>
+      {subs.isLoading ? (
+        <p className="text-xs text-muted">Loading…</p>
+      ) : (subs.data?.recent ?? []).length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted">
+          No subscribers yet. Share the invitation link or QR code.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {(subs.data?.recent ?? []).slice(0, 5).map((s) => (
+            <li key={`${s.user_id}-${s.subscribed_at}`} className="flex items-center gap-2 text-xs">
+              {s.profile?.avatar_url ? (
+                <img src={s.profile.avatar_url} alt="" className="size-7 rounded-full object-cover" />
+              ) : (
+                <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 font-mono text-[10px] text-primary">
+                  {(s.profile?.display_name ?? s.profile?.first_name ?? "U").slice(0, 1)}
+                </span>
+              )}
+              <span className="min-w-0 flex-1 truncate">
+                {s.profile?.display_name ?? s.profile?.first_name ?? s.profile?.email ?? "Subscriber"}
+              </span>
+              <span className="font-mono text-[10px] text-muted">{s.source ?? "app"}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {subs.error && <p className="mt-2 text-[11px] text-destructive">{(subs.error as Error).message}</p>}
+    </div>
+  );
+}
+
+function DeleteStorePanel({ storeName, onDelete }: { storeName: string; onDelete: () => Promise<void> }) {
+  const [error, setError] = useState<string | null>(null);
+  const mut = useMutation({
+    mutationFn: onDelete,
+    onError: (e: Error) => setError(e.message),
+  });
+
+  return (
+    <div className="rounded-2xl border border-destructive/25 bg-card p-5">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-destructive">
+        Delete store
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        This archives the store, disables its invitation QR code and removes it from dashboards.
+      </p>
+      <button
+        type="button"
+        disabled={mut.isPending}
+        onClick={() => {
+          setError(null);
+          if (confirm(`Delete ${storeName}? This will archive the store and disable its invite link.`)) {
+            mut.mutate();
+          }
+        }}
+        className="mt-3 inline-flex items-center gap-2 rounded-full border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-60"
+      >
+        <Trash2 className="size-3.5" /> {mut.isPending ? "Deleting…" : "Delete store"}
+      </button>
+      {error && <p className="mt-2 text-[11px] text-destructive">{error}</p>}
     </div>
   );
 }

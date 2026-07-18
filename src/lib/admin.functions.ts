@@ -150,7 +150,7 @@ export const listStores = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("stores")
       .select(
-        "id, name, slug, status, city, country_code, is_public, organisation_id, created_at, organisations(name)",
+        "id, name, slug, qr_slug, status, city, region, country_code, contact_email, contact_phone, is_public, organisation_id, created_at, organisations(name)",
       )
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
