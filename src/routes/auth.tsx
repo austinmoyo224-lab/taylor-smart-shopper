@@ -206,6 +206,36 @@ function AuthScreen() {
         {channel === "email" && (
           <form onSubmit={onEmailSubmit} className="space-y-3">
             {mode === "signup" && (
+              <div>
+                <span className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted">
+                  I'm signing up as
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { v: "user", title: "Shopper", desc: "Deals, lists, chat" },
+                      { v: "store_owner", title: "Store owner", desc: "List my store" },
+                    ] as const
+                  ).map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setAccountType(o.v)}
+                      className={
+                        "rounded-xl border px-3 py-2.5 text-left text-xs transition " +
+                        (accountType === o.v
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border bg-card text-muted hover:text-foreground")
+                      }
+                    >
+                      <div className="text-sm font-medium text-foreground">{o.title}</div>
+                      <div className="text-[11px] text-muted">{o.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {mode === "signup" && (
               <Field
                 label="First name"
                 type="text"
