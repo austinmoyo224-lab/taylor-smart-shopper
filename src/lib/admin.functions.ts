@@ -142,6 +142,58 @@ export const createOrganisation = createServerFn({ method: "POST" })
     return { id: row.id };
   });
 
+const updateOrgSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(1).max(200),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(80)
+    .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only"),
+  type: z.enum(["retail_group", "brand", "partner", "independent"]),
+  country_code: z.string().length(2),
+  default_currency: z.string().length(3),
+  contact_email: z.string().email().optional().or(z.literal("")).nullable(),
+  is_active: z.boolean(),
+});
+
+export const updateOrganisation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => updateOrgSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("organisations")
+      .update({
+        name: data.name,
+        slug: data.slug,
+        type: data.type,
+        country_code: data.country_code,
+        default_currency: data.default_currency,
+        contact_email: data.contact_email || null,
+        is_active: data.is_active,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteOrganisation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("organisations")
+      .update({ deleted_at: new Date().toISOString(), is_active: false })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const listStores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
