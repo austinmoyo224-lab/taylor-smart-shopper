@@ -18,16 +18,23 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   // Admin-configured Taylor profile & training (always loaded).
-  const [settingsRes, trainingRes] = await Promise.all([
+  const [settingsRes, trainingRes, knowledgeRes] = await Promise.all([
     supabaseAdmin.from("taylor_settings").select("*").eq("singleton", true).maybeSingle(),
     supabaseAdmin
       .from("taylor_training_examples")
       .select("prompt, ideal_response, category")
       .eq("is_active", true)
       .limit(40),
+    supabaseAdmin
+      .from("taylor_knowledge")
+      .select("title, content, category, tags")
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false })
+      .limit(60),
   ]);
   const settings = settingsRes.data;
   const training = trainingRes.data ?? [];
+  const knowledge = knowledgeRes.data ?? [];
 
   const adminBlock: string[] = [];
   if (settings) {
@@ -50,6 +57,16 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     for (const t of training) {
       adminBlock.push(`Q: ${t.prompt}`);
       adminBlock.push(`A: ${t.ideal_response}`);
+      adminBlock.push("");
+    }
+  }
+  if (knowledge.length) {
+    adminBlock.push("");
+    adminBlock.push("TAYLOR KNOWLEDGE BASE (authoritative facts — prefer this over guessing):");
+    for (const k of knowledge) {
+      const cat = k.category ? ` [${k.category}]` : "";
+      adminBlock.push(`# ${k.title}${cat}`);
+      adminBlock.push(k.content);
       adminBlock.push("");
     }
   }
