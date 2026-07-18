@@ -12,6 +12,8 @@ import {
   getStoreSubscriberDashboard,
 } from "@/lib/portal.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { StoreImageUploader } from "@/components/StoreImageUploader";
+import { downloadBrandedStoreQr } from "@/lib/qr-composer";
 import {
   ArrowLeft,
   MapPin,
@@ -241,6 +243,30 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
       </div>
 
       <h3 className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
+        Branding
+      </h3>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <StoreImageUploader
+          organisationId={store.organisation_id}
+          storeId={store.id}
+          folder="logo"
+          value={form.logo_url}
+          onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))}
+          label="Store logo"
+          aspect="square"
+        />
+        <StoreImageUploader
+          organisationId={store.organisation_id}
+          storeId={store.id}
+          folder="hero"
+          value={form.hero_image_url}
+          onChange={(url) => setForm((f) => ({ ...f, hero_image_url: url }))}
+          label="Hero image"
+          aspect="wide"
+        />
+      </div>
+
+      <h3 className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
         Location
       </h3>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -368,10 +394,14 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
 function CodePanel({
   storeId,
   qrSlug,
+  storeName,
+  logoUrl,
   onChanged,
 }: {
   storeId: string;
   qrSlug: string;
+  storeName: string;
+  logoUrl: string | null;
   onChanged: () => void;
 }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
@@ -392,6 +422,17 @@ function CodePanel({
     mutationFn: () => regenerateStoreCode({ data: { store_id: storeId } }),
     onSuccess: onChanged,
   });
+
+  async function downloadBranded() {
+    if (!dataUrl) return;
+    await downloadBrandedStoreQr({
+      storeName,
+      joinUrl,
+      logoUrl,
+      qrCode: dataUrl,
+      filename: `taylor-${qrSlug}.png`,
+    });
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -449,13 +490,13 @@ function CodePanel({
             Copy link
           </button>
           {dataUrl && (
-            <a
-              href={dataUrl}
-              download={`taylor-qr-${qrSlug}.png`}
+            <button
+              type="button"
+              onClick={downloadBranded}
               className="rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
             >
-              Download QR
-            </a>
+              Download branded QR
+            </button>
           )}
           <button
             type="button"
