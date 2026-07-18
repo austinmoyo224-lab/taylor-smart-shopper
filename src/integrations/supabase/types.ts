@@ -2268,6 +2268,84 @@ export type Database = {
         }
         Relationships: []
       }
+      taylor_settings: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean
+          personality_traits: string | null
+          singleton: boolean
+          system_prompt_addon: string | null
+          tagline: string | null
+          temperature: number
+          updated_at: string
+          voice: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          personality_traits?: string | null
+          singleton?: boolean
+          system_prompt_addon?: string | null
+          tagline?: string | null
+          temperature?: number
+          updated_at?: string
+          voice?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          personality_traits?: string | null
+          singleton?: boolean
+          system_prompt_addon?: string | null
+          tagline?: string | null
+          temperature?: number
+          updated_at?: string
+          voice?: string
+        }
+        Relationships: []
+      }
+      taylor_training_examples: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          ideal_response: string
+          is_active: boolean
+          prompt: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ideal_response: string
+          is_active?: boolean
+          prompt: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ideal_response?: string
+          is_active?: boolean
+          prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       translations: {
         Row: {
           created_at: string
