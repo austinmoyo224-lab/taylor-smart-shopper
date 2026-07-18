@@ -135,6 +135,8 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           contact_email: form.contact_email ?? "",
           contact_phone: form.contact_phone ?? "",
           is_public: form.is_public,
+          brand_colors: (form.brand_colors as Record<string, unknown> | null) ?? null,
+          trading_hours: (form.trading_hours as Record<string, unknown> | undefined) ?? {},
         },
       }),
     onSuccess: () => {
@@ -272,6 +274,22 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           recommendedSize="1920×640px banner"
         />
       </div>
+
+      <h3 className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
+        <Palette className="mr-1 inline size-3" /> Brand colours
+      </h3>
+      <BrandColorsEditor
+        value={(form.brand_colors as Record<string, string> | null) ?? null}
+        onChange={(v) => setForm((f) => ({ ...f, brand_colors: v }))}
+      />
+
+      <h3 className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
+        <Clock className="mr-1 inline size-3" /> Trading hours
+      </h3>
+      <TradingHoursEditor
+        value={(form.trading_hours as Record<string, { open: string; close: string; closed?: boolean }> | null) ?? null}
+        onChange={(v) => setForm((f) => ({ ...f, trading_hours: v }))}
+      />
 
       <h3 className="mt-6 mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
         Location
