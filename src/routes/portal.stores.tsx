@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { createStore } from "@/lib/portal.functions";
@@ -59,12 +59,13 @@ function StoresPage() {
               <th className="px-4 py-3">Store</th>
               <th className="px-4 py-3">Slug</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {orgStores.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-muted">
+                <td colSpan={4} className="px-4 py-6 text-muted">
                   No stores yet. Add your first one.
                 </td>
               </tr>
@@ -74,6 +75,15 @@ function StoresPage() {
                 <td className="px-4 py-3 font-medium">{s.name}</td>
                 <td className="px-4 py-3 font-mono text-xs text-muted">{s.slug}</td>
                 <td className="px-4 py-3 capitalize">{s.status}</td>
+                <td className="px-4 py-3 text-right">
+                  <Link
+                    to="/portal/stores/$storeId"
+                    params={{ storeId: s.id }}
+                    className="rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
+                  >
+                    Edit
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

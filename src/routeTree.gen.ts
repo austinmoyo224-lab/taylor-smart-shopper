@@ -43,6 +43,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
 
@@ -216,6 +217,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const PortalStoresStoreIdRoute = PortalStoresStoreIdRouteImport.update({
+  id: '/$storeId',
+  path: '/$storeId',
+  getParentRoute: () => PortalStoresRoute,
+} as any)
 const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
   id: '/api/voice/transcribe',
   path: '/api/voice/transcribe',
@@ -258,12 +264,13 @@ export interface FileRoutesByFullPath {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRoute
+  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
+  '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -294,12 +301,13 @@ export interface FileRoutesByTo {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRoute
+  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
+  '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -333,12 +341,13 @@ export interface FileRoutesById {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRoute
+  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
+  '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
+    | '/portal/stores/$storeId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
+    | '/portal/stores/$storeId'
   id:
     | '__root__'
     | '/'
@@ -453,6 +464,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
+    | '/portal/stores/$storeId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -720,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/portal/stores/$storeId': {
+      id: '/portal/stores/$storeId'
+      path: '/$storeId'
+      fullPath: '/portal/stores/$storeId'
+      preLoaderRoute: typeof PortalStoresStoreIdRouteImport
+      parentRoute: typeof PortalStoresRoute
+    }
     '/api/voice/transcribe': {
       id: '/api/voice/transcribe'
       path: '/api/voice/transcribe'
@@ -755,6 +774,18 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface PortalStoresRouteChildren {
+  PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
+}
+
+const PortalStoresRouteChildren: PortalStoresRouteChildren = {
+  PortalStoresStoreIdRoute: PortalStoresStoreIdRoute,
+}
+
+const PortalStoresRouteWithChildren = PortalStoresRoute._addFileChildren(
+  PortalStoresRouteChildren,
+)
+
 interface PortalRouteChildren {
   PortalAnalyticsRoute: typeof PortalAnalyticsRoute
   PortalCampaignsRoute: typeof PortalCampaignsRoute
@@ -762,7 +793,7 @@ interface PortalRouteChildren {
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
   PortalRewardsRoute: typeof PortalRewardsRoute
-  PortalStoresRoute: typeof PortalStoresRoute
+  PortalStoresRoute: typeof PortalStoresRouteWithChildren
   PortalIndexRoute: typeof PortalIndexRoute
 }
 
@@ -773,7 +804,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
   PortalRewardsRoute: PortalRewardsRoute,
-  PortalStoresRoute: PortalStoresRoute,
+  PortalStoresRoute: PortalStoresRouteWithChildren,
   PortalIndexRoute: PortalIndexRoute,
 }
 

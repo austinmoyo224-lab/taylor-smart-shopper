@@ -103,6 +103,164 @@ export const createStore = createServerFn({ method: "POST" })
     return { id: row.id };
   });
 
+// ---------- STORE PROFILE (get / update / regenerate code) ----------
+
+const storeIdInput = z.object({ store_id: z.string().uuid() });
+
+async function assertStoreAccess(userId: string, storeId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: store, error } = await supabaseAdmin
+    .from("stores")
+    .select(
+      "id, organisation_id, name, slug, qr_slug, status, description, logo_url, hero_image_url, brand_colors, address_line1, address_line2, city, region, postal_code, country_code, latitude, longitude, timezone, trading_hours, contact_email, contact_phone, is_public",
+    )
+    .eq("id", storeId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!store) throw new Error("Store not found");
+  await assertOrgAccess(userId, store.organisation_id);
+  return store;
+}
+
+export const getStore = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => storeIdInput.parse(d))
+  .handler(async ({ data, context }) => assertStoreAccess(context.userId, data.store_id));
+
+const updateStoreSchema = z.object({
+  store_id: z.string().uuid(),
+  name: z.string().trim().min(1).max(200).optional(),
+  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9-]+$/).optional(),
+  status: z.enum(["draft", "active", "paused", "archived"]).optional(),
+  description: z.string().max(2000).optional().nullable(),
+  logo_url: z.string().url().max(1000).optional().nullable(),
+  hero_image_url: z.string().url().max(1000).optional().nullable(),
+  address_line1: z.string().max(200).optional().nullable(),
+  address_line2: z.string().max(200).optional().nullable(),
+  city: z.string().max(120).optional().nullable(),
+  region: z.string().max(120).optional().nullable(),
+  postal_code: z.string().max(20).optional().nullable(),
+  country_code: z.string().length(2).optional(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
+  timezone: z.string().max(60).optional(),
+  contact_email: z.string().email().max(200).optional().nullable().or(z.literal("")),
+  contact_phone: z.string().max(40).optional().nullable().or(z.literal("")),
+  is_public: z.boolean().optional(),
+  trading_hours: z.record(z.string(), z.any()).optional(),
+});
+
+export const updateStore = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => updateStoreSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertStoreAccess(context.userId, data.store_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { store_id, ...rest } = data;
+    const patch: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(rest)) {
+      if (v === undefined) continue;
+      patch[k] = v === "" ? null : v;
+    }
+    const { error } = await supabaseAdmin
+      .from("stores")
+      .update(patch as never)
+      .eq("id", store_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+function randomSlug(len = 8) {
+  const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
+  let out = "";
+  for (let i = 0; i < len; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return out;
+}
+
+export const regenerateStoreCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => storeIdInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertStoreAccess(context.userId, data.store_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // retry a few times in case of unique-collision on qr_slug
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = randomSlug(8);
+      const { data: row, error } = await supabaseAdmin
+        .from("stores")
+        .update({ qr_slug: candidate })
+        .eq("id", data.store_id)
+        .select("qr_slug")
+        .maybeSingle();
+      if (!error && row) return { qr_slug: row.qr_slug };
+      if (error && !`${error.message}`.toLowerCase().includes("duplicate")) {
+        throw new Error(error.message);
+      }
+    }
+    throw new Error("Could not generate a unique store code");
+  });
+
+// ---------- STORE ASSETS ----------
+
+const assetListInput = z.object({
+  organisation_id: z.string().uuid(),
+  store_id: z.string().uuid().optional().nullable(),
+});
+
+export const listStoreAssets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => assetListInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const prefix = data.store_id
+      ? `${data.organisation_id}/${data.store_id}`
+      : `${data.organisation_id}`;
+    const { data: files, error } = await supabaseAdmin.storage
+      .from("store-assets")
+      .list(prefix, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+    if (error) throw new Error(error.message);
+    const out: {
+      name: string;
+      path: string;
+      size: number | null;
+      created_at: string | null;
+      url: string;
+    }[] = [];
+    for (const f of files ?? []) {
+      if (!f.name || f.name.startsWith(".")) continue;
+      const path = `${prefix}/${f.name}`;
+      const { data: signed } = await supabaseAdmin.storage
+        .from("store-assets")
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+      out.push({
+        name: f.name,
+        path,
+        size: (f.metadata as { size?: number } | null)?.size ?? null,
+        created_at: f.created_at ?? null,
+        url: signed?.signedUrl ?? "",
+      });
+    }
+    return out;
+  });
+
+export const deleteStoreAsset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ organisation_id: z.string().uuid(), path: z.string().min(3) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    if (!data.path.startsWith(`${data.organisation_id}/`)) {
+      throw new Error("Path outside organisation");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.storage.from("store-assets").remove([data.path]);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // ---------- PRODUCTS ----------
 
 const orgIdInput = z.object({ organisation_id: z.string().uuid() });

@@ -1,9 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Sparkles, Store, UtensilsCrossed, ListChecks, User } from "lucide-react";
+import { MessageCircle, Store, UtensilsCrossed, ListChecks, User } from "lucide-react";
 
 // Stores is the landing tab and sits in the centre of the bottom nav.
 const tabs = [
-  { to: "/sparkles", label: "Taylor", icon: Sparkles, target: "/chat" as const },
+  { to: "/chat", label: "Taylor", icon: MessageCircle, target: "/chat" as const },
   { to: "/lists", label: "Lists", icon: ListChecks, target: "/lists" as const },
   { to: "/stores", label: "Stores", icon: Store, target: "/stores" as const },
   { to: "/recipes", label: "Recipes", icon: UtensilsCrossed, target: "/recipes" as const },
