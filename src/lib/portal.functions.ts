@@ -163,7 +163,10 @@ export const updateStore = createServerFn({ method: "POST" })
       if (v === undefined) continue;
       patch[k] = v === "" ? null : v;
     }
-    const { error } = await supabaseAdmin.from("stores").update(patch).eq("id", store_id);
+    const { error } = await supabaseAdmin
+      .from("stores")
+      .update(patch as never)
+      .eq("id", store_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
