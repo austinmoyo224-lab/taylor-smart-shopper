@@ -361,3 +361,143 @@ export const deleteTaylorTraining = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------------- Taylor Knowledge Base ----------------
+
+export const listTaylorKnowledge = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("taylor_knowledge")
+      .select("id, title, content, category, tags, source_url, is_active, created_at, updated_at")
+      .order("updated_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+const knowledgeUpsertSchema = z.object({
+  id: z.string().uuid().optional().nullable(),
+  title: z.string().trim().min(1).max(200),
+  content: z.string().trim().min(1).max(20000),
+  category: z.string().trim().max(60).optional().nullable(),
+  tags: z.array(z.string().trim().min(1).max(40)).max(20).optional().default([]),
+  source_url: z.string().trim().max(1000).optional().nullable(),
+  is_active: z.boolean().optional().default(true),
+});
+
+export const upsertTaylorKnowledge = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => knowledgeUpsertSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      title: data.title,
+      content: data.content,
+      category: data.category || null,
+      tags: data.tags ?? [],
+      source_url: data.source_url || null,
+      is_active: data.is_active ?? true,
+    };
+    if (data.id) {
+      const { error } = await supabaseAdmin
+        .from("taylor_knowledge")
+        .update(payload)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { id: data.id };
+    }
+    const { data: row, error } = await supabaseAdmin
+      .from("taylor_knowledge")
+      .insert({ ...payload, created_by: context.userId })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id };
+  });
+
+export const deleteTaylorKnowledge = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("taylor_knowledge")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ---------------- Document Vault ----------------
+
+const SIGNED_URL_TTL = 60 * 60 * 24 * 365 * 10; // 10 years
+
+export const listVaultFiles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.storage
+      .from("admin-vault")
+      .list("", { limit: 500, sortBy: { column: "created_at", order: "desc" } });
+    if (error) throw new Error(error.message);
+    const files = (data ?? []).filter((f) => f.name && f.id);
+    const paths = files.map((f) => f.name);
+    let urls: Record<string, string> = {};
+    if (paths.length) {
+      const { data: signed, error: sErr } = await supabaseAdmin.storage
+        .from("admin-vault")
+        .createSignedUrls(paths, SIGNED_URL_TTL);
+      if (sErr) throw new Error(sErr.message);
+      urls = Object.fromEntries((signed ?? []).map((s) => [s.path ?? "", s.signedUrl]));
+    }
+    return files.map((f) => ({
+      name: f.name,
+      size: (f.metadata as { size?: number } | null)?.size ?? 0,
+      mime: (f.metadata as { mimetype?: string } | null)?.mimetype ?? "",
+      created_at: f.created_at,
+      url: urls[f.name] ?? "",
+    }));
+  });
+
+const uploadSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  contentBase64: z.string().min(1),
+  contentType: z.string().trim().min(1).max(200),
+});
+
+export const uploadVaultFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => uploadSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const buffer = Buffer.from(data.contentBase64, "base64");
+    if (buffer.byteLength > 50 * 1024 * 1024) throw new Error("File exceeds 50MB");
+    const safe = data.name.replace(/[^\w.\-]+/g, "_");
+    const path = `${Date.now()}-${safe}`;
+    const { error } = await supabaseAdmin.storage
+      .from("admin-vault")
+      .upload(path, buffer, { contentType: data.contentType, upsert: false });
+    if (error) throw new Error(error.message);
+    const { data: signed, error: sErr } = await supabaseAdmin.storage
+      .from("admin-vault")
+      .createSignedUrl(path, SIGNED_URL_TTL);
+    if (sErr) throw new Error(sErr.message);
+    return { name: path, url: signed.signedUrl };
+  });
+
+export const deleteVaultFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ name: z.string().min(1) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.storage.from("admin-vault").remove([data.name]);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
