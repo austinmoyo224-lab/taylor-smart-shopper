@@ -31,6 +31,8 @@ type Profile = {
   locale: string;
   country_code: string;
   currency_code: string;
+  city: string | null;
+  avatar_url: string | null;
   preferred_greeting: string | null;
   communication_style: string | null;
 };
@@ -41,6 +43,27 @@ type Memory = {
   food: Record<string, unknown>;
   lifestyle: Record<string, unknown>;
 };
+
+type HouseholdMember = { name: string; age: string; favourite_food: string };
+
+const SA_LANGUAGES = [
+  { value: "en-ZA", label: "English" },
+  { value: "af-ZA", label: "Afrikaans" },
+  { value: "zu-ZA", label: "isiZulu" },
+  { value: "xh-ZA", label: "isiXhosa" },
+  { value: "st-ZA", label: "Sesotho" },
+  { value: "tn-ZA", label: "Setswana" },
+  { value: "nso-ZA", label: "Sepedi" },
+  { value: "ts-ZA", label: "Xitsonga" },
+  { value: "ss-ZA", label: "siSwati" },
+  { value: "ve-ZA", label: "Tshivenda" },
+  { value: "nr-ZA", label: "isiNdebele" },
+];
+
+const SUPERMARKETS = [
+  "Checkers", "Shoprite", "Pick n Pay", "Woolworths", "SPAR", "Food Lover's Market",
+  "Makro", "Game", "OK Foods", "Boxer", "Cambridge Food", "Usave",
+];
 
 function ProfileScreen() {
   const { user, loading: authLoading } = useAuth();
