@@ -13,6 +13,7 @@ import { Route as VisionRouteImport } from './routes/vision'
 import { Route as StoresRouteImport } from './routes/stores'
 import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PantryRouteImport } from './routes/pantry'
@@ -73,6 +74,11 @@ const StoreOnboardingRoute = StoreOnboardingRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecipesRoute = RecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -146,9 +152,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesIndexRoute = RecipesIndexRouteImport.update({
-  id: '/recipes/',
-  path: '/recipes/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => RecipesRoute,
 } as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
@@ -161,9 +167,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const RecipesSlugRoute = RecipesSlugRouteImport.update({
-  id: '/recipes/$slug',
-  path: '/recipes/$slug',
-  getParentRoute: () => rootRouteImport,
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => RecipesRoute,
 } as any)
 const PortalStoresRoute = PortalStoresRouteImport.update({
   id: '/stores',
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
@@ -388,6 +395,7 @@ export interface FileRoutesById {
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
@@ -437,6 +445,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/portal'
     | '/profile'
+    | '/recipes'
     | '/settings'
     | '/store-onboarding'
     | '/stores'
@@ -528,6 +537,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/portal'
     | '/profile'
+    | '/recipes'
     | '/settings'
     | '/store-onboarding'
     | '/stores'
@@ -576,14 +586,13 @@ export interface RootRouteChildren {
   PantryRoute: typeof PantryRoute
   PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
+  RecipesRoute: typeof RecipesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
   StoresRoute: typeof StoresRoute
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
-  RecipesSlugRoute: typeof RecipesSlugRoute
-  RecipesIndexRoute: typeof RecipesIndexRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -618,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recipes': {
+      id: '/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof RecipesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -720,10 +736,10 @@ declare module '@tanstack/react-router' {
     }
     '/recipes/': {
       id: '/recipes/'
-      path: '/recipes'
+      path: '/'
       fullPath: '/recipes/'
       preLoaderRoute: typeof RecipesIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RecipesRoute
     }
     '/portal/': {
       id: '/portal/'
@@ -741,10 +757,10 @@ declare module '@tanstack/react-router' {
     }
     '/recipes/$slug': {
       id: '/recipes/$slug'
-      path: '/recipes/$slug'
+      path: '/$slug'
       fullPath: '/recipes/$slug'
       preLoaderRoute: typeof RecipesSlugRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RecipesRoute
     }
     '/portal/stores': {
       id: '/portal/stores'
@@ -975,6 +991,19 @@ const PortalRouteChildren: PortalRouteChildren = {
 const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
 
+interface RecipesRouteChildren {
+  RecipesSlugRoute: typeof RecipesSlugRoute
+  RecipesIndexRoute: typeof RecipesIndexRoute
+}
+
+const RecipesRouteChildren: RecipesRouteChildren = {
+  RecipesSlugRoute: RecipesSlugRoute,
+  RecipesIndexRoute: RecipesIndexRoute,
+}
+
+const RecipesRouteWithChildren =
+  RecipesRoute._addFileChildren(RecipesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -990,14 +1019,13 @@ const rootRouteChildren: RootRouteChildren = {
   PantryRoute: PantryRoute,
   PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,
+  RecipesRoute: RecipesRouteWithChildren,
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,
   StoresRoute: StoresRoute,
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
-  RecipesSlugRoute: RecipesSlugRoute,
-  RecipesIndexRoute: RecipesIndexRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
