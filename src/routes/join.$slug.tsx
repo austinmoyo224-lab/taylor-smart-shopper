@@ -168,7 +168,6 @@ function JoinPage() {
           </>
         )}
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

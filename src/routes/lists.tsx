@@ -137,7 +137,6 @@ function ListsScreen() {
           ))}
         </ul>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }
@@ -241,7 +240,6 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
           )}
         </ul>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

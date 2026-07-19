@@ -120,8 +120,6 @@ function NotificationsScreen() {
           })}
         </ul>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }

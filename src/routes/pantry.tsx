@@ -145,7 +145,6 @@ function PantryScreen() {
           )}
         </ul>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

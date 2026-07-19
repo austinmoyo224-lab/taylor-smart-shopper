@@ -315,7 +315,6 @@ function HouseholdScreen() {
           </>
         )}
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

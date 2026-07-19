@@ -268,8 +268,6 @@ function LoyaltyScreen() {
           Points are managed by each store. No cash value.
         </p>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }
