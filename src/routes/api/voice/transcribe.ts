@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
+import { logAiUsage } from "@/lib/ai-usage.server";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/api/voice/transcribe")({
   server: {
@@ -59,6 +62,34 @@ export const Route = createFileRoute("/api/voice/transcribe")({
         }
 
         const json = (await res.json()) as { text?: string };
+        // Attribute usage to caller when possible.
+        let userId: string | null = null;
+        const authHeader = request.headers.get("authorization");
+        if (authHeader?.startsWith("Bearer ")) {
+          const token = authHeader.replace("Bearer ", "");
+          if (token.split(".").length === 3) {
+            try {
+              const authClient = createClient<Database>(
+                process.env.SUPABASE_URL!,
+                process.env.SUPABASE_PUBLISHABLE_KEY!,
+                { auth: { persistSession: false, autoRefreshToken: false } },
+              );
+              const { data } = await authClient.auth.getClaims(token);
+              userId = data?.claims?.sub ?? null;
+            } catch {
+              userId = null;
+            }
+          }
+        }
+        // Rough audio duration proxy: 16kHz mono ~ 32KB/sec.
+        const approxSeconds = Math.max(1, Math.round(file.size / 32000));
+        void logAiUsage({
+          operation: "stt",
+          model: "openai/gpt-4o-transcribe",
+          userId,
+          audioSeconds: approxSeconds,
+          route: "/api/voice/transcribe",
+        });
         return Response.json({ text: (json.text ?? "").trim() });
       },
     },
