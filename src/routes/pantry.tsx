@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { addPantryItem, deletePantryItem, listMyPantry } from "@/lib/pantry.functions";
 import { Camera, Plus, Trash2 } from "lucide-react";
@@ -145,7 +145,6 @@ function PantryScreen() {
           )}
         </ul>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

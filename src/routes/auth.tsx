@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 
 type Mode = "signin" | "signup";
@@ -337,13 +337,11 @@ function AuthScreen() {
           </form>
         )}
 
-        <p className="mt-8 text-center text-[10px] leading-relaxed text-muted">
+      <p className="mt-8 text-center text-[10px] leading-relaxed text-muted">
           By continuing you agree to Taylor's terms and privacy notice. Taylor only uses what you
           choose to share.
         </p>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { Suspense, useEffect, useState } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { addRecipeToShoppingList, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,13 +44,11 @@ export const Route = createFileRoute("/recipes/$slug")({
   errorComponent: () => (
     <AppShell>
       <div className="p-8 text-sm text-muted">Couldn't load this recipe.</div>
-      <BottomNav />
     </AppShell>
   ),
   notFoundComponent: () => (
     <AppShell>
       <div className="p-8 text-sm text-muted">Recipe not found.</div>
-      <BottomNav />
     </AppShell>
   ),
 });
@@ -61,7 +59,6 @@ function RecipeDetail() {
       <Suspense fallback={<p className="px-6 py-10 text-sm text-muted">Loading…</p>}>
         <RecipeBody />
       </Suspense>
-      <BottomNav />
     </AppShell>
   );
 }

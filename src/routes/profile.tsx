@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
@@ -176,7 +176,6 @@ function ProfileScreen() {
     return (
       <AppShell>
         <div className="flex-1" />
-        <BottomNav />
       </AppShell>
     );
   }
@@ -193,7 +192,6 @@ function ProfileScreen() {
           </h1>
         </header>
         <main className="flex-1 px-6 py-8 text-sm text-muted">Loading…</main>
-        <BottomNav />
       </AppShell>
     );
   }
@@ -423,8 +421,6 @@ function ProfileScreen() {
           Sign out
         </button>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }

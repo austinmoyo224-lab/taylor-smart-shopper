@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import {
   listFeaturedAds,
@@ -218,8 +218,6 @@ function StoresScreen() {
           Have a store's join code? <JoinCodeInline />
         </div>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AppShell, BottomNav } from "./AppShell";
+import { AppShell } from "./AppShell";
 
 export function PlaceholderScreen({
   eyebrow,
@@ -27,7 +27,6 @@ export function PlaceholderScreen({
         <p className="text-sm leading-relaxed text-muted">{description}</p>
         {children}
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

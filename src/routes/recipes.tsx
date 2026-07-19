@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { listMyRecipes, listPublishedRecipes } from "@/lib/recipes.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Clock, Sparkles, Users } from "lucide-react";
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/recipes")({
       <div className="p-8 text-sm text-muted">
         Couldn't load recipes right now. Please try again shortly.
       </div>
-      <BottomNav />
     </AppShell>
   ),
   notFoundComponent: () => null,
@@ -53,7 +52,6 @@ function RecipesScreen() {
           <RecipeGrid />
         </Suspense>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }

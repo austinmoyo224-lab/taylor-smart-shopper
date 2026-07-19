@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { VisionCapture } from "@/components/VisionCapture";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,7 +180,6 @@ function VisionScreen() {
         <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted">
           Redirecting to sign in…
         </div>
-        <BottomNav />
       </AppShell>
     );
   }
@@ -410,8 +409,6 @@ function VisionScreen() {
           else setMode("capture");
         }}
       />
-
-      <BottomNav />
     </AppShell>
   );
 }

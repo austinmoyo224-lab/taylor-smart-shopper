@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import {
   addListItem,
@@ -137,7 +137,6 @@ function ListsScreen() {
           ))}
         </ul>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }
@@ -241,7 +240,6 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
           )}
         </ul>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }
