@@ -37,7 +37,7 @@ function AiUsagePage() {
             AI usage & credits
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Estimated Lovable AI Gateway spend across chat, STT, TTS and vision.
+            Estimated Taylor AI Gateway spend across chat, STT, TTS and vision.
           </p>
         </div>
         <select
