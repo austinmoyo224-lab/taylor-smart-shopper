@@ -21,7 +21,8 @@ import {
   Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { BottomNav } from "@/components/AppShell";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";
 import taylorAvatarAsset from "@/assets/taylor-avatar.png.asset.json";
@@ -264,6 +265,14 @@ function ChatScreen() {
     });
   }, [messages, status]);
 
+  // On mount / after history restore, jump straight to the latest message.
+  useEffect(() => {
+    if (!historyLoaded) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [historyLoaded]);
+
   // Persist messages for authenticated subscribers.
   useEffect(() => {
     if (!user || isLoading || messages.length === 0) return;
@@ -345,8 +354,9 @@ function ChatScreen() {
   const showIntro = messages.length === 0;
 
   return (
-    <AppShell>
-      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-6 pb-4 pt-10 backdrop-blur-md">
+    <div className="flex w-full justify-center bg-background">
+      <div className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
+      <header className="shrink-0 border-b border-border bg-background/85 px-6 pb-4 pt-10 backdrop-blur-md">
         <div className="flex items-end justify-between">
           <div>
             <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
