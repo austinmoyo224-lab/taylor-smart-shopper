@@ -21,7 +21,6 @@ import {
   Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { BottomNav } from "@/components/AppShell";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";

@@ -6,7 +6,7 @@ import {
   subscribeToStore,
   listMySubscriptions,
 } from "@/lib/subscriptions.functions";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle2, Sparkles } from "lucide-react";
 
