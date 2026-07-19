@@ -12,7 +12,7 @@ const recipesQO = queryOptions({
   queryFn: () => listPublishedRecipes(),
 });
 
-export const Route = createFileRoute("/recipes")({
+export const Route = createFileRoute("/recipes/")({
   head: () => ({
     meta: [
       { title: "Recipes - Taylor Intelligence" },
