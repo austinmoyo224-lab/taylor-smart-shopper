@@ -176,7 +176,6 @@ function ProfileScreen() {
     return (
       <AppShell>
         <div className="flex-1" />
-        <BottomNav />
       </AppShell>
     );
   }
@@ -193,7 +192,6 @@ function ProfileScreen() {
           </h1>
         </header>
         <main className="flex-1 px-6 py-8 text-sm text-muted">Loading…</main>
-        <BottomNav />
       </AppShell>
     );
   }
@@ -423,8 +421,6 @@ function ProfileScreen() {
           Sign out
         </button>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }

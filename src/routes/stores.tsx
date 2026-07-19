@@ -218,8 +218,6 @@ function StoresScreen() {
           Have a store's join code? <JoinCodeInline />
         </div>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }
