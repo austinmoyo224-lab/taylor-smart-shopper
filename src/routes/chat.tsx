@@ -411,7 +411,7 @@ function ChatScreen() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth">
         {showIntro && <IntroMessages />}
 
         {messages.map((message, i) => (
@@ -436,7 +436,7 @@ function ChatScreen() {
         )}
       </div>
 
-      <form onSubmit={onSubmit} className="border-t border-border bg-background px-4 py-4">
+      <form onSubmit={onSubmit} className="shrink-0 border-t border-border bg-background px-4 py-4">
         {voiceError && (
           <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
             {voiceError}
