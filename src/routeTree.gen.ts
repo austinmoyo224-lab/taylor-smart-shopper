@@ -48,6 +48,7 @@ import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisat
 import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as PortalStoresIndexRouteImport } from './routes/portal.stores.index'
 import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
@@ -249,6 +250,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const PortalStoresIndexRoute = PortalStoresIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalStoresRoute,
+} as any)
 const PortalStoresStoreIdRoute = PortalStoresStoreIdRouteImport.update({
   id: '/$storeId',
   path: '/$storeId',
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
+  '/portal/stores/': typeof PortalStoresIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -355,13 +362,13 @@ export interface FileRoutesByTo {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
+  '/portal/stores': typeof PortalStoresIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -409,6 +416,7 @@ export interface FileRoutesById {
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
+  '/portal/stores/': typeof PortalStoresIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -457,6 +465,7 @@ export interface FileRouteTypes {
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
+    | '/portal/stores/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -494,13 +503,13 @@ export interface FileRouteTypes {
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
-    | '/portal/stores'
     | '/recipes/$slug'
     | '/admin'
     | '/portal'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
+    | '/portal/stores'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   id:
@@ -547,6 +556,7 @@ export interface FileRouteTypes {
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
+    | '/portal/stores/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
@@ -854,6 +864,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/portal/stores/': {
+      id: '/portal/stores/'
+      path: '/'
+      fullPath: '/portal/stores/'
+      preLoaderRoute: typeof PortalStoresIndexRouteImport
+      parentRoute: typeof PortalStoresRoute
+    }
     '/portal/stores/$storeId': {
       id: '/portal/stores/$storeId'
       path: '/$storeId'
@@ -920,10 +937,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PortalStoresRouteChildren {
   PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
+  PortalStoresIndexRoute: typeof PortalStoresIndexRoute
 }
 
 const PortalStoresRouteChildren: PortalStoresRouteChildren = {
   PortalStoresStoreIdRoute: PortalStoresStoreIdRoute,
+  PortalStoresIndexRoute: PortalStoresIndexRoute,
 }
 
 const PortalStoresRouteWithChildren = PortalStoresRoute._addFileChildren(
