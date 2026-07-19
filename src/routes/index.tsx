@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Brain, Heart, Sparkles, ShieldCheck, ArrowRight, Store, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import heroAsset from "@/assets/taylor-hero.png.asset.json";
+import heroAsset from "@/assets/taylor-hero-v2.png.asset.json";
 import taylorMark from "@/assets/taylor-mark.png";
 
 export const Route = createFileRoute("/")({
@@ -190,18 +190,47 @@ function Hero() {
           transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="relative"
         >
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-lg overflow-hidden rounded-3xl">
-            <img
-              src={heroAsset.url}
-              alt="Taylor Intelligence — your AI shopping companion"
-              className="h-full w-full object-cover"
-              loading="eager"
-            />
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-lg">
+            {/* Green halo behind subject */}
             <div
-              className="absolute inset-0 rounded-3xl ring-1 ring-inset"
-              style={{ boxShadow: `inset 0 0 120px ${GREEN}22`, borderColor: `${GREEN}33` }}
+              className="pointer-events-none absolute inset-6 rounded-[36px] opacity-40 blur-3xl"
+              style={{ background: `radial-gradient(circle at 50% 40%, ${GREEN} 0%, transparent 65%)` }}
               aria-hidden
             />
+            <div className="relative h-full w-full overflow-hidden rounded-[32px]">
+              <img
+                src={heroAsset.url}
+                alt="Taylor — your AI shopping companion, pushing a full grocery trolley"
+                className="h-full w-full object-cover object-top"
+                loading="eager"
+              />
+              {/* Fade edges into the navy background */}
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background: `linear-gradient(to bottom, ${NAVY}00 55%, ${NAVY}cc 88%, ${NAVY} 100%), linear-gradient(to right, ${NAVY}55 0%, transparent 18%, transparent 82%, ${NAVY}55 100%)`,
+                }}
+                aria-hidden
+              />
+              {/* Subtle green inner glow */}
+              <div
+                className="pointer-events-none absolute inset-0 rounded-[32px]"
+                style={{ boxShadow: `inset 0 0 160px ${GREEN}22` }}
+                aria-hidden
+              />
+            </div>
+            {/* Floating stat chip */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute -left-3 bottom-10 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white shadow-xl backdrop-blur-md sm:-left-6"
+            >
+              <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/60">This week</p>
+              <p className="mt-1 text-sm font-semibold">
+                <span style={{ color: GREEN }}>R 428</span> saved
+              </p>
+            </motion.div>
           </div>
         </motion.div>
       </div>
