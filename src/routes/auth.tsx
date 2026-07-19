@@ -54,7 +54,14 @@ function AuthScreen() {
               .eq("id", user.id)
               .maybeSingle();
             if (data?.account_type === "store_owner") {
-              dest = "/store-onboarding";
+              // If already approved (has a retailer role), send to portal
+              const { data: roles } = await supabase
+                .from("user_roles")
+                .select("role")
+                .eq("user_id", user.id)
+                .in("role", ["retailer_admin", "store_manager", "staff"])
+                .limit(1);
+              dest = roles && roles.length > 0 ? "/portal" : "/store-onboarding";
             } else if (!data?.onboarding_completed) {
               dest = "/profile?welcome=1";
             }
