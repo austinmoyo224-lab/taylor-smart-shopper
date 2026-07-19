@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { BottomNav } from "@/components/BottomNav";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";
 import taylorAvatarAsset from "@/assets/taylor-avatar.png.asset.json";
