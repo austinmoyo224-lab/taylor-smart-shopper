@@ -214,10 +214,10 @@ function NoAccess() {
           portal. Set up your own business in a few minutes, or ask a platform admin to grant you access.
         </p>
         <Link
-          to="/onboarding"
+          to="/store-onboarding"
           className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
-          Start onboarding
+          Apply to list your store
         </Link>
         <div className="mt-3">
           <Link
@@ -250,10 +250,10 @@ function NoOrgs() {
           to create an organisation and assign you to it.
         </p>
         <Link
-          to="/onboarding"
+          to="/store-onboarding"
           className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
-          Start onboarding
+          Apply to list your store
         </Link>
         <div className="mt-3">
           <Link
