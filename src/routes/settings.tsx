@@ -141,7 +141,6 @@ function SettingsScreen() {
     return (
       <AppShell>
         <div className="flex-1" />
-        <BottomNav />
       </AppShell>
     );
   }
@@ -309,8 +308,6 @@ function SettingsScreen() {
           Sign out
         </button>
       </main>
-
-      <BottomNav />
     </AppShell>
   );
 }

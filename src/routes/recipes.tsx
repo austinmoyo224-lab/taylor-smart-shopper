@@ -29,7 +29,6 @@ export const Route = createFileRoute("/recipes")({
       <div className="p-8 text-sm text-muted">
         Couldn't load recipes right now. Please try again shortly.
       </div>
-      <BottomNav />
     </AppShell>
   ),
   notFoundComponent: () => null,
@@ -53,7 +52,6 @@ function RecipesScreen() {
           <RecipeGrid />
         </Suspense>
       </main>
-      <BottomNav />
     </AppShell>
   );
 }
