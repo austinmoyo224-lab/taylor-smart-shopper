@@ -8,7 +8,8 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/lib/notifications.functions";
-import { CheckCheck, Bell } from "lucide-react";
+import { CheckCheck, Bell, Inbox } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/notifications")({
   ssr: false,
@@ -79,6 +80,16 @@ function NotificationsScreen() {
             </button>
           )}
         </div>
+        <Link
+          to="/inbox"
+          className="mt-3 flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 hover:border-primary"
+        >
+          <span className="flex items-center gap-2">
+            <Inbox className="size-4 text-primary" />
+            <span className="text-sm font-medium">Store inbox</span>
+          </span>
+          <span className="text-[10px] uppercase tracking-widest text-primary">Open</span>
+        </Link>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-4">

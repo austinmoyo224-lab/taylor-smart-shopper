@@ -21,6 +21,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ListsRouteImport } from './routes/lists'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HouseholdRouteImport } from './routes/household'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
@@ -36,10 +37,12 @@ import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
+import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
 import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
+import { Route as InboxStoreIdRouteImport } from './routes/inbox.$storeId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminVaultRouteImport } from './routes/admin.vault'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -117,6 +120,11 @@ const ListsRoute = ListsRouteImport.update({
   path: '/lists',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HouseholdRoute = HouseholdRouteImport.update({
   id: '/household',
   path: '/household',
@@ -192,6 +200,11 @@ const PortalProductsRoute = PortalProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalMessagesRoute = PortalMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalCouponsRoute = PortalCouponsRouteImport.update({
   id: '/coupons',
   path: '/coupons',
@@ -211,6 +224,11 @@ const JoinSlugRoute = JoinSlugRouteImport.update({
   id: '/join/$slug',
   path: '/join/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const InboxStoreIdRoute = InboxStoreIdRouteImport.update({
+  id: '/$storeId',
+  path: '/$storeId',
+  getParentRoute: () => InboxRoute,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
@@ -301,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
+  '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -323,10 +342,12 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
+  '/portal/messages': typeof PortalMessagesRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -349,6 +370,7 @@ export interface FileRoutesByTo {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
+  '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -369,10 +391,12 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
+  '/portal/messages': typeof PortalMessagesRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -396,6 +420,7 @@ export interface FileRoutesById {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
+  '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -418,10 +443,12 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
+  '/portal/messages': typeof PortalMessagesRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -447,6 +474,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/household'
+    | '/inbox'
     | '/lists'
     | '/loyalty'
     | '/notifications'
@@ -469,10 +497,12 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
+    | '/portal/messages'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -495,6 +525,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/household'
+    | '/inbox'
     | '/lists'
     | '/loyalty'
     | '/notifications'
@@ -515,10 +546,12 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
+    | '/portal/messages'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -541,6 +574,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/household'
+    | '/inbox'
     | '/lists'
     | '/loyalty'
     | '/notifications'
@@ -563,10 +597,12 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
+    | '/portal/messages'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -591,6 +627,7 @@ export interface RootRouteChildren {
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
   HouseholdRoute: typeof HouseholdRoute
+  InboxRoute: typeof InboxRouteWithChildren
   ListsRoute: typeof ListsRoute
   LoyaltyRoute: typeof LoyaltyRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -695,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/lists'
       fullPath: '/lists'
       preLoaderRoute: typeof ListsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/household': {
@@ -802,6 +846,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalProductsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/messages': {
+      id: '/portal/messages'
+      path: '/messages'
+      fullPath: '/portal/messages'
+      preLoaderRoute: typeof PortalMessagesRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/coupons': {
       id: '/portal/coupons'
       path: '/coupons'
@@ -829,6 +880,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/join/$slug'
       preLoaderRoute: typeof JoinSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/inbox/$storeId': {
+      id: '/inbox/$storeId'
+      path: '/$storeId'
+      fullPath: '/inbox/$storeId'
+      preLoaderRoute: typeof InboxStoreIdRouteImport
+      parentRoute: typeof InboxRoute
     }
     '/api/chat': {
       id: '/api/chat'
@@ -973,6 +1031,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface InboxRouteChildren {
+  InboxStoreIdRoute: typeof InboxStoreIdRoute
+}
+
+const InboxRouteChildren: InboxRouteChildren = {
+  InboxStoreIdRoute: InboxStoreIdRoute,
+}
+
+const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
+
 interface PortalStoresRouteChildren {
   PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
   PortalStoresIndexRoute: typeof PortalStoresIndexRoute
@@ -991,6 +1059,7 @@ interface PortalRouteChildren {
   PortalAnalyticsRoute: typeof PortalAnalyticsRoute
   PortalCampaignsRoute: typeof PortalCampaignsRoute
   PortalCouponsRoute: typeof PortalCouponsRoute
+  PortalMessagesRoute: typeof PortalMessagesRoute
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
   PortalRewardsRoute: typeof PortalRewardsRoute
@@ -1002,6 +1071,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalAnalyticsRoute: PortalAnalyticsRoute,
   PortalCampaignsRoute: PortalCampaignsRoute,
   PortalCouponsRoute: PortalCouponsRoute,
+  PortalMessagesRoute: PortalMessagesRoute,
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
   PortalRewardsRoute: PortalRewardsRoute,
@@ -1033,6 +1103,7 @@ const rootRouteChildren: RootRouteChildren = {
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
   HouseholdRoute: HouseholdRoute,
+  InboxRoute: InboxRouteWithChildren,
   ListsRoute: ListsRoute,
   LoyaltyRoute: LoyaltyRoute,
   NotificationsRoute: NotificationsRoute,
