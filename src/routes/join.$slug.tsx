@@ -4,6 +4,7 @@ import {
   getStoreByJoinSlug,
   recordJoinScan,
   subscribeToStore,
+  listMySubscriptions,
 } from "@/lib/subscriptions.functions";
 import { AppShell, BottomNav } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
@@ -52,6 +53,24 @@ function JoinPage() {
       cancelled = true;
     };
   }, [slug]);
+
+  // Check if this user already follows the store.
+  useEffect(() => {
+    if (!user || !store) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const subs = await listMySubscriptions();
+        if (cancelled) return;
+        if (subs.some((s) => s.id === store.id)) setSubscribed(true);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, store]);
 
   async function follow() {
     if (!store) return;
