@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { BottomNav } from "./BottomNav";
 import { InstallPrompt } from "./InstallPrompt";
 
 /**
@@ -16,5 +15,3 @@ export function AppShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-export { BottomNav };
