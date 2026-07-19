@@ -87,7 +87,11 @@ function VisionScreen() {
       setMode("results");
       void qc.invalidateQueries({ queryKey: ["vision", "history"] });
     },
-    onError: () => setMode("capture"),
+    onError: (err) => {
+      console.error("[vision] analyze error", err);
+      alert(err instanceof Error ? err.message : "Scan failed. Please try again.");
+      setMode("capture");
+    },
   });
 
   const removeScan = useMutation({

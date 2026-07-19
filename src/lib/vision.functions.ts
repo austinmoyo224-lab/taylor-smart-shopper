@@ -65,7 +65,7 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
     const gateway = createLovableAiGatewayProvider(key, undefined, {
       structuredOutputs: true,
     });
-    const model = gateway("openai/gpt-5.5");
+    const model = gateway("google/gemini-2.5-flash");
 
     let items: DetectedItem[] = [];
     try {
@@ -88,6 +88,7 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
       });
       items = output.items ?? [];
     } catch (error) {
+      console.error("[vision] analyze failed", error);
       if (NoObjectGeneratedError.isInstance(error)) {
         const fallback = parseFallback(error.text ?? "");
         items = fallback.items ?? [];
