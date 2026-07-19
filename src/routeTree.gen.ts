@@ -31,6 +31,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
+import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
@@ -164,6 +165,11 @@ const RecipesSlugRoute = RecipesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RecipesRoute,
 } as any)
+const PortalStoresRoute = PortalStoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalRewardsRoute = PortalRewardsRouteImport.update({
   id: '/rewards',
   path: '/rewards',
@@ -245,14 +251,14 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const PortalStoresIndexRoute = PortalStoresIndexRouteImport.update({
-  id: '/stores/',
-  path: '/stores/',
-  getParentRoute: () => PortalRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalStoresRoute,
 } as any)
 const PortalStoresStoreIdRoute = PortalStoresStoreIdRouteImport.update({
-  id: '/stores/$storeId',
-  path: '/stores/$storeId',
-  getParentRoute: () => PortalRoute,
+  id: '/$storeId',
+  path: '/$storeId',
+  getParentRoute: () => PortalStoresRoute,
 } as any)
 const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
   id: '/api/voice/transcribe',
@@ -311,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
+  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -402,6 +409,7 @@ export interface FileRoutesById {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
+  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -450,6 +458,7 @@ export interface FileRouteTypes {
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
+    | '/portal/stores'
     | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
@@ -540,6 +549,7 @@ export interface FileRouteTypes {
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
+    | '/portal/stores'
     | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
@@ -735,6 +745,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesSlugRouteImport
       parentRoute: typeof RecipesRoute
     }
+    '/portal/stores': {
+      id: '/portal/stores'
+      path: '/stores'
+      fullPath: '/portal/stores'
+      preLoaderRoute: typeof PortalStoresRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/rewards': {
       id: '/portal/rewards'
       path: '/rewards'
@@ -849,17 +866,17 @@ declare module '@tanstack/react-router' {
     }
     '/portal/stores/': {
       id: '/portal/stores/'
-      path: '/stores'
+      path: '/'
       fullPath: '/portal/stores/'
       preLoaderRoute: typeof PortalStoresIndexRouteImport
-      parentRoute: typeof PortalRoute
+      parentRoute: typeof PortalStoresRoute
     }
     '/portal/stores/$storeId': {
       id: '/portal/stores/$storeId'
-      path: '/stores/$storeId'
+      path: '/$storeId'
       fullPath: '/portal/stores/$storeId'
       preLoaderRoute: typeof PortalStoresStoreIdRouteImport
-      parentRoute: typeof PortalRoute
+      parentRoute: typeof PortalStoresRoute
     }
     '/api/voice/transcribe': {
       id: '/api/voice/transcribe'
@@ -918,6 +935,20 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface PortalStoresRouteChildren {
+  PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
+  PortalStoresIndexRoute: typeof PortalStoresIndexRoute
+}
+
+const PortalStoresRouteChildren: PortalStoresRouteChildren = {
+  PortalStoresStoreIdRoute: PortalStoresStoreIdRoute,
+  PortalStoresIndexRoute: PortalStoresIndexRoute,
+}
+
+const PortalStoresRouteWithChildren = PortalStoresRoute._addFileChildren(
+  PortalStoresRouteChildren,
+)
+
 interface PortalRouteChildren {
   PortalAnalyticsRoute: typeof PortalAnalyticsRoute
   PortalCampaignsRoute: typeof PortalCampaignsRoute
@@ -925,9 +956,8 @@ interface PortalRouteChildren {
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
   PortalRewardsRoute: typeof PortalRewardsRoute
+  PortalStoresRoute: typeof PortalStoresRouteWithChildren
   PortalIndexRoute: typeof PortalIndexRoute
-  PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
-  PortalStoresIndexRoute: typeof PortalStoresIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
@@ -937,9 +967,8 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
   PortalRewardsRoute: PortalRewardsRoute,
+  PortalStoresRoute: PortalStoresRouteWithChildren,
   PortalIndexRoute: PortalIndexRoute,
-  PortalStoresStoreIdRoute: PortalStoresStoreIdRoute,
-  PortalStoresIndexRoute: PortalStoresIndexRoute,
 }
 
 const PortalRouteWithChildren =
@@ -986,3 +1015,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
