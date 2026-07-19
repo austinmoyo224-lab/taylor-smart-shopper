@@ -40,6 +40,9 @@ export function VisionCapture({
     setError(null);
     setState("requesting");
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Camera API not available in this context");
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
         audio: false,
@@ -50,11 +53,13 @@ export function VisionCapture({
         await videoRef.current.play();
       }
       setState("preview");
-    } catch {
-      setError(
-        "Camera access is needed for scanning. You can also pick a photo from your gallery.",
-      );
+    } catch (err) {
+      console.warn("[vision] getUserMedia failed, falling back to native camera", err);
+      // Fallback: trigger the device's native camera app via file input.
+      // This works inside iframes (like the Lovable preview) and on browsers
+      // that don't grant getUserMedia to embedded contexts.
       setState("idle");
+      fileInputRef.current?.click();
     }
   }
 
