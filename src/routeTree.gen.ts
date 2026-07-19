@@ -31,7 +31,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
-import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
@@ -48,6 +47,7 @@ import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisat
 import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as PortalStoresIndexRouteImport } from './routes/portal.stores.index'
 import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
@@ -164,11 +164,6 @@ const RecipesSlugRoute = RecipesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RecipesRoute,
 } as any)
-const PortalStoresRoute = PortalStoresRouteImport.update({
-  id: '/stores',
-  path: '/stores',
-  getParentRoute: () => PortalRoute,
-} as any)
 const PortalRewardsRoute = PortalRewardsRouteImport.update({
   id: '/rewards',
   path: '/rewards',
@@ -249,10 +244,15 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const PortalStoresIndexRoute = PortalStoresIndexRouteImport.update({
+  id: '/stores/',
+  path: '/stores/',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalStoresStoreIdRoute = PortalStoresStoreIdRouteImport.update({
-  id: '/$storeId',
-  path: '/$storeId',
-  getParentRoute: () => PortalStoresRoute,
+  id: '/stores/$storeId',
+  path: '/stores/$storeId',
+  getParentRoute: () => PortalRoute,
 } as any)
 const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
   id: '/api/voice/transcribe',
@@ -311,13 +311,13 @@ export interface FileRoutesByFullPath {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
+  '/portal/stores/': typeof PortalStoresIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -355,13 +355,13 @@ export interface FileRoutesByTo {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
+  '/portal/stores': typeof PortalStoresIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -402,13 +402,13 @@ export interface FileRoutesById {
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
-  '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
+  '/portal/stores/': typeof PortalStoresIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -450,13 +450,13 @@ export interface FileRouteTypes {
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
-    | '/portal/stores'
     | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
+    | '/portal/stores/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -494,13 +494,13 @@ export interface FileRouteTypes {
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
-    | '/portal/stores'
     | '/recipes/$slug'
     | '/admin'
     | '/portal'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
+    | '/portal/stores'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   id:
@@ -540,13 +540,13 @@ export interface FileRouteTypes {
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
-    | '/portal/stores'
     | '/recipes/$slug'
     | '/admin/'
     | '/portal/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
+    | '/portal/stores/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
@@ -735,13 +735,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesSlugRouteImport
       parentRoute: typeof RecipesRoute
     }
-    '/portal/stores': {
-      id: '/portal/stores'
-      path: '/stores'
-      fullPath: '/portal/stores'
-      preLoaderRoute: typeof PortalStoresRouteImport
-      parentRoute: typeof PortalRoute
-    }
     '/portal/rewards': {
       id: '/portal/rewards'
       path: '/rewards'
@@ -854,12 +847,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/portal/stores/': {
+      id: '/portal/stores/'
+      path: '/stores'
+      fullPath: '/portal/stores/'
+      preLoaderRoute: typeof PortalStoresIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/stores/$storeId': {
       id: '/portal/stores/$storeId'
-      path: '/$storeId'
+      path: '/stores/$storeId'
       fullPath: '/portal/stores/$storeId'
       preLoaderRoute: typeof PortalStoresStoreIdRouteImport
-      parentRoute: typeof PortalStoresRoute
+      parentRoute: typeof PortalRoute
     }
     '/api/voice/transcribe': {
       id: '/api/voice/transcribe'
@@ -918,18 +918,6 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface PortalStoresRouteChildren {
-  PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
-}
-
-const PortalStoresRouteChildren: PortalStoresRouteChildren = {
-  PortalStoresStoreIdRoute: PortalStoresStoreIdRoute,
-}
-
-const PortalStoresRouteWithChildren = PortalStoresRoute._addFileChildren(
-  PortalStoresRouteChildren,
-)
-
 interface PortalRouteChildren {
   PortalAnalyticsRoute: typeof PortalAnalyticsRoute
   PortalCampaignsRoute: typeof PortalCampaignsRoute
@@ -937,8 +925,9 @@ interface PortalRouteChildren {
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
   PortalRewardsRoute: typeof PortalRewardsRoute
-  PortalStoresRoute: typeof PortalStoresRouteWithChildren
   PortalIndexRoute: typeof PortalIndexRoute
+  PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
+  PortalStoresIndexRoute: typeof PortalStoresIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
@@ -948,8 +937,9 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
   PortalRewardsRoute: PortalRewardsRoute,
-  PortalStoresRoute: PortalStoresRouteWithChildren,
   PortalIndexRoute: PortalIndexRoute,
+  PortalStoresStoreIdRoute: PortalStoresStoreIdRoute,
+  PortalStoresIndexRoute: PortalStoresIndexRoute,
 }
 
 const PortalRouteWithChildren =

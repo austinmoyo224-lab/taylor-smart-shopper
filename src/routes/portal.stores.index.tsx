@@ -7,7 +7,7 @@ import { usePortal } from "@/lib/portal-context";
 import { Plus, QrCode as QrIcon, Copy, Edit3 } from "lucide-react";
 import QRCode from "qrcode";
 
-export const Route = createFileRoute("/portal/stores")({
+export const Route = createFileRoute("/portal/stores/")({
   ssr: false,
   component: StoresPage,
 });
