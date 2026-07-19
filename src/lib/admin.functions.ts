@@ -299,6 +299,113 @@ export const listAuditLog = createServerFn({ method: "GET" })
     return data;
   });
 
+// ---------------- AI usage dashboard ----------------
+
+const aiUsageRangeSchema = z
+  .object({ days: z.number().int().min(1).max(90).optional().default(14) })
+  .optional()
+  .default({ days: 14 });
+
+export const getAiUsageSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => aiUsageRangeSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const days = data?.days ?? 14;
+    const since = new Date(Date.now() - days * 86400_000).toISOString();
+    const { data: rows, error } = await supabaseAdmin
+      .from("ai_usage_events")
+      .select("operation, credits, created_at, user_id, model, audio_seconds, total_tokens")
+      .gte("created_at", since)
+      .limit(50000);
+    if (error) throw new Error(error.message);
+    const list = rows ?? [];
+    const totalCredits = list.reduce((a, r) => a + Number(r.credits ?? 0), 0);
+    const byOp = new Map<string, { credits: number; count: number }>();
+    const dailyMap = new Map<
+      string,
+      { date: string; chat: number; stt: number; tts: number; vision: number }
+    >();
+    const users = new Set<string>();
+    for (const r of list) {
+      const op = r.operation;
+      const c = Number(r.credits ?? 0);
+      const b = byOp.get(op) ?? { credits: 0, count: 0 };
+      b.credits += c;
+      b.count += 1;
+      byOp.set(op, b);
+      if (r.user_id) users.add(r.user_id);
+      const day = new Date(r.created_at as string).toISOString().slice(0, 10);
+      const d = dailyMap.get(day) ?? { date: day, chat: 0, stt: 0, tts: 0, vision: 0 };
+      if (op === "chat" || op === "stt" || op === "tts" || op === "vision") {
+        d[op] += c;
+      }
+      dailyMap.set(day, d);
+    }
+    const daily = Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+    return {
+      days,
+      totalCredits,
+      totalCalls: list.length,
+      uniqueUsers: users.size,
+      byOperation: Array.from(byOp.entries()).map(([operation, v]) => ({
+        operation,
+        credits: v.credits,
+        count: v.count,
+      })),
+      daily,
+    };
+  });
+
+export const getAiUsageTopUsers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => aiUsageRangeSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const days = data?.days ?? 14;
+    const since = new Date(Date.now() - days * 86400_000).toISOString();
+    const { data: rows, error } = await supabaseAdmin
+      .from("ai_usage_events")
+      .select("user_id, operation, credits")
+      .gte("created_at", since)
+      .not("user_id", "is", null)
+      .limit(50000);
+    if (error) throw new Error(error.message);
+    const byUser = new Map<
+      string,
+      { userId: string; credits: number; calls: number; chat: number; stt: number; tts: number; vision: number }
+    >();
+    for (const r of rows ?? []) {
+      if (!r.user_id) continue;
+      const b =
+        byUser.get(r.user_id) ??
+        { userId: r.user_id, credits: 0, calls: 0, chat: 0, stt: 0, tts: 0, vision: 0 };
+      const c = Number(r.credits ?? 0);
+      b.credits += c;
+      b.calls += 1;
+      const op = r.operation;
+      if (op === "chat" || op === "stt" || op === "tts" || op === "vision") {
+        b[op] += c;
+      }
+      byUser.set(r.user_id, b);
+    }
+    const top = Array.from(byUser.values())
+      .sort((a, b) => b.credits - a.credits)
+      .slice(0, 25);
+    const ids = top.map((t) => t.userId);
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email, display_name, first_name")
+      .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    const nameOf = new Map<string, string>();
+    (profiles ?? []).forEach((p) =>
+      nameOf.set(p.id, p.display_name || p.first_name || p.email || p.id.slice(0, 8)),
+    );
+    return top.map((t) => ({ ...t, name: nameOf.get(t.userId) ?? t.userId.slice(0, 8) }));
+  });
+
 // ---------------- Taylor settings & training ----------------
 
 export const getTaylorSettings = createServerFn({ method: "GET" })
