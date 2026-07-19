@@ -526,7 +526,7 @@ function CouponPromoPicker({
     queryFn: async () => {
       const { data } = await supabase
         .from("promotions")
-        .select("id, name")
+        .select("id, title")
         .eq("store_id", storeId)
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
@@ -561,14 +561,14 @@ function CouponPromoPicker({
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
           onChange={(e) => {
             const p = (promos.data ?? []).find((x) => x.id === e.target.value);
-            if (p) onAdd({ type: "promotion", promotion_id: p.id, name: p.name });
+            if (p) onAdd({ type: "promotion", promotion_id: p.id, name: p.title });
             e.currentTarget.value = "";
           }}
         >
           <option value="">Select special…</option>
           {(promos.data ?? []).map((p) => (
             <option key={p.id} value={p.id}>
-              {p.name}
+              {p.title}
             </option>
           ))}
         </select>
