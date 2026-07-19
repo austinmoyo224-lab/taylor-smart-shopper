@@ -12,6 +12,7 @@ import {
   getStoreSubscriberDashboard,
 } from "@/lib/portal.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { usePortal } from "@/lib/portal-context";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
 import { downloadBrandedStoreQr } from "@/lib/qr-composer";
 import {
@@ -108,6 +109,7 @@ type StoreData = Awaited<ReturnType<typeof getStore>>;
 
 function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void }) {
   const [form, setForm] = useState(store);
+  const { isSuperAdmin } = usePortal();
   useEffect(() => setForm(store), [store]);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
@@ -119,7 +121,7 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           store_id: store.id,
           name: form.name,
           slug: form.slug,
-          status: form.status as "draft" | "pending" | "active" | "paused" | "archived",
+          status: (isSuperAdmin ? form.status : store.status) as "draft" | "pending" | "active" | "paused" | "archived",
           description: form.description ?? null,
           logo_url: form.logo_url ?? null,
           hero_image_url: form.hero_image_url ?? null,
@@ -200,19 +202,28 @@ function ProfileForm({ store, onSaved }: { store: StoreData; onSaved: () => void
           />
         </Field>
         <Field label="Status">
-          <select
-            value={form.status}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, status: e.target.value as StoreData["status"] }))
-            }
-            className="input"
-          >
-            <option value="draft">Draft</option>
-            <option value="pending">Pending review</option>
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="archived">Archived</option>
-          </select>
+          {isSuperAdmin ? (
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, status: e.target.value as StoreData["status"] }))
+              }
+              className="input"
+            >
+              <option value="draft">Draft</option>
+              <option value="pending">Pending review</option>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="archived">Archived</option>
+            </select>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm">
+              <span className="capitalize">{form.status}</span>
+              <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-muted">
+                Admin managed
+              </span>
+            </div>
+          )}
         </Field>
         <Field label="Visibility">
           <label className="flex items-center gap-2 py-2 text-sm">
