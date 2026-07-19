@@ -10,7 +10,7 @@ export function HeaderTrolley({ className = "" }: { className?: string }) {
     <div
       aria-hidden
       className={
-        "pointer-events-none absolute right-0 top-0 h-full w-40 overflow-hidden " +
+        "pointer-events-none absolute right-0 top-0 -z-10 h-full w-44 overflow-hidden " +
         className
       }
     >
