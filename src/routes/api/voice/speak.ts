@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
+import { logAiUsage } from "@/lib/ai-usage.server";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 type SpeakBody = { text?: unknown; voice?: unknown; format?: unknown };
 
@@ -51,6 +54,33 @@ export const Route = createFileRoute("/api/voice/speak")({
           console.error("[voice-tts] gateway error", res.status, errText);
           return new Response(errText || "Speech synthesis failed", { status: res.status });
         }
+
+        let userId: string | null = null;
+        const authHeader = request.headers.get("authorization");
+        if (authHeader?.startsWith("Bearer ")) {
+          const token = authHeader.replace("Bearer ", "");
+          if (token.split(".").length === 3) {
+            try {
+              const authClient = createClient<Database>(
+                process.env.SUPABASE_URL!,
+                process.env.SUPABASE_PUBLISHABLE_KEY!,
+                { auth: { persistSession: false, autoRefreshToken: false } },
+              );
+              const { data } = await authClient.auth.getClaims(token);
+              userId = data?.claims?.sub ?? null;
+            } catch {
+              userId = null;
+            }
+          }
+        }
+        void logAiUsage({
+          operation: "tts",
+          model: "openai/gpt-4o-mini-tts",
+          userId,
+          // audioSeconds field carries character count for TTS estimation.
+          audioSeconds: text.length,
+          route: "/api/voice/speak",
+        });
 
         const contentType =
           res.headers.get("content-type") ??

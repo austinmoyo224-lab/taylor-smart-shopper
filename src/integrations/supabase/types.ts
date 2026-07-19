@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_events: {
+        Row: {
+          audio_seconds: number | null
+          created_at: string
+          credits: number
+          error_message: string | null
+          id: string
+          input_tokens: number | null
+          log_id: string | null
+          model: string | null
+          operation: string
+          output_tokens: number | null
+          route: string | null
+          run_id: string | null
+          success: boolean
+          total_tokens: number | null
+          user_id: string | null
+        }
+        Insert: {
+          audio_seconds?: number | null
+          created_at?: string
+          credits?: number
+          error_message?: string | null
+          id?: string
+          input_tokens?: number | null
+          log_id?: string | null
+          model?: string | null
+          operation: string
+          output_tokens?: number | null
+          route?: string | null
+          run_id?: string | null
+          success?: boolean
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          audio_seconds?: number | null
+          created_at?: string
+          credits?: number
+          error_message?: string | null
+          id?: string
+          input_tokens?: number | null
+          log_id?: string | null
+          model?: string | null
+          operation?: string
+          output_tokens?: number | null
+          route?: string | null
+          run_id?: string | null
+          success?: boolean
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string

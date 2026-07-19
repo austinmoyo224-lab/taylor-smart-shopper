@@ -87,6 +87,12 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
         output: Output.object({ schema: VisionResultSchema }),
       });
       items = output.items ?? [];
+      void (await import("@/lib/ai-usage.server")).logAiUsage({
+        operation: "vision",
+        model: "google/gemini-2.5-flash",
+        userId: context.userId,
+        route: "vision.analyze",
+      });
     } catch (error) {
       console.error("[vision] analyze failed", error);
       if (NoObjectGeneratedError.isInstance(error)) {

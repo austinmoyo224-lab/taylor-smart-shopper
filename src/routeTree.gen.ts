@@ -49,6 +49,7 @@ import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisat
 import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAiUsageRouteImport } from './routes/admin.ai-usage'
 import { Route as PortalStoresIndexRouteImport } from './routes/portal.stores.index'
 import { Route as PortalStoresStoreIdRouteImport } from './routes/portal.stores.$storeId'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
@@ -256,6 +257,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAiUsageRoute = AdminAiUsageRouteImport.update({
+  id: '/ai-usage',
+  path: '/ai-usage',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PortalStoresIndexRoute = PortalStoresIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
+  '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
+  '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRoute
   '/vision': typeof VisionRoute
+  '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
@@ -450,6 +459,7 @@ export interface FileRouteTypes {
     | '/store-onboarding'
     | '/stores'
     | '/vision'
+    | '/admin/ai-usage'
     | '/admin/audit'
     | '/admin/knowledge'
     | '/admin/onboarding'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/store-onboarding'
     | '/stores'
     | '/vision'
+    | '/admin/ai-usage'
     | '/admin/audit'
     | '/admin/knowledge'
     | '/admin/onboarding'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/store-onboarding'
     | '/stores'
     | '/vision'
+    | '/admin/ai-usage'
     | '/admin/audit'
     | '/admin/knowledge'
     | '/admin/onboarding'
@@ -881,6 +893,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/ai-usage': {
+      id: '/admin/ai-usage'
+      path: '/ai-usage'
+      fullPath: '/admin/ai-usage'
+      preLoaderRoute: typeof AdminAiUsageRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/portal/stores/': {
       id: '/portal/stores/'
       path: '/'
@@ -927,6 +946,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAiUsageRoute: typeof AdminAiUsageRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminKnowledgeRoute: typeof AdminKnowledgeRoute
   AdminOnboardingRoute: typeof AdminOnboardingRoute
@@ -939,6 +959,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAiUsageRoute: AdminAiUsageRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminKnowledgeRoute: AdminKnowledgeRoute,
   AdminOnboardingRoute: AdminOnboardingRoute,
@@ -1034,13 +1055,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
