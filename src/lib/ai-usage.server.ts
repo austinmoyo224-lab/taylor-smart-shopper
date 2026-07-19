@@ -67,7 +67,7 @@ export async function logAiUsage(input: LogAiUsageInput): Promise<void> {
       output_tokens: input.outputTokens ?? null,
       total_tokens:
         input.totalTokens ??
-        ((input.inputTokens ?? 0) + (input.outputTokens ?? 0)) || null,
+        (((input.inputTokens ?? 0) + (input.outputTokens ?? 0)) || null),
       audio_seconds: input.audioSeconds ?? null,
       credits,
       run_id: input.runId ?? null,
