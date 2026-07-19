@@ -71,9 +71,10 @@ function extractLatestUserText(messages: UIMessage[]): string {
 function hasImageAttachment(messages: UIMessage[]): boolean {
   const last = messages[messages.length - 1];
   if (!last) return false;
-  return (last.parts ?? []).some(
-    (p) => p.type === "file" || p.type === "image" || p.type === "image_url",
-  );
+  return (last.parts ?? []).some((p) => {
+    const t = (p as { type?: string }).type;
+    return t === "file" || t === "image" || t === "image_url";
+  });
 }
 
 export function routeChatModel(messages: UIMessage[]): RoutedModel {
