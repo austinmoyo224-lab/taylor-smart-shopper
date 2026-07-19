@@ -166,7 +166,7 @@ function AuthScreen() {
   const isStoreOwner = accountType === "store_owner";
 
   return (
-    <AppShell>
+    <AppShell hideNav>
       <header className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-6 pt-10">
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/20 blur-3xl" aria-hidden />
         <div className="relative">
