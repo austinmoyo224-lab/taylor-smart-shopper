@@ -11,6 +11,7 @@ import {
 import { buildTaylorSystemPrompt } from "@/lib/taylor-engine.server";
 import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
 import { logAiUsage } from "@/lib/ai-usage.server";
+import { routeChatModel } from "@/lib/model-router.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -70,7 +71,11 @@ export const Route = createFileRoute("/api/chat")({
 
         const initialRunId = getLovableAiGatewayRunId(request);
         const gateway = createLovableAiGatewayProvider(key, initialRunId);
-        const model = gateway("openai/gpt-5.5");
+        const routed = routeChatModel(messages as UIMessage[]);
+        const model = gateway(routed.model);
+        console.log(
+          `[taylor chat] routed -> ${routed.tier} (${routed.model}) — ${routed.reason}`,
+        );
 
         const tools = userId ? buildTaylorTools(userId) : undefined;
         const result = streamText({
@@ -79,21 +84,29 @@ export const Route = createFileRoute("/api/chat")({
           tools,
           stopWhen: stepCountIs(5),
           messages: await convertToModelMessages(messages as UIMessage[]),
+          providerOptions: routed.fast
+            ? { lovable: { service_tier: "priority" } }
+            : undefined,
           onFinish: ({ usage }) => {
             void logAiUsage({
               operation: "chat",
-              model: "openai/gpt-5.5",
+              model: routed.model,
               userId,
               inputTokens: usage?.inputTokens ?? null,
               outputTokens: usage?.outputTokens ?? null,
               totalTokens: usage?.totalTokens ?? null,
-              route: "/api/chat",
+              route: `/api/chat:${routed.tier}`,
             });
           },
         });
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages as UIMessage[],
+          headers: {
+            "X-Taylor-Model": routed.model,
+            "X-Taylor-Model-Tier": routed.tier,
+            "X-Taylor-Route-Reason": routed.reason,
+          },
           onError: (error) => {
             console.error("[taylor chat] stream error", error);
             if (error instanceof Error) {

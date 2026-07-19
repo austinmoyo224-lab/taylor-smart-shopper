@@ -22,6 +22,8 @@ export interface LogAiUsageInput {
 // Per-1K-token credit prices (very rough — refine from real logs later).
 const CHAT_RATES: Record<string, { input: number; output: number }> = {
   "openai/gpt-5.5": { input: 0.02, output: 0.06 },
+  "openai/gpt-5.4-mini": { input: 0.006, output: 0.018 },
+  "openai/gpt-5.4-nano": { input: 0.002, output: 0.006 },
   "openai/gpt-4o-mini": { input: 0.005, output: 0.015 },
   "google/gemini-2.5-flash": { input: 0.004, output: 0.012 },
 };
