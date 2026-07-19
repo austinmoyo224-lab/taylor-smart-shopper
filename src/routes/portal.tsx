@@ -14,6 +14,7 @@ import {
   Megaphone,
   BarChart3,
   Gift,
+  Inbox,
 } from "lucide-react";
 
 export const Route = createFileRoute("/portal")({
@@ -90,7 +91,8 @@ const nav: {
     | "/portal/coupons"
     | "/portal/campaigns"
     | "/portal/analytics"
-    | "/portal/rewards";
+    | "/portal/rewards"
+    | "/portal/messages";
   label: string;
   icon: typeof Store;
   exact?: boolean;
@@ -98,6 +100,7 @@ const nav: {
   { to: "/portal", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/portal/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/portal/stores", label: "Stores", icon: Store },
+  { to: "/portal/messages", label: "Messages", icon: Inbox },
   { to: "/portal/products", label: "Products", icon: Package },
   { to: "/portal/promotions", label: "Promotions", icon: Tag },
   { to: "/portal/coupons", label: "Coupons", icon: Ticket },

@@ -42,6 +42,7 @@ import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
 import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
+import { Route as InboxStoreIdRouteImport } from './routes/inbox.$storeId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminVaultRouteImport } from './routes/admin.vault'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -224,6 +225,11 @@ const JoinSlugRoute = JoinSlugRouteImport.update({
   path: '/join/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InboxStoreIdRoute = InboxStoreIdRouteImport.update({
+  id: '/$storeId',
+  path: '/$storeId',
+  getParentRoute: () => InboxRoute,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -313,7 +319,7 @@ export interface FileRoutesByFullPath {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
-  '/inbox': typeof InboxRoute
+  '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -336,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
@@ -363,7 +370,7 @@ export interface FileRoutesByTo {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
-  '/inbox': typeof InboxRoute
+  '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -384,6 +391,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
@@ -412,7 +420,7 @@ export interface FileRoutesById {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
-  '/inbox': typeof InboxRoute
+  '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
@@ -488,6 +497,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
     | '/portal/campaigns'
@@ -536,6 +546,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
     | '/portal/campaigns'
@@ -586,6 +597,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
     | '/portal/campaigns'
@@ -615,7 +627,7 @@ export interface RootRouteChildren {
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
   HouseholdRoute: typeof HouseholdRoute
-  InboxRoute: typeof InboxRoute
+  InboxRoute: typeof InboxRouteWithChildren
   ListsRoute: typeof ListsRoute
   LoyaltyRoute: typeof LoyaltyRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -869,6 +881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inbox/$storeId': {
+      id: '/inbox/$storeId'
+      path: '/$storeId'
+      fullPath: '/inbox/$storeId'
+      preLoaderRoute: typeof InboxStoreIdRouteImport
+      parentRoute: typeof InboxRoute
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -1012,6 +1031,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface InboxRouteChildren {
+  InboxStoreIdRoute: typeof InboxStoreIdRoute
+}
+
+const InboxRouteChildren: InboxRouteChildren = {
+  InboxStoreIdRoute: InboxStoreIdRoute,
+}
+
+const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
+
 interface PortalStoresRouteChildren {
   PortalStoresStoreIdRoute: typeof PortalStoresStoreIdRoute
   PortalStoresIndexRoute: typeof PortalStoresIndexRoute
@@ -1074,7 +1103,7 @@ const rootRouteChildren: RootRouteChildren = {
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
   HouseholdRoute: HouseholdRoute,
-  InboxRoute: InboxRoute,
+  InboxRoute: InboxRouteWithChildren,
   ListsRoute: ListsRoute,
   LoyaltyRoute: LoyaltyRoute,
   NotificationsRoute: NotificationsRoute,
