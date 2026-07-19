@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Brain, Heart, Sparkles, ShieldCheck, ArrowRight, Store, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import heroAsset from "@/assets/taylor-hero-v2.png.asset.json";
+import heroAsset from "@/assets/taylor-hero-banner.png.asset.json";
 import taylorMark from "@/assets/taylor-mark.png";
 
 export const Route = createFileRoute("/")({
@@ -87,152 +87,52 @@ function Hero() {
       className="relative overflow-hidden"
       style={{ backgroundColor: NAVY }}
     >
-      {/* Ambient glow */}
-      <div
-        className="pointer-events-none absolute -left-40 top-1/3 h-[640px] w-[640px] rounded-full opacity-30 blur-3xl"
-        style={{ backgroundColor: GREEN }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full opacity-20 blur-3xl"
-        style={{ backgroundColor: GREEN }}
-        aria-hidden
-      />
-      {/* Curved green sweep */}
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        viewBox="0 0 1200 800"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        <path
-          d="M -50 620 Q 400 500 700 640 T 1300 560"
-          stroke={GREEN}
-          strokeOpacity="0.35"
-          strokeWidth="1.5"
-          fill="none"
-        />
-        <path
-          d="M -50 700 Q 500 580 900 720 T 1300 640"
-          stroke={GREEN}
-          strokeOpacity="0.2"
-          strokeWidth="1"
-          fill="none"
-        />
-      </svg>
-
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 pb-20 pt-32 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:pb-28 lg:pt-40">
-        {/* Copy */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 flex flex-col justify-center text-white"
-        >
-          <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-white/60">
-            AI for South African shoppers
-          </p>
-          <h1
-            className="text-balance text-5xl leading-[0.95] sm:text-6xl lg:text-7xl"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            <span className="italic" style={{ color: GREEN }}>
-              Taylor
-            </span>
-            <span className="mt-2 block font-mono text-xs uppercase tracking-[0.5em] text-white/80">
-              Intelligence
-            </span>
-          </h1>
-
-          <div className="mt-6 h-[2px] w-16" style={{ backgroundColor: GREEN }} aria-hidden />
-
-          <h2
-            className="mt-8 max-w-xl text-3xl leading-tight sm:text-4xl"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Groceries. Recipes. Savings.{" "}
-            <span className="italic" style={{ color: GREEN }}>
-              All in one place.
-            </span>
-          </h2>
-          <p className="mt-5 max-w-lg text-base leading-relaxed text-white/75">
-            Your AI shopping companion. Taylor remembers what matters, finds the deals near you,
-            and turns recipes into smart lists — quietly, in the background.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/auth"
-              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-xl transition hover:scale-[1.02]"
-              style={{ backgroundColor: GREEN, color: NAVY }}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              Join as a Shopper
-            </Link>
-            <Link
-              to="/auth"
-              className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
-            >
-              <Store className="h-4 w-4" />
-              List your Store
-            </Link>
-          </div>
-
-          <p className="mt-6 text-xs text-white/55">
-            Free forever for shoppers · No card required · Your data stays yours
-          </p>
-        </motion.div>
-
-        {/* Hero image */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
+      {/* Full-bleed header banner (branding baked in) */}
+      <div className="relative w-full pt-20">
+        <motion.img
+          initial={{ opacity: 0, scale: 1.02 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          src={heroAsset.url}
+          alt="Taylor Intelligence — Smarter shopping. Better living."
+          className="mx-auto block h-auto w-full max-w-[1600px] object-contain"
+          loading="eager"
+        />
+        {/* Bottom fade into navy so it blends into the next section */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 sm:h-32"
+          style={{ background: `linear-gradient(to bottom, ${NAVY}00, ${NAVY})` }}
+          aria-hidden
+        />
+      </div>
+
+      {/* CTA row below banner */}
+      <div className="relative mx-auto max-w-3xl px-5 pb-20 pt-4 text-center sm:pb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-wrap items-center justify-center gap-3"
         >
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-lg">
-            {/* Green halo behind subject */}
-            <div
-              className="pointer-events-none absolute inset-6 rounded-[36px] opacity-40 blur-3xl"
-              style={{ background: `radial-gradient(circle at 50% 40%, ${GREEN} 0%, transparent 65%)` }}
-              aria-hidden
-            />
-            <div className="relative h-full w-full overflow-hidden rounded-[32px]">
-              <img
-                src={heroAsset.url}
-                alt="Taylor — your AI shopping companion, pushing a full grocery trolley"
-                className="h-full w-full object-cover object-top"
-                loading="eager"
-              />
-              {/* Fade edges into the navy background */}
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background: `linear-gradient(to bottom, ${NAVY}00 55%, ${NAVY}cc 88%, ${NAVY} 100%), linear-gradient(to right, ${NAVY}55 0%, transparent 18%, transparent 82%, ${NAVY}55 100%)`,
-                }}
-                aria-hidden
-              />
-              {/* Subtle green inner glow */}
-              <div
-                className="pointer-events-none absolute inset-0 rounded-[32px]"
-                style={{ boxShadow: `inset 0 0 160px ${GREEN}22` }}
-                aria-hidden
-              />
-            </div>
-            {/* Floating stat chip */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute -left-3 bottom-10 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white shadow-xl backdrop-blur-md sm:-left-6"
-            >
-              <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/60">This week</p>
-              <p className="mt-1 text-sm font-semibold">
-                <span style={{ color: GREEN }}>R 428</span> saved
-              </p>
-            </motion.div>
-          </div>
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-xl transition hover:scale-[1.02]"
+            style={{ backgroundColor: GREEN, color: NAVY }}
+          >
+            <ShoppingBag className="h-4 w-4" />
+            Join as a Shopper
+          </Link>
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
+          >
+            <Store className="h-4 w-4" />
+            List your Store
+          </Link>
         </motion.div>
+        <p className="mt-5 text-xs text-white/55">
+          Free forever for shoppers · No card required · Your data stays yours
+        </p>
       </div>
     </section>
   );
