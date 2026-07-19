@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
+import { HeaderTrolley } from "@/components/HeaderTrolley";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
 
@@ -183,7 +184,8 @@ function ProfileScreen() {
   if (!profile || !memory) {
     return (
       <AppShell>
-        <header className="border-b border-border bg-background px-6 pb-4 pt-10">
+        <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
+          <HeaderTrolley />
           <h1
             className="text-3xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
@@ -198,7 +200,8 @@ function ProfileScreen() {
 
   return (
     <AppShell>
-      <header className="border-b border-border bg-background px-6 pb-4 pt-10">
+      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
+        <HeaderTrolley />
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <button

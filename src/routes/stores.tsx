@@ -10,6 +10,7 @@ import {
   unsubscribeFromStore,
 } from "@/lib/subscriptions.functions";
 import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode } from "lucide-react";
+import { HeaderTrolley } from "@/components/HeaderTrolley";
 
 export const Route = createFileRoute("/stores")({
   ssr: false,
@@ -68,8 +69,9 @@ function StoresScreen() {
         initial={reduce ? false : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-5 pt-10"
+        className="relative isolate overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-5 pt-10"
       >
+        <HeaderTrolley />
         <motion.div
           initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
