@@ -98,7 +98,11 @@ function AuthScreen() {
           const { data: session } = await supabase.auth.getSession();
           const uid = session.session?.user.id;
           if (uid) {
-            const patch: Record<string, unknown> = { account_type: type };
+            const patch: {
+              account_type: AccountType;
+              display_name?: string;
+              first_name?: string;
+            } = { account_type: type };
             if (type === "user" && fullName) {
               patch.display_name = fullName;
               patch.first_name = fullName.split(" ")[0];
