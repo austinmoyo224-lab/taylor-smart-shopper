@@ -623,7 +623,9 @@ function ChatScreen() {
       </form>
 
       <BottomNav />
-    </AppShell>
+      <InstallPrompt />
+      </div>
+    </div>
   );
 }
 
