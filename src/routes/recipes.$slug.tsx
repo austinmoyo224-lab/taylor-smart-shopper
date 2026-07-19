@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { Suspense, useEffect, useState } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { addRecipeToShoppingList, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";

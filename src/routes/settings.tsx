@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, BellRing, BellOff, Send, Store as StoreIcon } from "lucide-react";

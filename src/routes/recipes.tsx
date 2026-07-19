@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
-import { AppShell, BottomNav } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { listMyRecipes, listPublishedRecipes } from "@/lib/recipes.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Clock, Sparkles, Users } from "lucide-react";
