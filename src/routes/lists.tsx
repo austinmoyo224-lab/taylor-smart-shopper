@@ -13,6 +13,7 @@ import {
   toggleListItem,
 } from "@/lib/lists.functions";
 import { Camera, Plus, Trash2, ChevronLeft } from "lucide-react";
+import { HeaderTrolley } from "@/components/HeaderTrolley";
 
 export const Route = createFileRoute("/lists")({
   ssr: false,
@@ -63,7 +64,8 @@ function ListsScreen() {
 
   return (
     <AppShell>
-      <header className="border-b border-border bg-background px-6 pb-4 pt-10">
+      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
+        <HeaderTrolley />
         <div className="flex items-end justify-between">
           <div>
             <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Plan</p>

@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { listMyRecipes, listPublishedRecipes } from "@/lib/recipes.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Clock, Sparkles, Users } from "lucide-react";
+import { HeaderTrolley } from "@/components/HeaderTrolley";
 
 const recipesQO = queryOptions({
   queryKey: ["recipes", "published"],
@@ -37,7 +38,8 @@ export const Route = createFileRoute("/recipes")({
 function RecipesScreen() {
   return (
     <AppShell>
-      <header className="border-b border-border bg-background px-6 pb-4 pt-10">
+      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
+        <HeaderTrolley />
         <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Cook</p>
         <h1
           className="text-3xl italic tracking-tight"
