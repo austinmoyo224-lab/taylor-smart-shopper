@@ -21,6 +21,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ListsRouteImport } from './routes/lists'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HouseholdRouteImport } from './routes/household'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
@@ -116,6 +117,11 @@ const LoyaltyRoute = LoyaltyRouteImport.update({
 const ListsRoute = ListsRouteImport.update({
   id: '/lists',
   path: '/lists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HouseholdRoute = HouseholdRouteImport.update({
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
+  '/inbox': typeof InboxRoute
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -356,6 +363,7 @@ export interface FileRoutesByTo {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
+  '/inbox': typeof InboxRoute
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -404,6 +412,7 @@ export interface FileRoutesById {
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
   '/household': typeof HouseholdRoute
+  '/inbox': typeof InboxRoute
   '/lists': typeof ListsRoute
   '/loyalty': typeof LoyaltyRoute
   '/notifications': typeof NotificationsRoute
@@ -456,6 +465,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/household'
+    | '/inbox'
     | '/lists'
     | '/loyalty'
     | '/notifications'
@@ -505,6 +515,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/household'
+    | '/inbox'
     | '/lists'
     | '/loyalty'
     | '/notifications'
@@ -552,6 +563,7 @@ export interface FileRouteTypes {
     | '/coupons'
     | '/deals'
     | '/household'
+    | '/inbox'
     | '/lists'
     | '/loyalty'
     | '/notifications'
@@ -603,6 +615,7 @@ export interface RootRouteChildren {
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
   HouseholdRoute: typeof HouseholdRoute
+  InboxRoute: typeof InboxRoute
   ListsRoute: typeof ListsRoute
   LoyaltyRoute: typeof LoyaltyRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -707,6 +720,13 @@ declare module '@tanstack/react-router' {
       path: '/lists'
       fullPath: '/lists'
       preLoaderRoute: typeof ListsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/household': {
@@ -1054,6 +1074,7 @@ const rootRouteChildren: RootRouteChildren = {
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
   HouseholdRoute: HouseholdRoute,
+  InboxRoute: InboxRoute,
   ListsRoute: ListsRoute,
   LoyaltyRoute: LoyaltyRoute,
   NotificationsRoute: NotificationsRoute,
