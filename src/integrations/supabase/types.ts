@@ -2069,6 +2069,236 @@ export type Database = {
           },
         ]
       }
+      store_broadcast_recipients: {
+        Row: {
+          broadcast_id: string
+          clicked_at: string | null
+          created_at: string
+          delivered_at: string
+          id: string
+          read_at: string | null
+          redeemed_at: string | null
+          store_id: string
+          user_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          read_at?: string | null
+          redeemed_at?: string | null
+          store_id: string
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          read_at?: string | null
+          redeemed_at?: string | null
+          store_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_broadcast_recipients_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "store_broadcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_broadcast_recipients_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_broadcasts: {
+        Row: {
+          attachments: Json
+          body: string | null
+          coupon_id: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          organisation_id: string
+          promotion_id: string | null
+          sender_user_id: string
+          sent_at: string
+          store_id: string
+          title: string
+        }
+        Insert: {
+          attachments?: Json
+          body?: string | null
+          coupon_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          organisation_id: string
+          promotion_id?: string | null
+          sender_user_id: string
+          sent_at?: string
+          store_id: string
+          title: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string | null
+          coupon_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          organisation_id?: string
+          promotion_id?: string | null
+          sender_user_id?: string
+          sent_at?: string
+          store_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_broadcasts_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_broadcasts_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_broadcasts_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_broadcasts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_conversation_messages: {
+        Row: {
+          attachments: Json
+          body: string | null
+          broadcast_id: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_type: string
+          sender_user_id: string
+          store_id: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json
+          body?: string | null
+          broadcast_id?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_type: string
+          sender_user_id: string
+          store_id: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string | null
+          broadcast_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_type?: string
+          sender_user_id?: string
+          store_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_conversation_messages_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "store_broadcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_conversation_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "store_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_conversation_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          last_message_preview: string | null
+          store_id: string
+          unread_for_store: number
+          unread_for_user: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          last_message_preview?: string | null
+          store_id: string
+          unread_for_store?: number
+          unread_for_user?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          last_message_preview?: string | null
+          store_id?: string
+          unread_for_store?: number
+          unread_for_user?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_conversations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_departments: {
         Row: {
           created_at: string
@@ -2673,6 +2903,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_store: {
+        Args: { _store_id: string; _user_id: string }
+        Returns: boolean
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
