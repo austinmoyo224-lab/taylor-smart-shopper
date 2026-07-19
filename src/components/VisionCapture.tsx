@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Camera, ImagePlus, X, RefreshCw } from "lucide-react";
+import { Camera, ImagePlus, X, RefreshCw, ScanLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_BUCKET = "vision-uploads";
@@ -35,6 +35,12 @@ export function VisionCapture({
   useEffect(() => {
     return () => stopStream();
   }, [stopStream]);
+
+  // Auto-start camera on mount so the scanner opens straight into a viewfinder.
+  useEffect(() => {
+    void startCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function startCamera() {
     setError(null);
@@ -150,83 +156,85 @@ export function VisionCapture({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
+    <div className="bg-background">
       <canvas ref={canvasRef} className="hidden" />
 
-      {state === "preview" ? (
-        <>
-          <video ref={videoRef} playsInline muted className="aspect-[4/5] w-full object-cover" />
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/60 to-transparent p-4">
-            <button
-              type="button"
-              onClick={() => {
-                stopStream();
-                setState("idle");
-                setPreviewUrl(null);
-              }}
-              className="flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm"
-              aria-label="Cancel"
-            >
-              <X className="size-5" />
-            </button>
-            <button
-              type="button"
-              onClick={capture}
-              className="flex size-14 items-center justify-center rounded-full border-4 border-white/30 bg-primary text-primary-foreground shadow-lg"
-              aria-label="Take photo"
-            >
-              <Camera className="size-6" />
-            </button>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm"
-              aria-label="Gallery"
-            >
-              <ImagePlus className="size-5" />
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="flex aspect-[4/5] flex-col items-center justify-center bg-surface p-8 text-center">
-          <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
-            <Camera className="size-7 text-primary" />
-          </div>
-          <p className="text-sm font-medium">Snap your fridge, pantry or receipt</p>
-          <p className="mt-2 text-xs text-muted">
-            Taylor will identify items and match them to products where possible.
-          </p>
-          <button
-            type="button"
-            onClick={startCamera}
-            className="mt-6 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
-          >
-            Open camera
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="mt-3 text-xs font-medium text-primary"
-          >
-            Or choose from gallery
-          </button>
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="mt-6 text-xs text-muted hover:text-foreground"
-            >
-              Cancel
-            </button>
-          )}
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center gap-2">
+          <ScanLine className="size-5 text-primary" />
+          <h2 className="text-lg font-semibold">Scan with camera</h2>
         </div>
-      )}
+        <button
+          type="button"
+          onClick={() => {
+            stopStream();
+            onCancel?.();
+          }}
+          className="flex size-9 items-center justify-center rounded-full border-2 border-primary text-primary"
+          aria-label="Close"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
 
-      {error && (
-        <div className="absolute inset-x-0 top-0 bg-destructive/90 p-3 text-center text-xs text-destructive-foreground">
-          {error}
+      {/* Viewfinder */}
+      <div className="relative mx-4 overflow-hidden rounded-2xl bg-black">
+        {state === "preview" ? (
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="aspect-[3/4] w-full object-cover"
+          />
+        ) : (
+          <div className="flex aspect-[3/4] w-full items-center justify-center text-white/70">
+            {state === "requesting" ? (
+              <RefreshCw className="size-8 animate-spin" />
+            ) : (
+              <Camera className="size-8" />
+            )}
+          </div>
+        )}
+
+        {/* Framed overlay with corner brackets */}
+        <div className="pointer-events-none absolute inset-4 rounded-2xl border border-white/70">
+          <span className="absolute -left-0.5 -top-0.5 size-6 rounded-tl-2xl border-l-2 border-t-2 border-white" />
+          <span className="absolute -right-0.5 -top-0.5 size-6 rounded-tr-2xl border-r-2 border-t-2 border-white" />
+          <span className="absolute -bottom-0.5 -left-0.5 size-6 rounded-bl-2xl border-b-2 border-l-2 border-white" />
+          <span className="absolute -bottom-0.5 -right-0.5 size-6 rounded-br-2xl border-b-2 border-r-2 border-white" />
         </div>
-      )}
+
+        {error && (
+          <div className="absolute inset-x-0 top-0 bg-destructive/90 p-3 text-center text-xs text-destructive-foreground">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Hint + actions */}
+      <p className="mt-5 px-6 text-center text-sm text-muted">
+        Point your camera at a QR code, your pantry, or a receipt.
+      </p>
+
+      <div className="px-4 pt-4 pb-6">
+        <button
+          type="button"
+          onClick={state === "preview" ? capture : () => fileInputRef.current?.click()}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 active:scale-[0.99]"
+        >
+          <Camera className="size-5" />
+          Capture photo
+        </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="mt-3 flex w-full items-center justify-center gap-2 text-sm font-medium text-primary"
+        >
+          <ImagePlus className="size-4" />
+          Choose from gallery
+        </button>
+      </div>
 
       <input
         ref={fileInputRef}
