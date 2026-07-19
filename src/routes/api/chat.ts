@@ -10,6 +10,7 @@ import {
 } from "@/lib/ai-gateway.server";
 import { buildTaylorSystemPrompt } from "@/lib/taylor-engine.server";
 import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
+import { logAiUsage } from "@/lib/ai-usage.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -78,6 +79,17 @@ export const Route = createFileRoute("/api/chat")({
           tools,
           stopWhen: stepCountIs(5),
           messages: await convertToModelMessages(messages as UIMessage[]),
+          onFinish: ({ usage }) => {
+            void logAiUsage({
+              operation: "chat",
+              model: "openai/gpt-5.5",
+              userId,
+              inputTokens: usage?.inputTokens ?? null,
+              outputTokens: usage?.outputTokens ?? null,
+              totalTokens: usage?.totalTokens ?? null,
+              route: "/api/chat",
+            });
+          },
         });
 
         return result.toUIMessageStreamResponse({
