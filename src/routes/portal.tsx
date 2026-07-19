@@ -117,7 +117,8 @@ function Sidebar({
   isSuperAdmin: boolean;
 }) {
   const { pathname } = useLocation();
-  const visibleNav = nav.filter((n) => n.to !== "/portal/stores" || isSuperAdmin);
+  void isSuperAdmin;
+  const visibleNav = nav;
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-8 md:flex">
       <Link
