@@ -2,6 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type Attachment = {
+  type: "catalog_pdf" | "flyer_image" | "coupon" | "promotion";
+  url?: string | null;
+  name?: string | null;
+  coupon_id?: string | null;
+  promotion_id?: string | null;
+};
+
 const attachmentSchema = z.object({
   type: z.enum(["catalog_pdf", "flyer_image", "coupon", "promotion"]),
   url: z.string().url().max(2000).optional().nullable(),
@@ -151,10 +159,10 @@ export const getBroadcastRecipients = createServerFn({ method: "GET" })
     if (userIds.length > 0) {
       const { data: profs } = await supabaseAdmin
         .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .in("user_id", userIds);
+        .select("id, display_name, avatar_url")
+        .in("id", userIds);
       for (const p of profs ?? []) {
-        profiles[p.user_id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+        profiles[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
       }
     }
     return {
@@ -180,10 +188,10 @@ export const listStoreConversations = createServerFn({ method: "GET" })
     if (userIds.length > 0) {
       const { data: profs } = await supabaseAdmin
         .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .in("user_id", userIds);
+        .select("id, display_name, avatar_url")
+        .in("id", userIds);
       for (const p of profs ?? []) {
-        profiles[p.user_id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+        profiles[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
       }
     }
     return (rows ?? []).map((r) => ({ ...r, profile: profiles[r.user_id] ?? null }));
@@ -222,33 +230,12 @@ export const getStoreConversation = createServerFn({ method: "GET" })
     const { data: prof } = await supabaseAdmin
       .from("profiles")
       .select("display_name, avatar_url")
-      .eq("user_id", conv.user_id)
+      .eq("id", conv.user_id)
       .maybeSingle();
     return { conversation: conv, messages: msgs ?? [], profile: prof ?? null };
   });
 
 // ---------- SHARED SEND MESSAGE (store OR user) ----------
-
-export const sendConversationMessage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z
-      .object({
-        store_id: z.string().uuid(),
-        body: z.string().max(2000).optional().or(z.literal("")),
-        attachments: z.array(attachmentSchema).max(10).default([]),
-        as: z.enum(["store", "user"]),
-      })
-      .parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    if (data.as === "store") {
-      await assertCanManageStore(context.userId, data.store_id);
-    }
-    // Determine follower user_id: for store senders, we require the recipient user via a separate call — but for reply flows we'll always be reacting to an existing conversation. Provide upsert logic keyed on (store_id, user_id).
-    throw new Error("Use sendMessageToUser or replyAsUser");
-  });
 
 /** Store replies to a specific follower. Creates the conversation if needed. */
 export const storeReplyToUser = createServerFn({ method: "POST" })
@@ -363,7 +350,7 @@ export const listMyInbox = createServerFn({ method: "GET" })
       store_id: string;
       title: string;
       body: string | null;
-      attachments: unknown;
+      attachments: Attachment[];
       sent_at: string;
       read_at: string | null;
     }> = [];
@@ -374,7 +361,11 @@ export const listMyInbox = createServerFn({ method: "GET" })
         .in("id", bcIds)
         .is("deleted_at", null);
       const readMap = new Map((recs ?? []).map((r) => [r.broadcast_id, r.read_at]));
-      broadcasts = (bcs ?? []).map((b) => ({ ...b, read_at: readMap.get(b.id) ?? null }));
+      broadcasts = (bcs ?? []).map((b) => ({
+        ...b,
+        attachments: (b.attachments as unknown as Attachment[]) ?? [],
+        read_at: readMap.get(b.id) ?? null,
+      }));
       broadcasts.sort((a, b) => (a.sent_at < b.sent_at ? 1 : -1));
     }
 
@@ -419,7 +410,7 @@ export const getInboxThread = createServerFn({ method: "GET" })
       id: string;
       title: string;
       body: string | null;
-      attachments: unknown;
+      attachments: Attachment[];
       sent_at: string;
       kind: "broadcast";
       read_at: string | null;
@@ -432,6 +423,7 @@ export const getInboxThread = createServerFn({ method: "GET" })
         .is("deleted_at", null);
       broadcasts = (bcs ?? []).map((b) => ({
         ...b,
+        attachments: (b.attachments as unknown as Attachment[]) ?? [],
         kind: "broadcast" as const,
         read_at: readMap.get(b.id) ?? null,
       }));
@@ -499,11 +491,12 @@ export const markBroadcastClicked = createServerFn({ method: "POST" })
 
 // ---------- helpers ----------
 
-type AdminClient = Awaited<
-  ReturnType<typeof import("@/integrations/supabase/client.server").then>
->["supabaseAdmin"];
-
-async function upsertConversation(admin: AdminClient, storeId: string, userId: string) {
+async function upsertConversation(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  storeId: string,
+  userId: string,
+) {
   const { data: existing } = await admin
     .from("store_conversations")
     .select("id, unread_for_store, unread_for_user")
