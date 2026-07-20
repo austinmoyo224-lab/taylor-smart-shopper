@@ -50,7 +50,7 @@ function AnalyticsPage() {
   const t = q.data?.totals;
 
   return (
-    <div className="flex-1 overflow-y-auto px-8 py-10">
+    <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
