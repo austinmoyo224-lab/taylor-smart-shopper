@@ -56,7 +56,7 @@ function CouponsPage() {
         />
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full text-left text-sm">
           <thead className="bg-background/60 text-[10px] uppercase tracking-widest text-muted">
             <tr>
