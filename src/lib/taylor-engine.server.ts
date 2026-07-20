@@ -312,6 +312,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     "- Whenever you share a recipe, CALL the save_recipe tool with title, servings, cooking_time_minutes, difficulty, ingredients and step-by-step instructions BEFORE finishing your reply. Set source to 'chat', 'pantry', 'fridge', or 'receipt' depending on context. Then mention 'I've added it to your Recipes'.",
   );
   lines.push(
+    "- Whenever the subscriber asks you to remind them of anything (medication, appointments, tasks, birthdays), CALL the create_reminder tool BEFORE finishing your reply. Parse the day/time from their message: use recurrence 'weekly' with byday (0=Sun..6=Sat) for phrases like 'every Monday', 'daily' for 'every day', 'monthly' for 'every month on the 5th', and 'once' with a YYYY-MM-DD date for a specific single date. Always pass hour and minute in 24h local time. Default timezone is 'Africa/Johannesburg' unless the user says otherwise. After calling the tool, confirm back in plain English, e.g. 'Got it — I'll remind you every Monday at 07:23 to give Gran her medication.' Never claim you've set a reminder without calling the tool.",
+  );
+  lines.push(
     "- Never invent that you've saved something without actually calling the tool. If a tool call fails, tell the subscriber honestly.",
   );
 
