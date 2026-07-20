@@ -2699,6 +2699,60 @@ export type Database = {
         }
         Relationships: []
       }
+      taylor_reminders: {
+        Row: {
+          body: string | null
+          byday: number[]
+          created_at: string
+          hour: number | null
+          id: string
+          is_active: boolean
+          last_fired_at: string | null
+          minute: number | null
+          next_fire_at: string
+          recurrence: string
+          source: string
+          timezone: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          byday?: number[]
+          created_at?: string
+          hour?: number | null
+          id?: string
+          is_active?: boolean
+          last_fired_at?: string | null
+          minute?: number | null
+          next_fire_at: string
+          recurrence?: string
+          source?: string
+          timezone?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          byday?: number[]
+          created_at?: string
+          hour?: number | null
+          id?: string
+          is_active?: boolean
+          last_fired_at?: string | null
+          minute?: number | null
+          next_fire_at?: string
+          recurrence?: string
+          source?: string
+          timezone?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       taylor_settings: {
         Row: {
           avatar_url: string | null
