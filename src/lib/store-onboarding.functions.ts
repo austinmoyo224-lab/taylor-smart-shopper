@@ -188,7 +188,7 @@ export const approveStoreOnboardingRequest = createServerFn({ method: "POST" })
       .from("user_roles")
       .insert({ user_id: req.user_id, role: "retailer_admin", organisation_id: org.id });
 
-    await supabaseAdmin
+    const { error: updErr } = await supabaseAdmin
       .from("store_onboarding_requests")
       .update({
         status: "approved",
@@ -199,6 +199,7 @@ export const approveStoreOnboardingRequest = createServerFn({ method: "POST" })
         store_id: store.id,
       })
       .eq("id", data.id);
+    if (updErr) throw new Error(updErr.message);
 
     return { ok: true, organisationId: org.id, storeId: store.id };
   });
