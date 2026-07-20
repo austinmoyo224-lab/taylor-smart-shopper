@@ -59,6 +59,7 @@ import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/trans
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksFireRemindersRouteImport } from './routes/api/public/hooks/fire-reminders'
 
 const VisionRoute = VisionRouteImport.update({
   id: '/vision',
@@ -310,6 +311,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksFireRemindersRoute =
+  ApiPublicHooksFireRemindersRouteImport.update({
+    id: '/api/public/hooks/fire-reminders',
+    path: '/api/public/hooks/fire-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
   '/portal/stores/': typeof PortalStoresIndexRoute
+  '/api/public/hooks/fire-reminders': typeof ApiPublicHooksFireRemindersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -408,6 +416,7 @@ export interface FileRoutesByTo {
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
   '/portal/stores': typeof PortalStoresIndexRoute
+  '/api/public/hooks/fire-reminders': typeof ApiPublicHooksFireRemindersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -461,6 +470,7 @@ export interface FileRoutesById {
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
   '/portal/stores/': typeof PortalStoresIndexRoute
+  '/api/public/hooks/fire-reminders': typeof ApiPublicHooksFireRemindersRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
     | '/portal/stores/'
+    | '/api/public/hooks/fire-reminders'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
     | '/portal/stores'
+    | '/api/public/hooks/fire-reminders'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   id:
@@ -615,6 +627,7 @@ export interface FileRouteTypes {
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
     | '/portal/stores/'
+    | '/api/public/hooks/fire-reminders'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
@@ -644,6 +657,7 @@ export interface RootRouteChildren {
   JoinSlugRoute: typeof JoinSlugRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
+  ApiPublicHooksFireRemindersRoute: typeof ApiPublicHooksFireRemindersRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
 }
@@ -1000,6 +1014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/fire-reminders': {
+      id: '/api/public/hooks/fire-reminders'
+      path: '/api/public/hooks/fire-reminders'
+      fullPath: '/api/public/hooks/fire-reminders'
+      preLoaderRoute: typeof ApiPublicHooksFireRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1120,6 +1141,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinSlugRoute: JoinSlugRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
+  ApiPublicHooksFireRemindersRoute: ApiPublicHooksFireRemindersRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
 }
