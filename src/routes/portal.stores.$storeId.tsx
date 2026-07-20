@@ -50,7 +50,7 @@ function StoreDetailPage() {
     return <Full>Could not load store: {(store.error as Error)?.message}</Full>;
 
   return (
-    <div className="flex-1 overflow-y-auto px-8 py-10">
+    <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
       <Link
         to="/portal/stores"
         className="mb-6 inline-flex items-center gap-2 text-xs text-muted hover:text-foreground"
@@ -63,7 +63,7 @@ function StoreDetailPage() {
           Store profile
         </p>
         <h1
-          className="text-4xl italic tracking-tight"
+          className="text-3xl md:text-4xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {store.data.name}

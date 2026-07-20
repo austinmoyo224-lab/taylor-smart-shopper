@@ -15,6 +15,8 @@ import {
   BarChart3,
   Gift,
   Inbox,
+  Menu,
+  X,
 } from "lucide-react";
 
 export const Route = createFileRoute("/portal")({
@@ -35,6 +37,11 @@ export const Route = createFileRoute("/portal")({
 function PortalLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -74,7 +81,50 @@ function PortalLayout() {
           onOrgChange={setActiveOrgId}
           isSuperAdmin={!!data.isSuperAdmin}
         />
-        <main className="flex min-h-screen flex-1 flex-col">
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setMobileOpen(false)}
+            />
+            <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] overflow-y-auto bg-card shadow-2xl">
+              <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Store portal
+                </span>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-full p-1 text-muted hover:bg-accent"
+                  aria-label="Close menu"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="px-4 py-4">
+                <Sidebar
+                  organisations={data.organisations}
+                  activeOrgId={activeOrgId}
+                  onOrgChange={setActiveOrgId}
+                  isSuperAdmin={!!data.isSuperAdmin}
+                  variant="drawer"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        <main className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur md:hidden">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="rounded-lg border border-border p-2 text-foreground"
+              aria-label="Open menu"
+            >
+              <Menu className="size-4" />
+            </button>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              Store portal
+            </span>
+          </header>
           <Outlet />
         </main>
       </div>
@@ -113,17 +163,26 @@ function Sidebar({
   activeOrgId,
   onOrgChange,
   isSuperAdmin,
+  variant = "sidebar",
 }: {
   organisations: PortalCtx["organisations"];
   activeOrgId: string;
   onOrgChange: (id: string) => void;
   isSuperAdmin: boolean;
+  variant?: "sidebar" | "drawer";
 }) {
   const { pathname } = useLocation();
   void isSuperAdmin;
   const visibleNav = nav;
+  const isDrawer = variant === "drawer";
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-8 md:flex">
+    <aside
+      className={
+        isDrawer
+          ? "flex flex-col"
+          : "hidden w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-8 md:flex"
+      }
+    >
       <Link
         to="/chat"
         className="mb-6 flex items-center gap-2 text-xs text-muted hover:text-foreground"
