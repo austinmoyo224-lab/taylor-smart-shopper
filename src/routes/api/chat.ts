@@ -135,6 +135,74 @@ function slugify(s: string) {
 
 function buildTaylorTools(userId: string) {
   return {
+    create_reminder: tool({
+      description:
+        "Schedule a personal reminder for the subscriber. Use this whenever the user asks to be reminded (medication, appointments, tasks). Always confirm the day and time back to them in your reply.",
+      inputSchema: z.object({
+        title: z.string().min(1).max(160).describe("Short reminder title, e.g. 'Give Gran her medication'"),
+        body: z.string().max(500).optional().describe("Optional extra detail shown in the notification"),
+        recurrence: z
+          .enum(["once", "daily", "weekly", "monthly"])
+          .describe("How often it repeats"),
+        byday: z
+          .array(z.number().int().min(0).max(6))
+          .max(7)
+          .optional()
+          .describe("For weekly reminders, days of week (0=Sun ... 6=Sat)"),
+        hour: z.number().int().min(0).max(23).describe("Local hour (0-23)"),
+        minute: z.number().int().min(0).max(59).describe("Local minute (0-59)"),
+        date: z
+          .string()
+          .optional()
+          .describe("For one-off reminders, YYYY-MM-DD in the user's local timezone"),
+        timezone: z
+          .string()
+          .optional()
+          .describe("IANA timezone, default Africa/Johannesburg"),
+      }),
+      execute: async (input) => {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { computeNextFireAt } = await import("@/lib/reminders.server");
+        const tz = input.timezone || "Africa/Johannesburg";
+        let nextFireAt: Date;
+        try {
+          nextFireAt = computeNextFireAt({
+            recurrence: input.recurrence,
+            hour: input.hour,
+            minute: input.minute,
+            byday: input.byday,
+            date: input.date,
+            timezone: tz,
+            from: new Date(),
+          });
+        } catch (e) {
+          return { ok: false, error: (e as Error).message };
+        }
+        const { data, error } = await supabaseAdmin
+          .from("taylor_reminders")
+          .insert({
+            user_id: userId,
+            title: input.title,
+            body: input.body ?? null,
+            timezone: tz,
+            recurrence: input.recurrence,
+            byday: input.byday ?? [],
+            hour: input.hour,
+            minute: input.minute,
+            next_fire_at: nextFireAt.toISOString(),
+            source: "chat",
+          })
+          .select("id")
+          .single();
+        if (error || !data) return { ok: false, error: error?.message ?? "insert failed" };
+        return {
+          ok: true,
+          reminder_id: data.id,
+          next_fire_at: nextFireAt.toISOString(),
+          timezone: tz,
+        };
+      },
+    }),
     save_shopping_list: tool({
       description:
         "Save a shopping list into the subscriber's account so it appears in their Lists screen. Call this whenever you propose a shopping list.",
