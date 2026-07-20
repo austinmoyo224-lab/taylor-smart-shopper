@@ -392,6 +392,27 @@ export const listMyInbox = createServerFn({ method: "GET" })
     };
   });
 
+export const countMyInboxUnread = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count: broadcastUnread } = await supabaseAdmin
+      .from("store_broadcast_recipients")
+      .select("broadcast_id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .is("read_at", null);
+    const { data: convs } = await supabaseAdmin
+      .from("store_conversations")
+      .select("unread_for_user")
+      .eq("user_id", context.userId)
+      .gt("unread_for_user", 0);
+    const threadUnread = (convs ?? []).reduce(
+      (sum, c) => sum + (c.unread_for_user ?? 0),
+      0,
+    );
+    return { count: (broadcastUnread ?? 0) + threadUnread };
+  });
+
 export const getInboxThread = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ store_id: z.string().uuid() }).parse(d))
