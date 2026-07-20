@@ -186,6 +186,7 @@ async function deliverCampaign(opts: {
 
   // Find target subscribers.
   let subs: { user_id: string }[] = [];
+  const broadcastStoreIds: string[] = [];
   if (opts.storeId) {
     const { data } = await supabaseAdmin
       .from("subscriber_store_subs")
@@ -194,6 +195,7 @@ async function deliverCampaign(opts: {
       .eq("target_id", opts.storeId)
       .eq("is_active", true);
     subs = data ?? [];
+    broadcastStoreIds.push(opts.storeId);
   } else {
     // Org-wide: everyone who follows ANY store of this org.
     const { data: stores } = await supabaseAdmin
@@ -210,6 +212,7 @@ async function deliverCampaign(opts: {
         .in("target_id", storeIds)
         .eq("is_active", true);
       subs = data ?? [];
+      broadcastStoreIds.push(...storeIds);
     }
   }
   // Dedup
@@ -244,6 +247,52 @@ async function deliverCampaign(opts: {
     if (error) throw new Error(error.message);
   }
 
+  // Also deliver to the shopper Inbox as a store broadcast, so subscribers
+  // see the campaign in the place they actually look.
+  try {
+    for (const storeId of broadcastStoreIds) {
+      const storeTargets = opts.storeId
+        ? targets
+        : await (async () => {
+            const { data: ss } = await supabaseAdmin
+              .from("subscriber_store_subs")
+              .select("user_id")
+              .eq("target_type", "store")
+              .eq("target_id", storeId)
+              .eq("is_active", true);
+            const list = Array.from(new Set((ss ?? []).map((s) => s.user_id))).filter(
+              (u) => !optedOut.has(u),
+            );
+            return list;
+          })();
+      if (storeTargets.length === 0) continue;
+      const { data: bc } = await supabaseAdmin
+        .from("store_broadcasts")
+        .insert({
+          store_id: storeId,
+          organisation_id: opts.orgId,
+          title: opts.title,
+          body: opts.body || null,
+          attachments: [],
+        })
+        .select("id")
+        .single();
+      if (!bc) continue;
+      const recipientRows = storeTargets.map((uid) => ({
+        broadcast_id: bc.id,
+        user_id: uid,
+        store_id: storeId,
+      }));
+      for (let i = 0; i < recipientRows.length; i += CHUNK) {
+        await supabaseAdmin
+          .from("store_broadcast_recipients")
+          .insert(recipientRows.slice(i, i + CHUNK));
+      }
+    }
+  } catch (e) {
+    console.error("[campaign] inbox fanout failed", e);
+  }
+
   // Fan out Web Push to users who opted into push (default true).
   const pushOptedOut = new Set(
     (prefs ?? [])
@@ -257,7 +306,7 @@ async function deliverCampaign(opts: {
       await sendPushToUsers(pushTargets, {
         title: opts.title,
         body: opts.body,
-        url: opts.storeId ? "/stores" : "/notifications",
+        url: opts.storeId ? `/inbox/${opts.storeId}` : "/inbox",
         tag: `campaign-${opts.campaignId}`,
         data: { campaign_id: opts.campaignId },
       });
