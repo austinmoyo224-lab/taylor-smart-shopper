@@ -30,7 +30,7 @@ function CouponsPage() {
         <div>
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Rewards</p>
           <h1
-            className="text-4xl italic tracking-tight"
+            className="text-3xl md:text-4xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Coupons

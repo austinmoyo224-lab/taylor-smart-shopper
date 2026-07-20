@@ -63,7 +63,7 @@ function StoreDetailPage() {
           Store profile
         </p>
         <h1
-          className="text-4xl italic tracking-tight"
+          className="text-3xl md:text-4xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {store.data.name}

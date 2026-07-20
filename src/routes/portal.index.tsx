@@ -30,7 +30,7 @@ function PortalHome() {
         {org?.name ?? "Workspace"}
       </p>
       <h1
-        className="mb-8 text-4xl italic tracking-tight"
+        className="mb-8 text-3xl md:text-4xl italic tracking-tight"
         style={{ fontFamily: "var(--font-display)" }}
       >
         Welcome back

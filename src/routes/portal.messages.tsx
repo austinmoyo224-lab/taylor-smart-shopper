@@ -46,7 +46,7 @@ function MessagesPage() {
       <div className="mb-6 flex items-end justify-between">
         <div>
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Reach</p>
-          <h1 className="text-4xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+          <h1 className="text-3xl md:text-4xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
             Messages
           </h1>
           <p className="mt-1 text-sm text-muted">
