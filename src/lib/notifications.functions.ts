@@ -271,6 +271,7 @@ async function deliverCampaign(opts: {
         .insert({
           store_id: storeId,
           organisation_id: opts.orgId,
+          sender_user_id: null as unknown as string,
           title: opts.title,
           body: opts.body || null,
           attachments: [],
