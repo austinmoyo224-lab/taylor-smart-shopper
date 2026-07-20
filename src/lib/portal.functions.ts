@@ -634,6 +634,66 @@ export const createPromotion = createServerFn({ method: "POST" })
     return { id: row.id };
   });
 
+const updatePromotionSchema = createPromotionSchema.extend({
+  id: z.string().uuid(),
+});
+
+export const updatePromotion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => updatePromotionSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("promotions")
+      .update({
+        store_id: data.store_id || null,
+        title: data.title,
+        description: data.description || null,
+        type: data.type,
+        is_sponsored: data.is_sponsored,
+        original_price: data.original_price ?? null,
+        sale_price: data.sale_price ?? null,
+        currency_code: data.currency_code,
+        starts_at: data.starts_at || null,
+        ends_at: data.ends_at || null,
+        is_published: data.is_published,
+        hero_image_url: data.hero_image_url || null,
+      })
+      .eq("id", data.id)
+      .eq("organisation_id", data.organisation_id);
+    if (error) throw new Error(error.message);
+    // Replace product links
+    await supabaseAdmin.from("promotion_products").delete().eq("promotion_id", data.id);
+    if (data.product_ids.length > 0) {
+      const { error: linkError } = await supabaseAdmin.from("promotion_products").insert(
+        data.product_ids.map((product_id) => ({ promotion_id: data.id, product_id })),
+      );
+      if (linkError) throw new Error(linkError.message);
+    }
+    return { id: data.id };
+  });
+
+const deletePromotionSchema = z.object({
+  id: z.string().uuid(),
+  organisation_id: z.string().uuid(),
+});
+
+export const deletePromotion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => deletePromotionSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("promotions")
+      .update({ deleted_at: new Date().toISOString(), is_published: false })
+      .eq("id", data.id)
+      .eq("organisation_id", data.organisation_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // ---------- COUPONS ----------
 
 export const listCoupons = createServerFn({ method: "GET" })
