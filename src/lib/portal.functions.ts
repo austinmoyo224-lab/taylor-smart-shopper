@@ -655,8 +655,8 @@ export const updatePromotion = createServerFn({ method: "POST" })
         original_price: data.original_price ?? null,
         sale_price: data.sale_price ?? null,
         currency_code: data.currency_code,
-        starts_at: data.starts_at || null,
-        ends_at: data.ends_at || null,
+        starts_at: data.starts_at || undefined,
+        ends_at: data.ends_at || undefined,
         is_published: data.is_published,
         hero_image_url: data.hero_image_url || null,
       })
