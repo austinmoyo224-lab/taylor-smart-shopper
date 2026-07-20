@@ -169,6 +169,7 @@ export const createCampaign = createServerFn({ method: "POST" })
         title: data.title,
         body: data.body ?? "",
         category: data.category as Category,
+        senderUserId: context.userId,
       });
     }
     return { id: camp.id, delivered };
@@ -181,6 +182,7 @@ async function deliverCampaign(opts: {
   title: string;
   body: string;
   category: Category;
+  senderUserId: string;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -271,7 +273,7 @@ async function deliverCampaign(opts: {
         .insert({
           store_id: storeId,
           organisation_id: opts.orgId,
-          sender_user_id: null as unknown as string,
+          sender_user_id: opts.senderUserId,
           title: opts.title,
           body: opts.body || null,
           attachments: [],
@@ -344,6 +346,7 @@ export const sendCampaignNow = createServerFn({ method: "POST" })
       title: sched.title ?? "New from Taylor",
       body: sched.body ?? "",
       category: (sched.category ?? "campaign") as Category,
+      senderUserId: context.userId,
     });
     await supabaseAdmin
       .from("campaigns")
