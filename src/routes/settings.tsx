@@ -300,7 +300,7 @@ function SettingsScreen() {
         <button
           onClick={async () => {
             await supabase.auth.signOut();
-            void navigate({ to: "/auth" });
+            window.location.replace("https://www.heytaylor.co.za");
           }}
           className="flex w-full items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-xs text-muted hover:text-foreground"
         >
