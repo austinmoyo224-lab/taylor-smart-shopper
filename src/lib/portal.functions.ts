@@ -705,7 +705,7 @@ export const listCoupons = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("coupons")
       .select(
-        "id, code, title, description, discount_percent, discount_amount, currency_code, status, starts_at, ends_at, usage_limit_total",
+        "id, code, title, description, discount_percent, discount_amount, currency_code, status, starts_at, ends_at, usage_limit_total, store_id, qr_payload",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)
