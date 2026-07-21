@@ -217,23 +217,31 @@ function buildTaylorTools(userId: string) {
               text:
                 `This is a promotional flyer for "${promo.title}"${storeName ? ` at ${storeName}` : ""}. ` +
                 `The shopper is asking specifically about: "${q || "(no specific item — return the 5 best-value items)"}". ` +
+                `The flyer is provided as numbered sources below. Image sources are labelled [Image 1], [Image 2], … in the order they appear. PDF sources are labelled [PDF 1 page N], [PDF 2 page N], … — use the actual page number visible on each page. ` +
                 `Scan every page/image. Return ONLY the items that match the shopper's request (name variants, sizes and brands count as matches). ` +
-                `For each match give a short bullet with: exact product name as printed, size/quantity, advertised price (with R prefix, exactly as printed), and any relevant terms (dates, "while stocks last", limits). ` +
+                `For each match, output ONE bullet in EXACTLY this format:\n` +
+                `  • <exact product name as printed> — <size/quantity> — <price with R prefix exactly as printed> — <any relevant terms: dates, "while stocks last", limits> — Source: <[Image N] top-left | top-right | centre | bottom-left | bottom-right | full-page> OR <[PDF N page M] top-left | …>\n` +
+                `The "section" must describe WHERE on that page/image the item appears (top-left, top-right, centre, bottom-left, bottom-right, or full-page if it fills the page). Always include the Source reference — it is mandatory. ` +
                 `Currency is ${promo.currency_code || "ZAR"}. ` +
-                `If nothing on the flyer matches the request, reply exactly: NO_MATCH — then list up to 3 nearest alternatives briefly. ` +
-                `If the flyer has no readable prices at all, reply exactly: NO_PRICES. Never invent items or prices.`,
+                `If nothing on the flyer matches the request, reply exactly: NO_MATCH — then list up to 3 nearest alternatives briefly, each with its Source reference. ` +
+                `If the flyer has no readable prices at all, reply exactly: NO_PRICES. Never invent items, prices, or source references.`,
             },
           ];
-          for (const url of imageUrls.slice(0, 6)) {
+          const imgSlice = imageUrls.slice(0, 6);
+          imgSlice.forEach((url, i) => {
+            content.push({ type: "text", text: `[Image ${i + 1}]` });
             content.push({ type: "image_url", image_url: { url } });
-          }
-          for (const url of pdfUrls.slice(0, 3)) {
+          });
+          const pdfSlice = pdfUrls.slice(0, 3);
+          for (let i = 0; i < pdfSlice.length; i++) {
+            const url = pdfSlice[i];
             try {
               const res = await fetch(url);
               if (!res.ok) continue;
               const buf = await res.arrayBuffer();
               const b64 = Buffer.from(buf).toString("base64");
               const name = url.split("/").pop()?.split("?")[0] || "flyer.pdf";
+              content.push({ type: "text", text: `[PDF ${i + 1}] (${name}) — cite the page number printed on each page` });
               content.push({
                 type: "file",
                 file: {
