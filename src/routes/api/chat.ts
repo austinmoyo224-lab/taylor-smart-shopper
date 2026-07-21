@@ -12,6 +12,7 @@ import { buildTaylorSystemPrompt } from "@/lib/taylor-engine.server";
 import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
 import { logAiUsage } from "@/lib/ai-usage.server";
 import { routeChatModel } from "@/lib/model-router.server";
+import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -121,6 +122,12 @@ export const Route = createFileRoute("/api/chat")({
                 msg.includes("forbidden") ||
                 msg.includes("credit_limit_reached")
               ) {
+                notifyCreditsExhausted({
+                  route: "/api/chat",
+                  operation: "chat",
+                  providerMessage: error.message,
+                  userId,
+                });
                 return "Taylor's AI credits have run out. Please top up to continue.";
               }
             }

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
 import { logAiUsage } from "@/lib/ai-usage.server";
+import { notifyCreditsExhausted, isCreditLimitError } from "@/lib/credit-alert.server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -58,6 +59,18 @@ export const Route = createFileRoute("/api/voice/transcribe")({
         if (!res.ok) {
           const errText = await res.text().catch(() => "");
           console.error("[voice-stt] gateway error", res.status, errText);
+          if (isCreditLimitError(res.status, errText)) {
+            notifyCreditsExhausted({
+              route: "/api/voice/transcribe",
+              operation: "stt",
+              status: res.status,
+              providerMessage: errText.slice(0, 500),
+            });
+            return new Response(
+              "Taylor's AI credits have run out. Please ask the workspace owner to top up to continue voice replies.",
+              { status: 402 },
+            );
+          }
           return new Response(errText || "Transcription failed", { status: res.status });
         }
 
