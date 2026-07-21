@@ -569,7 +569,7 @@ export const listPromotions = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("promotions")
       .select(
-        "id, title, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, stores(name), promotion_products(products(name))",
+        "id, title, description, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, hero_image_url, stores(name), promotion_products(product_id, products(name))",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)
@@ -595,6 +595,13 @@ const createPromotionSchema = z.object({
   hero_image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
   product_ids: z.array(z.string().uuid()).max(80).optional().default([]),
 });
+
+const updatePromotionSchemaBase = createPromotionSchema
+  .omit({ product_ids: true })
+  .extend({
+    // undefined = do not touch existing product links
+    product_ids: z.array(z.string().uuid()).max(80).optional(),
+  });
 
 export const createPromotion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -634,7 +641,7 @@ export const createPromotion = createServerFn({ method: "POST" })
     return { id: row.id };
   });
 
-const updatePromotionSchema = createPromotionSchema.extend({
+const updatePromotionSchema = updatePromotionSchemaBase.extend({
   id: z.string().uuid(),
 });
 
@@ -663,13 +670,15 @@ export const updatePromotion = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .eq("organisation_id", data.organisation_id);
     if (error) throw new Error(error.message);
-    // Replace product links
-    await supabaseAdmin.from("promotion_products").delete().eq("promotion_id", data.id);
-    if (data.product_ids.length > 0) {
-      const { error: linkError } = await supabaseAdmin.from("promotion_products").insert(
-        data.product_ids.map((product_id) => ({ promotion_id: data.id, product_id })),
-      );
-      if (linkError) throw new Error(linkError.message);
+    // Replace product links only when caller explicitly provided a list.
+    if (data.product_ids !== undefined) {
+      await supabaseAdmin.from("promotion_products").delete().eq("promotion_id", data.id);
+      if (data.product_ids.length > 0) {
+        const { error: linkError } = await supabaseAdmin.from("promotion_products").insert(
+          data.product_ids.map((product_id) => ({ promotion_id: data.id, product_id })),
+        );
+        if (linkError) throw new Error(linkError.message);
+      }
     }
     return { id: data.id };
   });
