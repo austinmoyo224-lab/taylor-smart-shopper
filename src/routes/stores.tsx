@@ -473,7 +473,7 @@ function AdsCarousel({ ads }: { ads: Ad[] }) {
 function AdCard({ ad }: { ad: Ad }) {
   const store = Array.isArray(ad.stores) ? ad.stores[0] : ad.stores;
   const img = ad.hero_image_url ?? store?.hero_image_url ?? null;
-  const joinTo = store?.qr_slug ?? store?.slug ?? null;
+  const storeId = store?.id ?? null;
   const price =
     ad.sale_price != null
       ? `${ad.currency_code} ${Number(ad.sale_price).toFixed(2)}`
@@ -484,10 +484,10 @@ function AdCard({ ad }: { ad: Ad }) {
       : null;
 
   const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-    joinTo ? (
+    storeId ? (
       <Link
-        to="/join/$slug"
-        params={{ slug: joinTo }}
+        to="/stores/$storeId"
+        params={{ storeId }}
         className="block h-full w-full"
       >
         {children}
