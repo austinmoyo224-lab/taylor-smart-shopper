@@ -204,6 +204,13 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     if (p.ends_at && new Date(p.ends_at) < now) return false;
     return true;
   });
+  const followedIds = new Set(activePromos.map((p) => p.id));
+  const activeAllPromos = allPromos.filter((p) => {
+    if (followedIds.has(p.id)) return false;
+    if (p.starts_at && new Date(p.starts_at) > now) return false;
+    if (p.ends_at && new Date(p.ends_at) < now) return false;
+    return true;
+  });
   const activeCampaigns = campaigns.filter((c) => {
     if (c.store_id && !storeIds.includes(c.store_id)) return false;
     if (c.starts_at && new Date(c.starts_at) > now) return false;
