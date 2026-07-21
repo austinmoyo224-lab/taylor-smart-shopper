@@ -217,7 +217,7 @@ function ProductForm({
   const [available, setAvailable] = useState<boolean>(initial?.is_available ?? true);
   const [error, setError] = useState<string | null>(null);
 
-  const mut = useMutation({
+  const mut = useMutation<unknown, Error, void>({
     mutationFn: () =>
       initial
         ? updateProduct({
