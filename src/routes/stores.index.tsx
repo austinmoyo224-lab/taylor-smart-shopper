@@ -12,7 +12,7 @@ import {
 import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode } from "lucide-react";
 import { HeaderTrolley } from "@/components/HeaderTrolley";
 
-export const Route = createFileRoute("/stores")({
+export const Route = createFileRoute("/stores/")({
   ssr: false,
   head: () => ({
     meta: [

@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisionRouteImport } from './routes/vision'
-import { Route as StoresRouteImport } from './routes/stores'
 import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
@@ -29,6 +28,7 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoresIndexRouteImport } from './routes/stores.index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -65,11 +65,6 @@ import { Route as ApiPublicHooksFireRemindersRouteImport } from './routes/api/pu
 const VisionRoute = VisionRouteImport.update({
   id: '/vision',
   path: '/vision',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StoresRoute = StoresRouteImport.update({
-  id: '/stores',
-  path: '/stores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoreOnboardingRoute = StoreOnboardingRouteImport.update({
@@ -162,6 +157,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoresIndexRoute = StoresIndexRouteImport.update({
+  id: '/stores/',
+  path: '/stores/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecipesIndexRoute = RecipesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -178,9 +178,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const StoresStoreIdRoute = StoresStoreIdRouteImport.update({
-  id: '/$storeId',
-  path: '/$storeId',
-  getParentRoute: () => StoresRoute,
+  id: '/stores/$storeId',
+  path: '/stores/$storeId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesSlugRoute = RecipesSlugRouteImport.update({
   id: '/$slug',
@@ -343,7 +343,6 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
-  '/stores': typeof StoresRouteWithChildren
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -370,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/recipes/': typeof RecipesIndexRoute
+  '/stores/': typeof StoresIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
@@ -394,7 +394,6 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
-  '/stores': typeof StoresRouteWithChildren
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -420,6 +419,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
   '/recipes': typeof RecipesIndexRoute
+  '/stores': typeof StoresIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
@@ -448,7 +448,6 @@ export interface FileRoutesById {
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
-  '/stores': typeof StoresRouteWithChildren
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -475,6 +474,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/recipes/': typeof RecipesIndexRoute
+  '/stores/': typeof StoresIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/portal/stores/$storeId': typeof PortalStoresStoreIdRoute
@@ -504,7 +504,6 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/store-onboarding'
-    | '/stores'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -531,6 +530,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/portal/'
     | '/recipes/'
+    | '/stores/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
@@ -555,7 +555,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/store-onboarding'
-    | '/stores'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -581,6 +580,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/portal'
     | '/recipes'
+    | '/stores'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
@@ -608,7 +608,6 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/store-onboarding'
-    | '/stores'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -635,6 +634,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/portal/'
     | '/recipes/'
+    | '/stores/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/portal/stores/$storeId'
@@ -663,10 +663,11 @@ export interface RootRouteChildren {
   RecipesRoute: typeof RecipesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
-  StoresRoute: typeof StoresRouteWithChildren
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
+  StoresStoreIdRoute: typeof StoresStoreIdRoute
+  StoresIndexRoute: typeof StoresIndexRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
   ApiPublicHooksFireRemindersRoute: typeof ApiPublicHooksFireRemindersRoute
@@ -681,13 +682,6 @@ declare module '@tanstack/react-router' {
       path: '/vision'
       fullPath: '/vision'
       preLoaderRoute: typeof VisionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stores': {
-      id: '/stores'
-      path: '/stores'
-      fullPath: '/stores'
-      preLoaderRoute: typeof StoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/store-onboarding': {
@@ -816,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stores/': {
+      id: '/stores/'
+      path: '/stores'
+      fullPath: '/stores/'
+      preLoaderRoute: typeof StoresIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recipes/': {
       id: '/recipes/'
       path: '/'
@@ -839,10 +840,10 @@ declare module '@tanstack/react-router' {
     }
     '/stores/$storeId': {
       id: '/stores/$storeId'
-      path: '/$storeId'
+      path: '/stores/$storeId'
       fullPath: '/stores/$storeId'
       preLoaderRoute: typeof StoresStoreIdRouteImport
-      parentRoute: typeof StoresRoute
+      parentRoute: typeof rootRouteImport
     }
     '/recipes/$slug': {
       id: '/recipes/$slug'
@@ -1135,17 +1136,6 @@ const RecipesRouteChildren: RecipesRouteChildren = {
 const RecipesRouteWithChildren =
   RecipesRoute._addFileChildren(RecipesRouteChildren)
 
-interface StoresRouteChildren {
-  StoresStoreIdRoute: typeof StoresStoreIdRoute
-}
-
-const StoresRouteChildren: StoresRouteChildren = {
-  StoresStoreIdRoute: StoresStoreIdRoute,
-}
-
-const StoresRouteWithChildren =
-  StoresRoute._addFileChildren(StoresRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -1165,10 +1155,11 @@ const rootRouteChildren: RootRouteChildren = {
   RecipesRoute: RecipesRouteWithChildren,
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,
-  StoresRoute: StoresRouteWithChildren,
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
+  StoresStoreIdRoute: StoresStoreIdRoute,
+  StoresIndexRoute: StoresIndexRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
   ApiPublicHooksFireRemindersRoute: ApiPublicHooksFireRemindersRoute,
