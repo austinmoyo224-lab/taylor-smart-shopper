@@ -506,7 +506,7 @@ export const listProducts = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("products")
       .select(
-        "id, name, slug, sku, unit, unit_amount, base_price, currency_code, is_available, created_at",
+        "id, name, slug, sku, unit, unit_amount, base_price, currency_code, is_available, description, images, created_at",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)
@@ -531,6 +531,7 @@ const createProductSchema = z.object({
   base_price: z.number().nonnegative().optional().nullable(),
   currency_code: z.string().length(3).default("ZAR"),
   description: z.string().max(2000).optional().or(z.literal("")),
+  image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
 });
 
 export const createProduct = createServerFn({ method: "POST" })
@@ -551,11 +552,75 @@ export const createProduct = createServerFn({ method: "POST" })
         base_price: data.base_price ?? null,
         currency_code: data.currency_code,
         description: data.description || null,
+        images: data.image_url ? [data.image_url] : [],
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
     return { id: row.id };
+  });
+
+const updateProductSchema = z.object({
+  id: z.string().uuid(),
+  organisation_id: z.string().uuid(),
+  name: z.string().trim().min(1).max(200),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(120)
+    .regex(/^[a-z0-9-]+$/),
+  sku: z.string().trim().max(80).optional().or(z.literal("")),
+  unit: z.string().trim().max(20).optional().or(z.literal("")),
+  unit_amount: z.number().nonnegative().optional().nullable(),
+  base_price: z.number().nonnegative().optional().nullable(),
+  currency_code: z.string().length(3).default("ZAR"),
+  description: z.string().max(2000).optional().or(z.literal("")),
+  image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
+  is_available: z.boolean().optional(),
+});
+
+export const updateProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => updateProductSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("products")
+      .update({
+        name: data.name,
+        slug: data.slug,
+        sku: data.sku || null,
+        unit: data.unit || null,
+        unit_amount: data.unit_amount ?? null,
+        base_price: data.base_price ?? null,
+        currency_code: data.currency_code,
+        description: data.description || null,
+        images: data.image_url ? [data.image_url] : [],
+        ...(typeof data.is_available === "boolean" ? { is_available: data.is_available } : {}),
+      })
+      .eq("id", data.id)
+      .eq("organisation_id", data.organisation_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), organisation_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("products")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", data.id)
+      .eq("organisation_id", data.organisation_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 // ---------- PROMOTIONS ----------

@@ -1,9 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { createProduct, listProducts } from "@/lib/portal.functions";
+import {
+  createProduct,
+  deleteProduct,
+  listProducts,
+  updateProduct,
+} from "@/lib/portal.functions";
 import { usePortal } from "@/lib/portal-context";
-import { Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { StoreImageUploader } from "@/components/StoreImageUploader";
+
+type ProductRow = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string | null;
+  unit: string | null;
+  unit_amount: number | null;
+  base_price: number | null;
+  currency_code: string;
+  is_available: boolean;
+  description: string | null;
+  images: unknown;
+};
+
+function firstImage(images: unknown): string | null {
+  if (Array.isArray(images) && images.length > 0 && typeof images[0] === "string") {
+    return images[0] as string;
+  }
+  return null;
+}
 
 export const Route = createFileRoute("/portal/products")({
   ssr: false,
@@ -14,12 +41,20 @@ function ProductsPage() {
   const { activeOrgId, organisations } = usePortal();
   const qc = useQueryClient();
   const [show, setShow] = useState(false);
+  const [editing, setEditing] = useState<ProductRow | null>(null);
   const org = organisations.find((o) => o.id === activeOrgId);
 
   const { data, isLoading } = useQuery({
     queryKey: ["portal", "products", activeOrgId],
     queryFn: () => listProducts({ data: { organisation_id: activeOrgId } }),
     enabled: !!activeOrgId,
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) =>
+      deleteProduct({ data: { id, organisation_id: activeOrgId! } }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["portal", "products", activeOrgId] }),
   });
 
   const fmt = new Intl.NumberFormat("en-ZA", {
@@ -42,7 +77,10 @@ function ProductsPage() {
           </h1>
         </div>
         <button
-          onClick={() => setShow((v) => !v)}
+          onClick={() => {
+            setEditing(null);
+            setShow((v) => !v);
+          }}
           className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground"
         >
           <Plus className="size-4" />
@@ -50,12 +88,14 @@ function ProductsPage() {
         </button>
       </div>
 
-      {show && activeOrgId && (
-        <NewProductForm
+      {(show || editing) && activeOrgId && (
+        <ProductForm
           orgId={activeOrgId}
           currency={org?.default_currency ?? "ZAR"}
+          initial={editing}
           onDone={() => {
             setShow(false);
+            setEditing(null);
             void qc.invalidateQueries({ queryKey: ["portal", "products", activeOrgId] });
           }}
         />
@@ -65,30 +105,45 @@ function ProductsPage() {
         <table className="w-full text-left text-sm">
           <thead className="bg-background/60 text-[10px] uppercase tracking-widest text-muted">
             <tr>
+              <th className="px-4 py-3">Image</th>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">SKU</th>
               <th className="px-4 py-3">Unit</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Available</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-muted">
+                <td colSpan={7} className="px-4 py-6 text-muted">
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && (data?.length ?? 0) === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-muted">
+                <td colSpan={7} className="px-4 py-6 text-muted">
                   No products yet.
                 </td>
               </tr>
             )}
-            {(data ?? []).map((p) => (
+            {((data as ProductRow[] | undefined) ?? []).map((p) => {
+              const img = firstImage(p.images);
+              return (
               <tr key={p.id} className="border-t border-border">
+                <td className="px-4 py-3">
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={p.name}
+                      className="size-12 rounded-lg object-cover border border-border"
+                    />
+                  ) : (
+                    <div className="size-12 rounded-lg border border-dashed border-border bg-background/60" />
+                  )}
+                </td>
                 <td className="px-4 py-3 font-medium">
                   {p.name}
                   <div className="font-mono text-[10px] text-muted">{p.slug}</div>
@@ -101,8 +156,32 @@ function ProductsPage() {
                   {p.base_price != null ? fmt.format(Number(p.base_price)) : "—"}
                 </td>
                 <td className="px-4 py-3">{p.is_available ? "Yes" : "No"}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setShow(false);
+                        setEditing(p);
+                      }}
+                      className="inline-flex size-8 items-center justify-center rounded-full border border-border hover:bg-accent"
+                      aria-label="Edit product"
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Delete "${p.name}"?`)) del.mutate(p.id);
+                      }}
+                      className="inline-flex size-8 items-center justify-center rounded-full border border-border text-muted hover:text-destructive"
+                      aria-label="Delete product"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -110,39 +189,67 @@ function ProductsPage() {
   );
 }
 
-function NewProductForm({
+function ProductForm({
   orgId,
   currency,
+  initial,
   onDone,
 }: {
   orgId: string;
   currency: string;
+  initial: ProductRow | null;
   onDone: () => void;
 }) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [sku, setSku] = useState("");
-  const [unit, setUnit] = useState("");
-  const [unitAmount, setUnitAmount] = useState("");
-  const [basePrice, setBasePrice] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [slug, setSlug] = useState(initial?.slug ?? "");
+  const [sku, setSku] = useState(initial?.sku ?? "");
+  const [unit, setUnit] = useState(initial?.unit ?? "");
+  const [unitAmount, setUnitAmount] = useState(
+    initial?.unit_amount != null ? String(initial.unit_amount) : "",
+  );
+  const [basePrice, setBasePrice] = useState(
+    initial?.base_price != null ? String(initial.base_price) : "",
+  );
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    initial ? firstImage(initial.images) : null,
+  );
+  const [available, setAvailable] = useState<boolean>(initial?.is_available ?? true);
   const [error, setError] = useState<string | null>(null);
 
-  const mut = useMutation({
+  const mut = useMutation<unknown, Error, void>({
     mutationFn: () =>
-      createProduct({
-        data: {
-          organisation_id: orgId,
-          name,
-          slug,
-          sku,
-          unit,
-          unit_amount: unitAmount ? Number(unitAmount) : null,
-          base_price: basePrice ? Number(basePrice) : null,
-          currency_code: currency,
-          description,
-        },
-      }),
+      initial
+        ? updateProduct({
+            data: {
+              id: initial.id,
+              organisation_id: orgId,
+              name,
+              slug,
+              sku,
+              unit,
+              unit_amount: unitAmount ? Number(unitAmount) : null,
+              base_price: basePrice ? Number(basePrice) : null,
+              currency_code: currency,
+              description,
+              image_url: imageUrl ?? "",
+              is_available: available,
+            },
+          })
+        : createProduct({
+            data: {
+              organisation_id: orgId,
+              name,
+              slug,
+              sku,
+              unit,
+              unit_amount: unitAmount ? Number(unitAmount) : null,
+              base_price: basePrice ? Number(basePrice) : null,
+              currency_code: currency,
+              description,
+              image_url: imageUrl ?? "",
+            },
+          }),
     onSuccess: onDone,
     onError: (e: Error) => setError(e.message),
   });
@@ -156,6 +263,19 @@ function NewProductForm({
       }}
       className="mb-8 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-5 md:grid-cols-2"
     >
+      <div className="md:col-span-2">
+        <StoreImageUploader
+          organisationId={orgId}
+          folder="products"
+          label="Product picture"
+          aspect="square"
+          recommendedSize="1000×1000"
+          accept="image/*"
+          value={imageUrl}
+          onChange={setImageUrl}
+          className="max-w-xs"
+        />
+      </div>
       <F label="Name">
         <input
           value={name}
@@ -184,14 +304,14 @@ function NewProductForm({
       </F>
       <F label="SKU">
         <input
-          value={sku}
+          value={sku ?? ""}
           onChange={(e) => setSku(e.target.value)}
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
       </F>
       <F label="Unit (e.g. g, ml, ea)">
         <input
-          value={unit}
+          value={unit ?? ""}
           onChange={(e) => setUnit(e.target.value)}
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
@@ -217,20 +337,37 @@ function NewProductForm({
       <div className="md:col-span-2">
         <F label="Description">
           <textarea
-            value={description}
+            value={description ?? ""}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
           />
         </F>
       </div>
+      {initial && (
+        <label className="md:col-span-2 flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={available}
+            onChange={(e) => setAvailable(e.target.checked)}
+            className="size-4 accent-primary"
+          />
+          Available for sale
+        </label>
+      )}
       <div className="md:col-span-2">
         <button
           type="submit"
           disabled={mut.isPending}
           className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
         >
-          {mut.isPending ? "Creating…" : "Create product"}
+          {mut.isPending
+            ? initial
+              ? "Saving…"
+              : "Creating…"
+            : initial
+              ? "Save changes"
+              : "Create product"}
         </button>
         {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
       </div>
