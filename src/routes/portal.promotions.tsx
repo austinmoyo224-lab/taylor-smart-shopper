@@ -302,6 +302,7 @@ function PromoForm({
   const [endsAt, setEndsAt] = useState(toLocal(initial?.ends_at));
   const [publish, setPublish] = useState(initial?.is_published ?? false);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(initial?.hero_image_url ?? null);
+  const [gallery, setGallery] = useState<string[]>(initial?.metadata?.gallery ?? []);
   const [productIds, setProductIds] = useState<string[]>(
     initial?.promotion_products?.map((row) => row.product_id).filter(Boolean) ?? [],
   );
@@ -330,6 +331,7 @@ function PromoForm({
           ends_at: endsAt ? new Date(endsAt).toISOString() : "",
           is_published: publish,
           hero_image_url: heroImageUrl,
+          gallery_image_urls: gallery,
           // On edit, only send product_ids if the user actually changed the selection,
           // so we never wipe existing links when they just tweak the title/price.
           product_ids: isEdit && !productIdsDirty ? undefined : productIds,
@@ -435,6 +437,46 @@ function PromoForm({
           aspect="wide"
           recommendedSize="1600×900px advert or 1080×1350px social card"
         />
+      </div>
+      <div className="md:col-span-2">
+        <span className="mb-2 block text-[11px] font-medium text-muted">
+          Additional images ({gallery.length}/20)
+        </span>
+        {gallery.length > 0 && (
+          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            {gallery.map((url, idx) => (
+              <div
+                key={`${url}-${idx}`}
+                className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-background"
+              >
+                <img src={url} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setGallery((g) => g.filter((_, i) => i !== idx))}
+                  className="absolute right-1 top-1 rounded-full bg-background/90 p-1 text-muted shadow hover:text-destructive"
+                  aria-label="Remove image"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {gallery.length < 20 && (
+          <StoreImageUploader
+            key={`gallery-slot-${gallery.length}`}
+            organisationId={orgId}
+            storeId={storeId || null}
+            folder="promotions"
+            value={null}
+            onChange={(url) => {
+              if (url) setGallery((g) => [...g, url]);
+            }}
+            label="Add another image"
+            aspect="wide"
+            recommendedSize="Upload multiple — one at a time"
+          />
+        )}
       </div>
       <div className="md:col-span-2">
         <F label="Promotion items Taylor can use in recipes">
