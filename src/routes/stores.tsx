@@ -189,21 +189,27 @@ function StoresScreen() {
                 transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
               >
-                {s.logo_url ? (
-                  <img src={s.logo_url} alt={s.name} className="size-12 rounded-xl object-cover" />
-                ) : (
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary">
-                    {s.name.charAt(0)}
+                <Link
+                  to="/stores/$storeId"
+                  params={{ storeId: s.id }}
+                  className="flex flex-1 items-center gap-3 min-w-0"
+                >
+                  {s.logo_url ? (
+                    <img src={s.logo_url} alt={s.name} className="size-12 rounded-xl object-cover" />
+                  ) : (
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary">
+                      {s.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm font-medium">{s.name}</p>
+                    <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted">
+                      <MapPin className="size-3" />
+                      {s.city ?? "—"}
+                      {s.country_code ? `, ${s.country_code}` : ""}
+                    </p>
                   </div>
-                )}
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{s.name}</p>
-                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted">
-                    <MapPin className="size-3" />
-                    {s.city ?? "—"}
-                    {s.country_code ? `, ${s.country_code}` : ""}
-                  </p>
-                </div>
+                </Link>
                 <button
                   onClick={() => unsub.mutate(s.id)}
                   aria-label={`Unfollow ${s.name}`}

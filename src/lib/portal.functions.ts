@@ -705,7 +705,7 @@ export const listCoupons = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("coupons")
       .select(
-        "id, code, title, description, discount_percent, discount_amount, currency_code, status, starts_at, ends_at, usage_limit_total",
+        "id, code, title, description, discount_percent, discount_amount, currency_code, status, starts_at, ends_at, usage_limit_total, store_id, qr_payload",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)
@@ -717,6 +717,7 @@ export const listCoupons = createServerFn({ method: "GET" })
 
 const createCouponSchema = z.object({
   organisation_id: z.string().uuid(),
+  store_id: z.string().uuid().optional().nullable(),
   code: z
     .string()
     .trim()
@@ -744,6 +745,7 @@ export const createCoupon = createServerFn({ method: "POST" })
       .from("coupons")
       .insert({
         organisation_id: data.organisation_id,
+        store_id: data.store_id || null,
         code: data.code,
         title: data.title,
         description: data.description || null,
@@ -754,6 +756,7 @@ export const createCoupon = createServerFn({ method: "POST" })
         starts_at: data.starts_at || undefined,
         ends_at: data.ends_at || undefined,
         status: data.status,
+        qr_payload: `TAYLOR-COUPON:${data.code}`,
       })
       .select("id")
       .single();
