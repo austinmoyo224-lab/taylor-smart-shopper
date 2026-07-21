@@ -165,6 +165,28 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     metadata?: unknown;
     promotion_products?: { products?: PromotionProduct | PromotionProduct[] | null }[] | null;
   }[];
+
+  // Global catalogue — Taylor can see ALL stores & published promotions, not just followed.
+  const [allStoresRes, allPromosRes] = await Promise.all([
+    supabaseAdmin
+      .from("stores")
+      .select("id, organisation_id, name, city, country_code")
+      .is("deleted_at", null)
+      .eq("status", "active")
+      .limit(200),
+    supabaseAdmin
+      .from("promotions")
+      .select(
+        "id, title, type, is_sponsored, original_price, sale_price, currency_code, starts_at, ends_at, store_id, description, hero_image_url, metadata, promotion_products(products(name, description, unit, unit_amount, base_price, currency_code))",
+      )
+      .eq("is_published", true)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(120),
+  ]);
+  const allStores = (allStoresRes.data ?? []) as typeof stores;
+  const allPromos = (allPromosRes.data ?? []) as typeof promos;
+  const allStoreById = new Map(allStores.map((s) => [s.id, s]));
   const campaigns = (campaignsRes.data ?? []) as {
     id: string;
     name: string;
