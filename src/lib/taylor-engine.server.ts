@@ -263,8 +263,14 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
         .filter(Boolean)
         .slice(0, 12)
         .join(", ");
+      const meta = objectRecord((p as { metadata?: unknown }).metadata);
+      const gallery = Array.isArray(meta.gallery) ? (meta.gallery as unknown[]).filter((x) => typeof x === "string").length : 0;
+      const hasHero = Boolean((p as { hero_image_url?: string | null }).hero_image_url);
+      const media = hasHero || gallery > 0
+        ? ` [flyer available — call read_promotion_flyer with promotion_id=${p.id}]`
+        : "";
       const detail = [p.description, items ? `Items: ${items}` : null].filter(Boolean).join(" | ");
-      lines.push(`- ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}${detail ? ` — ${detail}` : ""}`);
+      lines.push(`- (id:${p.id}) ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}${detail ? ` — ${detail}` : ""}${media}`);
     }
   }
 
@@ -305,6 +311,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
 
   lines.push("");
   lines.push("SAVING FOR THE SUBSCRIBER (tools — use them, don't just describe)");
+  lines.push(
+    "- When a subscriber asks about a specific promotion, deal, price, or what's on sale, and the promotion shows [flyer available], CALL the read_promotion_flyer tool with that promotion_id FIRST. The flyer image or PDF contains the real advertised prices and items. Use those extracted prices verbatim in your reply — do NOT say 'price on request' or 'I don't have access' when a flyer is available. Only fall back to the summary price if the tool call fails.",
+  );
   lines.push(
     "- Whenever you propose a shopping list (from a chat request, a pantry check, a fridge review, or a scanned receipt), CALL the save_shopping_list tool with a short name and the full item array BEFORE finishing your reply. Then mention 'I've saved this to your Lists' with a brief summary.",
   );
