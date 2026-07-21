@@ -151,14 +151,15 @@ function buildTaylorTools(userId: string) {
   return {
     read_promotion_flyer: tool({
       description:
-        "Read the flyer image(s) and any attached PDF for a specific promotion to extract advertised prices, product names, quantities and terms. Call this whenever the subscriber asks about a promotion, deal, or what's on sale for a store they follow. Returns the text extracted from the flyer.",
+        "Read the flyer image(s) and any attached PDF for a specific promotion to answer the subscriber's price/item question. Call this whenever the subscriber asks about a promotion, a deal, or the price of a specific product at ANY store on Taylor (followed or not). Pass the exact item the subscriber asked about in `question` — the tool returns ONLY the matching items with their advertised prices, not the whole flyer.",
       inputSchema: z.object({
         promotion_id: z.string().uuid().describe("The promotion id from the LIVE PROMOTIONS list"),
         question: z
           .string()
           .max(300)
-          .optional()
-          .describe("Optional: what the subscriber specifically wants to know (e.g. 'price of maize meal')"),
+          .describe(
+            "The specific item(s) or question from the subscriber, e.g. 'price of Iwisa maize meal 5kg' or 'is Coca-Cola 2L on special'. Required — the extractor filters the flyer to only these items.",
+          ),
       }),
       execute: async ({ promotion_id, question }) => {
         try {
@@ -205,15 +206,22 @@ function buildTaylorTools(userId: string) {
           }
 
           // Build vision request. PDFs need to be inlined as base64 file blocks.
+          const q = (question ?? "").trim();
+          const storeName =
+            promo.stores && "name" in promo.stores
+              ? (promo.stores as { name?: string }).name
+              : "";
           const content: Array<Record<string, unknown>> = [
             {
               type: "text",
               text:
-                `Extract everything a shopper would want from this promotional flyer for "${promo.title}"` +
-                (promo.stores && "name" in promo.stores ? ` at ${(promo.stores as { name?: string }).name}` : "") +
-                `. List every product with its advertised price, quantity/size, and any terms (dates, limits, "while stocks last"). Format as short bullet points. Currency is ${promo.currency_code || "ZAR"}.` +
-                (question ? ` Focus especially on: ${question}` : "") +
-                ` If the flyer contains no readable prices, say so honestly.`,
+                `This is a promotional flyer for "${promo.title}"${storeName ? ` at ${storeName}` : ""}. ` +
+                `The shopper is asking specifically about: "${q || "(no specific item — return the 5 best-value items)"}". ` +
+                `Scan every page/image. Return ONLY the items that match the shopper's request (name variants, sizes and brands count as matches). ` +
+                `For each match give a short bullet with: exact product name as printed, size/quantity, advertised price (with R prefix, exactly as printed), and any relevant terms (dates, "while stocks last", limits). ` +
+                `Currency is ${promo.currency_code || "ZAR"}. ` +
+                `If nothing on the flyer matches the request, reply exactly: NO_MATCH — then list up to 3 nearest alternatives briefly. ` +
+                `If the flyer has no readable prices at all, reply exactly: NO_PRICES. Never invent items or prices.`,
             },
           ];
           for (const url of imageUrls.slice(0, 6)) {
