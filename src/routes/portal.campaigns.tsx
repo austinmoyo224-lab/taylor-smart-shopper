@@ -146,12 +146,31 @@ function NewCampaignForm({
   >("campaign");
   const [sendNow, setSendNow] = useState(true);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [attachmentMeta, setAttachmentMeta] = useState<{
+    name: string;
+    contentType: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ delivered: number } | null>(null);
 
   const mut = useMutation({
-    mutationFn: () =>
-      createCampaign({
+    mutationFn: () => {
+      const isPdf =
+        attachmentMeta?.contentType === "application/pdf" ||
+        (attachmentMeta?.name.toLowerCase().endsWith(".pdf") ?? false) ||
+        (imageUrl?.toLowerCase().includes(".pdf") ?? false);
+      const attachments = imageUrl
+        ? [
+            {
+              type: (isPdf ? "catalog_pdf" : "flyer_image") as
+                | "catalog_pdf"
+                | "flyer_image",
+              url: imageUrl,
+              name: attachmentMeta?.name ?? (isPdf ? "Campaign PDF" : "Campaign image"),
+            },
+          ]
+        : [];
+      return createCampaign({
         data: {
           organisation_id: orgId,
           store_id: storeId || null,
@@ -161,9 +180,11 @@ function NewCampaignForm({
           body,
           category,
           send_now: sendNow,
-          image_url: imageUrl,
+          image_url: isPdf ? null : imageUrl,
+          attachments,
         },
-      }),
+      });
+    },
     onSuccess: (res) => {
       setResult(res);
       if (!sendNow) onDone();
@@ -224,9 +245,11 @@ function NewCampaignForm({
           folder="campaigns"
           value={imageUrl}
           onChange={setImageUrl}
-          label="Campaign image"
+          onMetaChange={setAttachmentMeta}
+          label="Campaign image or PDF"
           aspect="wide"
-          recommendedSize="1600×900px campaign banner or 1080×1350px advert"
+          recommendedSize="1600×900px banner, 1080×1350px advert, or a PDF catalogue"
+          accept="image/*,application/pdf"
         />
       </div>
       <F label="Category">

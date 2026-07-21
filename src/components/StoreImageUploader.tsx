@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Upload, X, ImagePlus } from "lucide-react";
+import { Upload, X, ImagePlus, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { signStoreAssetUrl } from "@/lib/portal.functions";
 
@@ -15,8 +15,10 @@ export function StoreImageUploader({
   label,
   aspect = "square",
   recommendedSize,
-  accept = "image/*",
+  accept = "image/*,application/pdf",
   className,
+  fileName,
+  onMetaChange,
 }: {
   organisationId: string;
   storeId?: string | null;
@@ -28,10 +30,14 @@ export function StoreImageUploader({
   recommendedSize?: string;
   accept?: string;
   className?: string;
+  fileName?: string | null;
+  onMetaChange?: (meta: { name: string; contentType: string } | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [localName, setLocalName] = useState<string | null>(fileName ?? null);
+  const [localType, setLocalType] = useState<string | null>(null);
 
   async function pick(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -50,6 +56,9 @@ export function StoreImageUploader({
         data: { organisation_id: organisationId, path },
       });
       onChange(url);
+      setLocalName(file.name);
+      setLocalType(file.type);
+      onMetaChange?.({ name: file.name, contentType: file.type });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -60,6 +69,12 @@ export function StoreImageUploader({
 
   const aspectCls =
     aspect === "wide" ? "aspect-[3/1]" : aspect === "tall" ? "aspect-[3/4]" : "aspect-square";
+
+  const displayName = localName ?? fileName ?? null;
+  const isPdf =
+    localType === "application/pdf" ||
+    (!!displayName && displayName.toLowerCase().endsWith(".pdf")) ||
+    (!!value && value.toLowerCase().includes(".pdf"));
 
   return (
     <div className={className}>
@@ -74,10 +89,30 @@ export function StoreImageUploader({
       >
         {value ? (
           <>
-            <img src={value} alt={label} className="h-full w-full object-cover" />
+            {isPdf ? (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-muted/10 px-4 text-center">
+                <FileText className="size-10 text-primary" />
+                <span className="text-xs font-medium">{displayName ?? "PDF attachment"}</span>
+                <a
+                  href={value}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] text-primary underline"
+                >
+                  Open PDF
+                </a>
+              </div>
+            ) : (
+              <img src={value} alt={label} className="h-full w-full object-cover" />
+            )}
             <button
               type="button"
-              onClick={() => onChange(null)}
+              onClick={() => {
+                onChange(null);
+                setLocalName(null);
+                setLocalType(null);
+                onMetaChange?.(null);
+              }}
               className="absolute right-2 top-2 rounded-full bg-background/90 p-1 text-muted shadow hover:text-destructive"
               aria-label="Remove image"
             >
@@ -93,7 +128,7 @@ export function StoreImageUploader({
             <ImagePlus className="size-6 text-primary/70" />
             <span>Click to upload</span>
             <span className="text-[10px]">
-              PNG, JPG, WEBP up to 20MB{recommendedSize ? ` · ${recommendedSize}` : ""}
+              PNG, JPG, WEBP, PDF up to 20MB{recommendedSize ? ` · ${recommendedSize}` : ""}
             </span>
           </button>
         )}
@@ -111,7 +146,12 @@ export function StoreImageUploader({
         {value && (
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => {
+              onChange(null);
+              setLocalName(null);
+              setLocalType(null);
+              onMetaChange?.(null);
+            }}
             className="rounded-full border border-border px-3 py-1 text-[11px] hover:bg-accent"
           >
             Remove

@@ -127,6 +127,19 @@ const createCampaignSchema = z.object({
     .default("campaign"),
   send_now: z.boolean().default(false),
   image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
+  attachments: z
+    .array(
+      z.object({
+        type: z.enum(["catalog_pdf", "flyer_image", "coupon", "promotion"]),
+        url: z.string().url().max(2000).optional().nullable(),
+        name: z.string().max(200).optional().nullable(),
+        coupon_id: z.string().uuid().optional().nullable(),
+        promotion_id: z.string().uuid().optional().nullable(),
+      }),
+    )
+    .max(10)
+    .optional()
+    .default([]),
 });
 
 /** Creates a campaign row. If send_now, fans out an in-app notification to
@@ -152,6 +165,7 @@ export const createCampaign = createServerFn({ method: "POST" })
           body: data.body ?? "",
           category: data.category,
           image_url: data.image_url || null,
+          attachments: data.attachments ?? [],
         },
         is_active: data.send_now,
         starts_at: data.send_now ? new Date().toISOString() : undefined,
@@ -162,6 +176,13 @@ export const createCampaign = createServerFn({ method: "POST" })
 
     let delivered = 0;
     if (data.send_now) {
+      // Merge campaign image_url into attachments as a flyer_image (backward compat).
+      const mergedAttachments = [
+        ...(data.attachments ?? []),
+        ...(data.image_url
+          ? [{ type: "flyer_image" as const, url: data.image_url, name: "Campaign image" }]
+          : []),
+      ];
       delivered = await deliverCampaign({
         campaignId: camp.id,
         orgId: data.organisation_id,
@@ -170,6 +191,7 @@ export const createCampaign = createServerFn({ method: "POST" })
         body: data.body ?? "",
         category: data.category as Category,
         senderUserId: context.userId,
+        attachments: mergedAttachments,
       });
     }
     return { id: camp.id, delivered };
@@ -183,6 +205,13 @@ async function deliverCampaign(opts: {
   body: string;
   category: Category;
   senderUserId: string;
+  attachments?: Array<{
+    type: "catalog_pdf" | "flyer_image" | "coupon" | "promotion";
+    url?: string | null;
+    name?: string | null;
+    coupon_id?: string | null;
+    promotion_id?: string | null;
+  }>;
 }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -276,7 +305,7 @@ async function deliverCampaign(opts: {
           sender_user_id: opts.senderUserId,
           title: opts.title,
           body: opts.body || null,
-          attachments: [],
+          attachments: opts.attachments ?? [],
         })
         .select("id")
         .single();
@@ -338,7 +367,21 @@ export const sendCampaignNow = createServerFn({ method: "POST" })
         title?: string;
         body?: string;
         category?: Category;
+        image_url?: string | null;
+        attachments?: Array<{
+          type: "catalog_pdf" | "flyer_image" | "coupon" | "promotion";
+          url?: string | null;
+          name?: string | null;
+          coupon_id?: string | null;
+          promotion_id?: string | null;
+        }>;
       }) ?? {};
+    const mergedAttachments = [
+      ...(sched.attachments ?? []),
+      ...(sched.image_url
+        ? [{ type: "flyer_image" as const, url: sched.image_url, name: "Campaign image" }]
+        : []),
+    ];
     const delivered = await deliverCampaign({
       campaignId: camp.id,
       orgId: camp.organisation_id,
@@ -347,6 +390,7 @@ export const sendCampaignNow = createServerFn({ method: "POST" })
       body: sched.body ?? "",
       category: (sched.category ?? "campaign") as Category,
       senderUserId: context.userId,
+      attachments: mergedAttachments,
     });
     await supabaseAdmin
       .from("campaigns")
