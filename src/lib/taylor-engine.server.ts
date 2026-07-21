@@ -165,6 +165,28 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     metadata?: unknown;
     promotion_products?: { products?: PromotionProduct | PromotionProduct[] | null }[] | null;
   }[];
+
+  // Global catalogue — Taylor can see ALL stores & published promotions, not just followed.
+  const [allStoresRes, allPromosRes] = await Promise.all([
+    supabaseAdmin
+      .from("stores")
+      .select("id, organisation_id, name, city, country_code")
+      .is("deleted_at", null)
+      .eq("status", "active")
+      .limit(200),
+    supabaseAdmin
+      .from("promotions")
+      .select(
+        "id, title, type, is_sponsored, original_price, sale_price, currency_code, starts_at, ends_at, store_id, description, hero_image_url, metadata, promotion_products(products(name, description, unit, unit_amount, base_price, currency_code))",
+      )
+      .eq("is_published", true)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(120),
+  ]);
+  const allStores = (allStoresRes.data ?? []) as typeof stores;
+  const allPromos = (allPromosRes.data ?? []) as typeof promos;
+  const allStoreById = new Map(allStores.map((s) => [s.id, s]));
   const campaigns = (campaignsRes.data ?? []) as {
     id: string;
     name: string;
@@ -178,6 +200,13 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
 
   const now = new Date();
   const activePromos = promos.filter((p) => {
+    if (p.starts_at && new Date(p.starts_at) > now) return false;
+    if (p.ends_at && new Date(p.ends_at) < now) return false;
+    return true;
+  });
+  const followedIds = new Set(activePromos.map((p) => p.id));
+  const activeAllPromos = allPromos.filter((p) => {
+    if (followedIds.has(p.id)) return false;
     if (p.starts_at && new Date(p.starts_at) > now) return false;
     if (p.ends_at && new Date(p.ends_at) < now) return false;
     return true;
@@ -287,6 +316,50 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
       const category = stringVal(schedule.category);
       lines.push(
         `- ${title}${category ? ` [${category}]` : ""}${store ? ` @ ${store}` : ""}${body ? ` — ${body}` : ""}`,
+      );
+    }
+  }
+
+  // Global catalogue Taylor can quote from, even for stores the subscriber doesn't yet follow.
+  lines.push("");
+  if (allStores.length) {
+    lines.push(
+      `ALL STORES ON TAYLOR (${allStores.length}) — Taylor may reference any of these when the subscriber asks about a store or product she has not followed yet. Suggest following for personalised deals.`,
+    );
+    for (const s of allStores.slice(0, 80)) {
+      lines.push(`- ${s.name}${s.city ? ` (${s.city})` : ""}`);
+    }
+  }
+  if (activeAllPromos.length) {
+    lines.push("");
+    lines.push(
+      `OTHER LIVE PROMOTIONS ACROSS TAYLOR (${activeAllPromos.length}) — quote only these when the subscriber asks about a deal or price at a store they don't follow. Same rules: name the store, label sponsored, never fabricate prices.`,
+    );
+    for (const p of activeAllPromos.slice(0, 40)) {
+      const store = p.store_id ? allStoreById.get(p.store_id)?.name : null;
+      const price = p.sale_price
+        ? `${p.currency_code} ${p.sale_price}${p.original_price ? ` (was ${p.original_price})` : ""}`
+        : "price on request";
+      const sponsored = p.is_sponsored ? " [SPONSORED]" : "";
+      const items = promotionItems(p)
+        .map((item) => formatPromotionItem(item))
+        .filter(Boolean)
+        .slice(0, 8)
+        .join(", ");
+      const meta = objectRecord((p as { metadata?: unknown }).metadata);
+      const gallery = Array.isArray(meta.gallery)
+        ? (meta.gallery as unknown[]).filter((x) => typeof x === "string").length
+        : 0;
+      const hasHero = Boolean((p as { hero_image_url?: string | null }).hero_image_url);
+      const media =
+        hasHero || gallery > 0
+          ? ` [flyer available — call read_promotion_flyer with promotion_id=${p.id}]`
+          : "";
+      const detail = [p.description, items ? `Items: ${items}` : null]
+        .filter(Boolean)
+        .join(" | ");
+      lines.push(
+        `- (id:${p.id}) ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}${detail ? ` — ${detail}` : ""}${media}`,
       );
     }
   }
