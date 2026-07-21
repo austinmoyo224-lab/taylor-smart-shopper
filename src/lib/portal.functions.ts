@@ -634,7 +634,7 @@ export const listPromotions = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("promotions")
       .select(
-        "id, title, description, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, hero_image_url, stores(name), promotion_products(product_id, products(name))",
+        "id, title, description, type, is_sponsored, is_published, original_price, sale_price, currency_code, starts_at, ends_at, store_id, hero_image_url, metadata, stores(name), promotion_products(product_id, products(name))",
       )
       .eq("organisation_id", data.organisation_id)
       .is("deleted_at", null)
@@ -658,6 +658,7 @@ const createPromotionSchema = z.object({
   ends_at: z.string().datetime().optional().or(z.literal("")),
   is_published: z.boolean().default(false),
   hero_image_url: z.string().url().max(2000).optional().nullable().or(z.literal("")),
+  gallery_image_urls: z.array(z.string().url().max(2000)).max(20).optional().default([]),
   product_ids: z.array(z.string().uuid()).max(80).optional().default([]),
 });
 
@@ -690,6 +691,7 @@ export const createPromotion = createServerFn({ method: "POST" })
         ends_at: data.ends_at || undefined,
         is_published: data.is_published,
         hero_image_url: data.hero_image_url || null,
+        metadata: { gallery: data.gallery_image_urls ?? [] },
       })
       .select("id")
       .single();
@@ -731,6 +733,7 @@ export const updatePromotion = createServerFn({ method: "POST" })
         ends_at: data.ends_at || undefined,
         is_published: data.is_published,
         hero_image_url: data.hero_image_url || null,
+        metadata: { gallery: data.gallery_image_urls ?? [] },
       })
       .eq("id", data.id)
       .eq("organisation_id", data.organisation_id);
