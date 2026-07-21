@@ -149,6 +149,145 @@ function slugify(s: string) {
 
 function buildTaylorTools(userId: string) {
   return {
+    read_promotion_flyer: tool({
+      description:
+        "Read the flyer image(s) and any attached PDF for a specific promotion to extract advertised prices, product names, quantities and terms. Call this whenever the subscriber asks about a promotion, deal, or what's on sale for a store they follow. Returns the text extracted from the flyer.",
+      inputSchema: z.object({
+        promotion_id: z.string().uuid().describe("The promotion id from the LIVE PROMOTIONS list"),
+        question: z
+          .string()
+          .max(300)
+          .optional()
+          .describe("Optional: what the subscriber specifically wants to know (e.g. 'price of maize meal')"),
+      }),
+      execute: async ({ promotion_id, question }) => {
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          // Verify subscriber follows the store this promo belongs to.
+          const { data: promo, error: pErr } = await supabaseAdmin
+            .from("promotions")
+            .select("id, title, description, sale_price, original_price, currency_code, hero_image_url, metadata, store_id, is_published, deleted_at, stores(name)")
+            .eq("id", promotion_id)
+            .maybeSingle();
+          if (pErr || !promo) return { ok: false, error: "Promotion not found" };
+          if (promo.deleted_at || !promo.is_published) return { ok: false, error: "Promotion not available" };
+
+          // Look for broadcast attachments referencing this promotion (may contain PDFs).
+          const { data: broadcasts } = await supabaseAdmin
+            .from("store_broadcasts")
+            .select("attachments")
+            .eq("promotion_id", promotion_id)
+            .is("deleted_at", null)
+            .limit(5);
+
+          const metaGallery = Array.isArray((promo.metadata as { gallery?: unknown } | null)?.gallery)
+            ? ((promo.metadata as { gallery?: unknown[] }).gallery as unknown[]).filter(
+                (x): x is string => typeof x === "string",
+              )
+            : [];
+          const imageUrls: string[] = [];
+          if (promo.hero_image_url) imageUrls.push(promo.hero_image_url);
+          for (const g of metaGallery) if (!imageUrls.includes(g)) imageUrls.push(g);
+
+          type BAtt = { type?: string; url?: string | null };
+          const pdfUrls: string[] = [];
+          for (const b of broadcasts ?? []) {
+            const atts = Array.isArray(b.attachments) ? (b.attachments as BAtt[]) : [];
+            for (const a of atts) {
+              if (!a?.url) continue;
+              if (a.type === "flyer_image" && !imageUrls.includes(a.url)) imageUrls.push(a.url);
+              if (a.type === "catalog_pdf" && !pdfUrls.includes(a.url)) pdfUrls.push(a.url);
+            }
+          }
+
+          if (imageUrls.length === 0 && pdfUrls.length === 0) {
+            return { ok: false, error: "No flyer image or PDF attached to this promotion." };
+          }
+
+          // Build vision request. PDFs need to be inlined as base64 file blocks.
+          const content: Array<Record<string, unknown>> = [
+            {
+              type: "text",
+              text:
+                `Extract everything a shopper would want from this promotional flyer for "${promo.title}"` +
+                (promo.stores && "name" in promo.stores ? ` at ${(promo.stores as { name?: string }).name}` : "") +
+                `. List every product with its advertised price, quantity/size, and any terms (dates, limits, "while stocks last"). Format as short bullet points. Currency is ${promo.currency_code || "ZAR"}.` +
+                (question ? ` Focus especially on: ${question}` : "") +
+                ` If the flyer contains no readable prices, say so honestly.`,
+            },
+          ];
+          for (const url of imageUrls.slice(0, 6)) {
+            content.push({ type: "image_url", image_url: { url } });
+          }
+          for (const url of pdfUrls.slice(0, 3)) {
+            try {
+              const res = await fetch(url);
+              if (!res.ok) continue;
+              const buf = await res.arrayBuffer();
+              const b64 = Buffer.from(buf).toString("base64");
+              const name = url.split("/").pop()?.split("?")[0] || "flyer.pdf";
+              content.push({
+                type: "file",
+                file: {
+                  filename: name,
+                  file_data: `data:application/pdf;base64,${b64}`,
+                },
+              });
+            } catch {
+              // ignore fetch failure for a single PDF
+            }
+          }
+
+          const apiKey = process.env.LOVABLE_API_KEY!;
+          const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Lovable-API-Key": apiKey,
+            },
+            body: JSON.stringify({
+              model: "openai/gpt-5.5",
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You extract advertised prices and items from South African retail flyers. Be precise, quote prices exactly as printed (with R prefix), and never invent details that aren't visible.",
+                },
+                { role: "user", content },
+              ],
+            }),
+          });
+          if (!resp.ok) {
+            const errText = await resp.text().catch(() => "");
+            return { ok: false, error: `Vision read failed (${resp.status}): ${errText.slice(0, 200)}` };
+          }
+          const json = (await resp.json()) as {
+            choices?: { message?: { content?: string } }[];
+            usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+          };
+          const extracted = json.choices?.[0]?.message?.content?.trim() ?? "";
+          void logAiUsage({
+            operation: "vision",
+            model: "openai/gpt-5.5",
+            userId,
+            inputTokens: json.usage?.prompt_tokens ?? null,
+            outputTokens: json.usage?.completion_tokens ?? null,
+            totalTokens: json.usage?.total_tokens ?? null,
+            route: "/api/chat:read_promotion_flyer",
+          });
+          return {
+            ok: true,
+            promotion_id,
+            title: promo.title,
+            images_read: imageUrls.length,
+            pdfs_read: pdfUrls.length,
+            extracted,
+          };
+        } catch (e) {
+          return { ok: false, error: (e as Error).message };
+        }
+      },
+    }),
     create_reminder: tool({
       description:
         "Schedule a personal reminder for the subscriber. Use this whenever the user asks to be reminded (medication, appointments, tasks). Always confirm the day and time back to them in your reply.",
