@@ -320,6 +320,50 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     }
   }
 
+  // Global catalogue Taylor can quote from, even for stores the subscriber doesn't yet follow.
+  lines.push("");
+  if (allStores.length) {
+    lines.push(
+      `ALL STORES ON TAYLOR (${allStores.length}) — Taylor may reference any of these when the subscriber asks about a store or product she has not followed yet. Suggest following for personalised deals.`,
+    );
+    for (const s of allStores.slice(0, 80)) {
+      lines.push(`- ${s.name}${s.city ? ` (${s.city})` : ""}`);
+    }
+  }
+  if (activeAllPromos.length) {
+    lines.push("");
+    lines.push(
+      `OTHER LIVE PROMOTIONS ACROSS TAYLOR (${activeAllPromos.length}) — quote only these when the subscriber asks about a deal or price at a store they don't follow. Same rules: name the store, label sponsored, never fabricate prices.`,
+    );
+    for (const p of activeAllPromos.slice(0, 40)) {
+      const store = p.store_id ? allStoreById.get(p.store_id)?.name : null;
+      const price = p.sale_price
+        ? `${p.currency_code} ${p.sale_price}${p.original_price ? ` (was ${p.original_price})` : ""}`
+        : "price on request";
+      const sponsored = p.is_sponsored ? " [SPONSORED]" : "";
+      const items = promotionItems(p)
+        .map((item) => formatPromotionItem(item))
+        .filter(Boolean)
+        .slice(0, 8)
+        .join(", ");
+      const meta = objectRecord((p as { metadata?: unknown }).metadata);
+      const gallery = Array.isArray(meta.gallery)
+        ? (meta.gallery as unknown[]).filter((x) => typeof x === "string").length
+        : 0;
+      const hasHero = Boolean((p as { hero_image_url?: string | null }).hero_image_url);
+      const media =
+        hasHero || gallery > 0
+          ? ` [flyer available — call read_promotion_flyer with promotion_id=${p.id}]`
+          : "";
+      const detail = [p.description, items ? `Items: ${items}` : null]
+        .filter(Boolean)
+        .join(" | ");
+      lines.push(
+        `- (id:${p.id}) ${p.title}${sponsored} — ${price}${store ? ` @ ${store}` : ""}${detail ? ` — ${detail}` : ""}${media}`,
+      );
+    }
+  }
+
   lines.push("");
   lines.push("DECISION ENGINE");
   lines.push(
