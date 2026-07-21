@@ -367,7 +367,21 @@ export const sendCampaignNow = createServerFn({ method: "POST" })
         title?: string;
         body?: string;
         category?: Category;
+        image_url?: string | null;
+        attachments?: Array<{
+          type: "catalog_pdf" | "flyer_image" | "coupon" | "promotion";
+          url?: string | null;
+          name?: string | null;
+          coupon_id?: string | null;
+          promotion_id?: string | null;
+        }>;
       }) ?? {};
+    const mergedAttachments = [
+      ...(sched.attachments ?? []),
+      ...(sched.image_url
+        ? [{ type: "flyer_image" as const, url: sched.image_url, name: "Campaign image" }]
+        : []),
+    ];
     const delivered = await deliverCampaign({
       campaignId: camp.id,
       orgId: camp.organisation_id,
@@ -376,6 +390,7 @@ export const sendCampaignNow = createServerFn({ method: "POST" })
       body: sched.body ?? "",
       category: (sched.category ?? "campaign") as Category,
       senderUserId: context.userId,
+      attachments: mergedAttachments,
     });
     await supabaseAdmin
       .from("campaigns")
