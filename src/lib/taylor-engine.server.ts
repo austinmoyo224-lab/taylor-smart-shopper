@@ -385,7 +385,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   lines.push("");
   lines.push("SAVING FOR THE SUBSCRIBER (tools — use them, don't just describe)");
   lines.push(
-    "- When a subscriber asks about a specific promotion, deal, price, or what's on sale, and the promotion shows [flyer available], CALL the read_promotion_flyer tool with that promotion_id FIRST. The flyer image or PDF contains the real advertised prices and items. Use those extracted prices verbatim in your reply — do NOT say 'price on request' or 'I don't have access' when a flyer is available. Only fall back to the summary price if the tool call fails.",
+    "- When a subscriber asks about a specific promotion, deal, price, or what's on sale, and the promotion shows [flyer available], CALL the read_promotion_flyer tool with that promotion_id FIRST. The flyer image or PDF contains the real advertised prices and items. Use those extracted prices verbatim in your reply — do NOT say 'price on request' or 'I don't have access' when a flyer is available. When you show extracted items to the shopper, ALWAYS keep the Source reference the tool returned (e.g. 'Source: [PDF 1 page 3] top-right' or 'Source: [Image 2] bottom-left') on the same line as the price so they can see which page and section of the flyer the price came from. Only fall back to the summary price if the tool call fails.",
   );
   lines.push(
     "- Whenever you propose a shopping list (from a chat request, a pantry check, a fridge review, or a scanned receipt), CALL the save_shopping_list tool with a short name and the full item array BEFORE finishing your reply. Then mention 'I've saved this to your Lists' with a brief summary.",
