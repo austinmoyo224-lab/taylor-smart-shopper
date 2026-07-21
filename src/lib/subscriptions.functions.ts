@@ -263,3 +263,113 @@ export const listFeaturedAds = createServerFn({ method: "GET" })
     if (error) return [];
     return data ?? [];
   });
+
+/**
+ * Shopper: full store profile for the public store page, including
+ * published promotions and (if the caller is signed in and follows the
+ * store) the active coupons they can redeem.
+ */
+export const getStorePublicProfile = createServerFn({ method: "GET" })
+  .inputValidator((d: unknown) => z.object({ storeId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const nowIso = new Date().toISOString();
+    const { data: store, error } = await supabaseAdmin
+      .from("stores")
+      .select(
+        "id, organisation_id, name, slug, qr_slug, description, logo_url, hero_image_url, city, region, country_code, address_line1, address_line2, postal_code, latitude, longitude, contact_email, contact_phone, trading_hours, status, is_public",
+      )
+      .eq("id", data.storeId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!store) return null;
+
+    const { data: promotions } = await supabaseAdmin
+      .from("promotions")
+      .select(
+        "id, title, description, type, is_sponsored, original_price, sale_price, currency_code, hero_image_url, starts_at, ends_at",
+      )
+      .eq("store_id", store.id)
+      .eq("is_published", true)
+      .is("deleted_at", null)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .order("is_sponsored", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(40);
+
+    return { store, promotions: promotions ?? [] };
+  });
+
+/** Shopper: promotions from every store the caller currently follows. */
+export const listMyDeals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const nowIso = new Date().toISOString();
+    const { data: subs } = await supabaseAdmin
+      .from("subscriber_store_subs")
+      .select("target_id")
+      .eq("user_id", context.userId)
+      .eq("target_type", "store")
+      .eq("is_active", true);
+    const storeIds = (subs ?? []).map((s) => s.target_id);
+    if (storeIds.length === 0) return [];
+    const { data, error } = await supabaseAdmin
+      .from("promotions")
+      .select(
+        "id, title, description, type, is_sponsored, original_price, sale_price, currency_code, hero_image_url, ends_at, store_id, stores(id, name, logo_url, qr_slug)",
+      )
+      .in("store_id", storeIds)
+      .eq("is_published", true)
+      .is("deleted_at", null)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .order("is_sponsored", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(80);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+/** Shopper: active coupons for every store the caller follows. */
+export const listMyCoupons = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const nowIso = new Date().toISOString();
+    const { data: subs } = await supabaseAdmin
+      .from("subscriber_store_subs")
+      .select("target_id")
+      .eq("user_id", context.userId)
+      .eq("target_type", "store")
+      .eq("is_active", true);
+    const storeIds = (subs ?? []).map((s) => s.target_id);
+    if (storeIds.length === 0) return [];
+    const { data: stores } = await supabaseAdmin
+      .from("stores")
+      .select("id, name, organisation_id, logo_url")
+      .in("id", storeIds);
+    const orgIds = Array.from(new Set((stores ?? []).map((s) => s.organisation_id)));
+    const { data, error } = await supabaseAdmin
+      .from("coupons")
+      .select(
+        "id, code, title, description, discount_percent, discount_amount, currency_code, ends_at, starts_at, usage_limit_total, store_id, organisation_id, qr_payload",
+      )
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .or(
+        `store_id.in.(${storeIds.join(",")}),and(store_id.is.null,organisation_id.in.(${orgIds.join(",")}))`,
+      )
+      .order("created_at", { ascending: false })
+      .limit(80);
+    if (error) throw new Error(error.message);
+    const storeMap = new Map((stores ?? []).map((s) => [s.id, s]));
+    const orgToStore = new Map<string, { id: string; name: string; logo_url: string | null }>();
+    for (const s of stores ?? []) if (!orgToStore.has(s.organisation_id)) orgToStore.set(s.organisation_id, s);
+    return (data ?? []).map((c) => {
+      const store =
+        (c.store_id && storeMap.get(c.store_id)) || orgToStore.get(c.organisation_id) || null;
+      return { ...c, store: store ? { id: store.id, name: store.name, logo_url: store.logo_url } : null };
+    });
+  });
