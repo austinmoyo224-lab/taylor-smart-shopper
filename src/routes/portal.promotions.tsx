@@ -41,6 +41,7 @@ type PromoRow = {
   ends_at: string | null;
   description?: string | null;
   hero_image_url?: string | null;
+  promotion_products?: { product_id: string }[] | null;
 };
 
 function PromotionsPage() {
@@ -299,7 +300,10 @@ function PromoForm({
   const [endsAt, setEndsAt] = useState(toLocal(initial?.ends_at));
   const [publish, setPublish] = useState(initial?.is_published ?? false);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(initial?.hero_image_url ?? null);
-  const [productIds, setProductIds] = useState<string[]>([]);
+  const [productIds, setProductIds] = useState<string[]>(
+    initial?.promotion_products?.map((row) => row.product_id).filter(Boolean) ?? [],
+  );
+  const [productIdsDirty, setProductIdsDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isEdit = !!initial;
 
@@ -324,7 +328,9 @@ function PromoForm({
           ends_at: endsAt ? new Date(endsAt).toISOString() : "",
           is_published: publish,
           hero_image_url: heroImageUrl,
-          product_ids: productIds,
+          // On edit, only send product_ids if the user actually changed the selection,
+          // so we never wipe existing links when they just tweak the title/price.
+          product_ids: isEdit && !productIdsDirty ? undefined : productIds,
       };
       return isEdit
         ? updatePromotion({ data: { ...payload, id: initial!.id } })
@@ -433,9 +439,12 @@ function PromoForm({
           <select
             multiple
             value={productIds}
-            onChange={(e) =>
-              setProductIds(Array.from(e.currentTarget.selectedOptions).map((option) => option.value))
-            }
+            onChange={(e) => {
+              setProductIds(
+                Array.from(e.currentTarget.selectedOptions).map((option) => option.value),
+              );
+              setProductIdsDirty(true);
+            }}
             className={cls + " min-h-32"}
           >
             {(products.data ?? []).map((product) => (
