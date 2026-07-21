@@ -242,7 +242,7 @@ function getGreeting() {
 function HeroAd({ ad, reduce }: { ad: Ad; reduce: boolean }) {
   const store = Array.isArray(ad.stores) ? ad.stores[0] : ad.stores;
   const img = ad.hero_image_url ?? store?.hero_image_url ?? null;
-  const joinTo = store?.qr_slug ?? store?.slug ?? null;
+  const storeId = store?.id ?? null;
   const price =
     ad.sale_price != null
       ? `${ad.currency_code} ${Number(ad.sale_price).toFixed(2)}`
@@ -322,17 +322,17 @@ function HeroAd({ ad, reduce }: { ad: Ad; reduce: boolean }) {
               transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-primary shadow-lg"
             >
-              Follow store
+              View store
               <ChevronRight className="size-3.5" />
             </motion.div>
-          )}
+          
         </motion.div>
       </div>
     </motion.div>
   );
 
-  return joinTo ? (
-    <Link to="/join/$slug" params={{ slug: joinTo }} className="block">
+  return storeId ? (
+    <Link to="/stores/$storeId" params={{ storeId }} className="block">
       {inner}
     </Link>
   ) : (
