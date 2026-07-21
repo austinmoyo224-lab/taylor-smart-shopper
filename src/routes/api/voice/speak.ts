@@ -52,6 +52,12 @@ export const Route = createFileRoute("/api/voice/speak")({
         if (!res.ok) {
           const errText = await res.text().catch(() => "");
           console.error("[voice-tts] gateway error", res.status, errText);
+          if (res.status === 402 || res.status === 403 || /credit/i.test(errText)) {
+            return new Response(
+              "Taylor's AI credits have run out. Please ask the workspace owner to top up to continue voice replies.",
+              { status: 402 },
+            );
+          }
           return new Response(errText || "Speech synthesis failed", { status: res.status });
         }
 
