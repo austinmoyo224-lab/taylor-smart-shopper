@@ -113,7 +113,14 @@ export const Route = createFileRoute("/api/chat")({
               if (error.message.toLowerCase().includes("rate")) {
                 return "Taylor is a bit overloaded — please try again in a moment.";
               }
-              if (error.message.toLowerCase().includes("credit") || error.message.includes("402")) {
+              const msg = error.message.toLowerCase();
+              if (
+                msg.includes("credit") ||
+                error.message.includes("402") ||
+                error.message.includes("403") ||
+                msg.includes("forbidden") ||
+                msg.includes("credit_limit_reached")
+              ) {
                 return "Taylor's AI credits have run out. Please top up to continue.";
               }
             }
