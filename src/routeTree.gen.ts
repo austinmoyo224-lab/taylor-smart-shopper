@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisionRouteImport } from './routes/vision'
+import { Route as StoresRouteImport } from './routes/stores'
 import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecipesRouteImport } from './routes/recipes'
@@ -65,6 +66,11 @@ import { Route as ApiPublicHooksFireRemindersRouteImport } from './routes/api/pu
 const VisionRoute = VisionRouteImport.update({
   id: '/vision',
   path: '/vision',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoresRoute = StoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoreOnboardingRoute = StoreOnboardingRouteImport.update({
@@ -158,9 +164,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoresIndexRoute = StoresIndexRouteImport.update({
-  id: '/stores/',
-  path: '/stores/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoresRoute,
 } as any)
 const RecipesIndexRoute = RecipesIndexRouteImport.update({
   id: '/',
@@ -178,9 +184,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const StoresStoreIdRoute = StoresStoreIdRouteImport.update({
-  id: '/stores/$storeId',
-  path: '/stores/$storeId',
-  getParentRoute: () => rootRouteImport,
+  id: '/$storeId',
+  path: '/$storeId',
+  getParentRoute: () => StoresRoute,
 } as any)
 const RecipesSlugRoute = RecipesSlugRouteImport.update({
   id: '/$slug',
@@ -343,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
+  '/stores': typeof StoresRouteWithChildren
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -448,6 +455,7 @@ export interface FileRoutesById {
   '/recipes': typeof RecipesRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
+  '/stores': typeof StoresRouteWithChildren
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -504,6 +512,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/store-onboarding'
+    | '/stores'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -608,6 +617,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/settings'
     | '/store-onboarding'
+    | '/stores'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -663,11 +673,10 @@ export interface RootRouteChildren {
   RecipesRoute: typeof RecipesRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
+  StoresRoute: typeof StoresRouteWithChildren
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
-  StoresStoreIdRoute: typeof StoresStoreIdRoute
-  StoresIndexRoute: typeof StoresIndexRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
   ApiPublicHooksFireRemindersRoute: typeof ApiPublicHooksFireRemindersRoute
@@ -682,6 +691,13 @@ declare module '@tanstack/react-router' {
       path: '/vision'
       fullPath: '/vision'
       preLoaderRoute: typeof VisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stores': {
+      id: '/stores'
+      path: '/stores'
+      fullPath: '/stores'
+      preLoaderRoute: typeof StoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/store-onboarding': {
@@ -812,10 +828,10 @@ declare module '@tanstack/react-router' {
     }
     '/stores/': {
       id: '/stores/'
-      path: '/stores'
+      path: '/'
       fullPath: '/stores/'
       preLoaderRoute: typeof StoresIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof StoresRoute
     }
     '/recipes/': {
       id: '/recipes/'
@@ -840,10 +856,10 @@ declare module '@tanstack/react-router' {
     }
     '/stores/$storeId': {
       id: '/stores/$storeId'
-      path: '/stores/$storeId'
+      path: '/$storeId'
       fullPath: '/stores/$storeId'
       preLoaderRoute: typeof StoresStoreIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof StoresRoute
     }
     '/recipes/$slug': {
       id: '/recipes/$slug'
@@ -1136,6 +1152,19 @@ const RecipesRouteChildren: RecipesRouteChildren = {
 const RecipesRouteWithChildren =
   RecipesRoute._addFileChildren(RecipesRouteChildren)
 
+interface StoresRouteChildren {
+  StoresStoreIdRoute: typeof StoresStoreIdRoute
+  StoresIndexRoute: typeof StoresIndexRoute
+}
+
+const StoresRouteChildren: StoresRouteChildren = {
+  StoresStoreIdRoute: StoresStoreIdRoute,
+  StoresIndexRoute: StoresIndexRoute,
+}
+
+const StoresRouteWithChildren =
+  StoresRoute._addFileChildren(StoresRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -1155,11 +1184,10 @@ const rootRouteChildren: RootRouteChildren = {
   RecipesRoute: RecipesRouteWithChildren,
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,
+  StoresRoute: StoresRouteWithChildren,
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
-  StoresStoreIdRoute: StoresStoreIdRoute,
-  StoresIndexRoute: StoresIndexRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
   ApiPublicHooksFireRemindersRoute: ApiPublicHooksFireRemindersRoute,
