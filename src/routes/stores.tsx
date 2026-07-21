@@ -316,7 +316,7 @@ function HeroAd({ ad, reduce }: { ad: Ad; reduce: boolean }) {
               )}
             </p>
           )}
-          {joinTo && (
+          {storeId && (
             <motion.div
               animate={reduce ? {} : { scale: [1, 1.03, 1] }}
               transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
@@ -325,7 +325,7 @@ function HeroAd({ ad, reduce }: { ad: Ad; reduce: boolean }) {
               View store
               <ChevronRight className="size-3.5" />
             </motion.div>
-          
+          )}
         </motion.div>
       </div>
     </motion.div>
