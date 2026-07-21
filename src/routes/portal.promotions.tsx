@@ -11,6 +11,7 @@ import {
 import { usePortal } from "@/lib/portal-context";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
+import { X } from "lucide-react";
 
 export const Route = createFileRoute("/portal/promotions")({
   ssr: false,
@@ -41,6 +42,7 @@ type PromoRow = {
   ends_at: string | null;
   description?: string | null;
   hero_image_url?: string | null;
+  metadata?: { gallery?: string[] } | null;
   promotion_products?: { product_id: string }[] | null;
 };
 
