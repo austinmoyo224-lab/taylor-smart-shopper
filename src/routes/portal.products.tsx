@@ -10,6 +10,7 @@ import {
 import { usePortal } from "@/lib/portal-context";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 type ProductRow = {
   id: string;
@@ -61,6 +62,9 @@ function ProductsPage() {
     style: "currency",
     currency: org?.default_currency ?? "ZAR",
   });
+
+  const rows = (data as ProductRow[] | undefined) ?? [];
+  const pager = usePaged(rows);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
@@ -129,7 +133,7 @@ function ProductsPage() {
                 </td>
               </tr>
             )}
-            {((data as ProductRow[] | undefined) ?? []).map((p) => {
+            {pager.paged.map((p) => {
               const img = firstImage(p.images);
               return (
               <tr key={p.id} className="border-t border-border">
@@ -185,6 +189,14 @@ function ProductsPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
     </div>
   );
 }
