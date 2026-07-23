@@ -200,7 +200,9 @@ function StoreDetail() {
               <MapPin className="size-3.5 text-muted" /> {location}
             </a>
           )}
-          {store.trading_hours && typeof store.trading_hours === "object" && (
+          {store.trading_hours &&
+            typeof store.trading_hours === "object" &&
+            formatHours(store.trading_hours as Record<string, unknown>).length > 0 && (
             <div className="flex items-start gap-2 text-xs text-muted">
               <Clock className="mt-0.5 size-3.5" />
               <div className="space-y-0.5">
