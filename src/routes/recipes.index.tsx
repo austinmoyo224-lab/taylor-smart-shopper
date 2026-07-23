@@ -6,6 +6,7 @@ import { listMyRecipes, listPublishedRecipes } from "@/lib/recipes.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Clock, Sparkles, Users } from "lucide-react";
 import { HeaderTrolley } from "@/components/HeaderTrolley";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 const recipesQO = queryOptions({
   queryKey: ["recipes", "published"],
@@ -119,6 +120,7 @@ function RecipeGrid() {
     queryFn: () => listMyRecipes(),
     enabled: !!user,
   });
+  const pager = usePaged(data);
   if (data.length === 0)
     return user && (myRecipes.isLoading || (myRecipes.data ?? []).length > 0) ? null : (
       <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
@@ -126,8 +128,9 @@ function RecipeGrid() {
       </div>
     );
   return (
+    <>
     <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {data.map((r) => (
+      {pager.paged.map((r) => (
         <li key={r.id} className="overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/40">
           <Link to="/recipes/$slug" params={{ slug: r.slug }} className="block">
           {r.hero_image_url && (
@@ -169,5 +172,14 @@ function RecipeGrid() {
         </li>
       ))}
     </ul>
+    <Paginator
+      page={pager.page}
+      pageCount={pager.pageCount}
+      total={pager.total}
+      start={pager.start}
+      end={pager.end}
+      onPageChange={pager.setPage}
+    />
+    </>
   );
 }
