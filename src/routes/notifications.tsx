@@ -10,6 +10,7 @@ import {
 } from "@/lib/notifications.functions";
 import { CheckCheck, Bell, Inbox } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/notifications")({
   ssr: false,
@@ -54,6 +55,7 @@ function NotificationsScreen() {
   });
 
   const unread = (data ?? []).filter((n) => !n.read_at).length;
+  const pager = usePaged(data ?? undefined);
 
   return (
     <AppShell>
@@ -102,7 +104,7 @@ function NotificationsScreen() {
           </div>
         )}
         <ul className="space-y-2">
-          {(data ?? []).map((n) => {
+          {pager.paged.map((n) => {
             const unread = !n.read_at;
             return (
               <li
@@ -130,6 +132,14 @@ function NotificationsScreen() {
             );
           })}
         </ul>
+        <Paginator
+          page={pager.page}
+          pageCount={pager.pageCount}
+          total={pager.total}
+          start={pager.start}
+          end={pager.end}
+          onPageChange={pager.setPage}
+        />
       </main>
     </AppShell>
   );
