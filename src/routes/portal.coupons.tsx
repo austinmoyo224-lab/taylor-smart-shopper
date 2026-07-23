@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { createCoupon, listCoupons } from "@/lib/portal.functions";
 import { usePortal } from "@/lib/portal-context";
 import { Plus, QrCode, X } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/portal/coupons")({
   ssr: false,
@@ -28,6 +29,7 @@ function CouponsPage() {
     queryFn: () => listCoupons({ data: { organisation_id: activeOrgId } }),
     enabled: !!activeOrgId,
   });
+  const pager = usePaged(data ?? undefined);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
@@ -91,7 +93,7 @@ function CouponsPage() {
                 </td>
               </tr>
             )}
-            {(data ?? []).map((c) => {
+            {pager.paged.map((c) => {
               const storeName = c.store_id
                 ? orgStores.find((s) => s.id === c.store_id)?.name ?? "—"
                 : "All stores";
@@ -134,6 +136,14 @@ function CouponsPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
 
       {qrCoupon && <CouponQrModal {...qrCoupon} onClose={() => setQrCoupon(null)} />}
     </div>
