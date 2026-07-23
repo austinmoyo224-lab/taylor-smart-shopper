@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
 import { signStoreAssetUrl } from "@/lib/portal.functions";
 import { Megaphone, Users, Send, Paperclip, FileText, ImageIcon, Ticket, Tag, X } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/portal/messages")({
   ssr: false,
@@ -135,6 +136,7 @@ function BroadcastsTab({
     queryFn: () => listStoreBroadcasts({ data: { store_id: storeId } }),
     enabled: !!storeId,
   });
+  const pager = usePaged(data ?? undefined);
 
   return (
     <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_360px]">
@@ -174,7 +176,7 @@ function BroadcastsTab({
                   </td>
                 </tr>
               )}
-              {(data ?? []).map((b) => (
+              {pager.paged.map((b) => (
                 <tr
                   key={b.id}
                   className="cursor-pointer border-t border-border hover:bg-accent/40"
@@ -199,6 +201,14 @@ function BroadcastsTab({
             </tbody>
           </table>
         </div>
+        <Paginator
+          page={pager.page}
+          pageCount={pager.pageCount}
+          total={pager.total}
+          start={pager.start}
+          end={pager.end}
+          onPageChange={pager.setPage}
+        />
       </div>
 
       <aside className="rounded-2xl border border-border bg-card p-5">
