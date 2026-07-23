@@ -25,6 +25,7 @@ export function VisionCapture({
   const [state, setState] = useState<CaptureState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [liveUnavailable, setLiveUnavailable] = useState(false);
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -35,12 +36,6 @@ export function VisionCapture({
   useEffect(() => {
     return () => stopStream();
   }, [stopStream]);
-
-  // Auto-start camera on mount so the scanner opens straight into a viewfinder.
-  useEffect(() => {
-    void startCamera();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function startCamera() {
     setError(null);
@@ -61,9 +56,13 @@ export function VisionCapture({
       setState("preview");
     } catch (err) {
       console.warn("[vision] getUserMedia failed, falling back to native camera", err);
-      // Fallback: trigger the device's native camera app via file input.
-      // This works inside iframes (like the Lovable preview) and on browsers
-      // that don't grant getUserMedia to embedded contexts.
+      // Fallback: trigger the device's native camera app via the file input.
+      // Because this whole call originated inside a user click (Start scan
+      // / Capture photo), the browser still treats the click as a user
+      // gesture, so the picker actually opens — this works inside iframes
+      // (like the Lovable preview) and on browsers that don't grant
+      // getUserMedia to embedded contexts.
+      setLiveUnavailable(true);
       setState("idle");
       fileInputRef.current?.click();
     }
@@ -188,13 +187,24 @@ export function VisionCapture({
             className="aspect-[3/4] w-full object-cover"
           />
         ) : (
-          <div className="flex aspect-[3/4] w-full items-center justify-center text-white/70">
+          <button
+            type="button"
+            onClick={() =>
+              liveUnavailable ? fileInputRef.current?.click() : void startCamera()
+            }
+            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 text-white/80"
+          >
             {state === "requesting" ? (
               <RefreshCw className="size-8 animate-spin" />
             ) : (
-              <Camera className="size-8" />
+              <>
+                <Camera className="size-10" />
+                <span className="text-sm font-medium">
+                  {liveUnavailable ? "Open camera" : "Tap to start camera"}
+                </span>
+              </>
             )}
-          </div>
+          </button>
         )}
 
         {/* Framed overlay with corner brackets */}
@@ -220,11 +230,17 @@ export function VisionCapture({
       <div className="px-4 pt-4 pb-6">
         <button
           type="button"
-          onClick={state === "preview" ? capture : () => fileInputRef.current?.click()}
+          onClick={
+            state === "preview"
+              ? capture
+              : liveUnavailable
+                ? () => fileInputRef.current?.click()
+                : () => void startCamera()
+          }
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 active:scale-[0.99]"
         >
           <Camera className="size-5" />
-          Capture photo
+          {state === "preview" ? "Capture photo" : "Start scan"}
         </button>
         <button
           type="button"
