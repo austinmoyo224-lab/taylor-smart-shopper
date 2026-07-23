@@ -200,12 +200,19 @@ function StoreDetail() {
               <MapPin className="size-3.5 text-muted" /> {location}
             </a>
           )}
-          {store.trading_hours && typeof store.trading_hours === "object" && (
+          {store.trading_hours &&
+            typeof store.trading_hours === "object" &&
+            formatHours(store.trading_hours as Record<string, unknown>).length > 0 && (
             <div className="flex items-start gap-2 text-xs text-muted">
               <Clock className="mt-0.5 size-3.5" />
-              <pre className="whitespace-pre-wrap font-sans">
-                {formatHours(store.trading_hours as Record<string, unknown>)}
-              </pre>
+              <div className="space-y-0.5">
+                {formatHours(store.trading_hours as Record<string, unknown>).map((row) => (
+                  <div key={row.day} className="flex gap-2">
+                    <span className="w-10 font-medium text-foreground/80">{row.day}</span>
+                    <span>{row.hours}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           {!store.contact_phone && !store.contact_email && !location && (
@@ -289,10 +296,25 @@ function StoreDetail() {
   );
 }
 
-function formatHours(hours: Record<string, unknown>) {
-  const entries = Object.entries(hours);
-  if (entries.length === 0) return "Hours not set";
-  return entries
-    .map(([day, v]) => `${day}: ${typeof v === "string" ? v : JSON.stringify(v)}`)
-    .join("\n");
+const DAY_ORDER: { key: string; label: string }[] = [
+  { key: "mon", label: "Mon" },
+  { key: "tue", label: "Tue" },
+  { key: "wed", label: "Wed" },
+  { key: "thu", label: "Thu" },
+  { key: "fri", label: "Fri" },
+  { key: "sat", label: "Sat" },
+  { key: "sun", label: "Sun" },
+];
+
+function formatHours(hours: Record<string, unknown>): { day: string; hours: string }[] {
+  return DAY_ORDER.filter((d) => hours[d.key] != null).map((d) => {
+    const v = hours[d.key];
+    if (typeof v === "string") return { day: d.label, hours: v };
+    if (v && typeof v === "object") {
+      const row = v as { open?: string; close?: string; closed?: boolean };
+      if (row.closed) return { day: d.label, hours: "Closed" };
+      if (row.open && row.close) return { day: d.label, hours: `${row.open} – ${row.close}` };
+    }
+    return { day: d.label, hours: "—" };
+  });
 }
