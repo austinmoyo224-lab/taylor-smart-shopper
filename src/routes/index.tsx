@@ -13,13 +13,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Taylor is South Africa's AI shopping companion — remembers what matters, finds the deals, and turns recipes into smart lists.",
+          "Taylor is South Africa's shopping companion — remembers what matters, finds the deals, and turns recipes into smart lists.",
       },
       { property: "og:title", content: "Taylor Intelligence — Smarter shopping. Better living." },
       {
         property: "og:description",
         content:
-          "Your AI shopping companion. Personalised deals, recipes and lists — for South African households.",
+          "Your shopping companion. Personalised deals, recipes and lists — for South African households.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://heytaylor.co.za/" },
@@ -265,7 +265,7 @@ function FinalCTA() {
           Meet Taylor
         </p>
         <h2 className="text-4xl leading-tight sm:text-5xl" style={{ fontFamily: "var(--font-display)" }}>
-          Your AI shopping companion.{" "}
+          Your shopping companion.{" "}
           <span className="italic" style={{ color: GREEN }}>
             Free forever.
           </span>

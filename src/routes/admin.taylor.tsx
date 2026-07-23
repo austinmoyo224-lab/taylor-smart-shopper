@@ -32,7 +32,7 @@ type Settings = {
 
 const DEFAULTS: Settings = {
   display_name: "Taylor",
-  tagline: "Your AI shopping companion",
+  tagline: "Your shopping companion",
   avatar_url: "",
   voice: "shimmer",
   personality_traits: "",

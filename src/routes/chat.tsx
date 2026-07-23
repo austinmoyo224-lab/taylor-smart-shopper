@@ -46,7 +46,7 @@ export const Route = createFileRoute("/chat")({
       {
         name: "description",
         content:
-          "Talk to Taylor, your AI shopping companion. Ask about deals, recipes, or plan your next shop.",
+          "Talk to Taylor, your shopping companion. Ask about deals, recipes, or plan your next shop.",
       },
     ],
   }),
@@ -768,7 +768,7 @@ function IntroMessages() {
       >
         <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
           <p className="text-pretty text-sm leading-relaxed">
-            Hi, I'm Taylor. Think of me as your AI shopping companion — I help you keep track of
+            Hi, I'm Taylor. Think of me as your shopping companion — I help you keep track of
             specials, recipes and coupons from the stores you follow.
           </p>
         </div>
@@ -866,7 +866,7 @@ function HeroBanner() {
             className="text-balance text-2xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Your AI shopping companion.
+            Your shopping companion.
           </h2>
           <p className="mt-1 max-w-md text-[13px] leading-snug opacity-90">
             Personal deals. Recipes from what's on special. All in one calm chat — never spam.
