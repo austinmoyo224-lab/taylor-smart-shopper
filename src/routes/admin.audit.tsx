@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { listAuditLog } from "@/lib/admin.functions";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/admin/audit")({
   ssr: false,
@@ -12,6 +13,7 @@ function AuditPage() {
     queryKey: ["admin", "audit"],
     queryFn: () => listAuditLog(),
   });
+  const pager = usePaged(data ?? undefined);
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
@@ -48,7 +50,7 @@ function AuditPage() {
                 </td>
               </tr>
             )}
-            {(data ?? []).map((r) => (
+            {pager.paged.map((r) => (
               <tr key={r.id} className="border-t border-border">
                 <td className="px-4 py-3 font-mono text-[11px] text-muted">
                   {new Date(r.created_at).toLocaleString("en-ZA")}
@@ -66,6 +68,14 @@ function AuditPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
     </div>
   );
 }
