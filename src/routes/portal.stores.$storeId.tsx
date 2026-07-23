@@ -918,6 +918,18 @@ function TradingHoursEditor({
   onChange: (v: Hours) => void;
 }) {
   const v: Hours = value ?? {};
+  // Prefill any missing days with sensible defaults so untouched rows
+  // still persist when the retailer hits Save.
+  useEffect(() => {
+    const missing = DAYS.filter((d) => !v[d.key]);
+    if (missing.length === 0) return;
+    const next: Hours = { ...v };
+    for (const d of missing) {
+      next[d.key] = { open: "08:00", close: "18:00", closed: false };
+    }
+    onChange(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const upd = (day: string, patch: Partial<{ open: string; close: string; closed: boolean }>) => {
     const cur = v[day] ?? { open: "08:00", close: "18:00", closed: false };
     onChange({ ...v, [day]: { ...cur, ...patch } });
