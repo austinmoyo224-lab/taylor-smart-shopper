@@ -26,33 +26,77 @@ export function VisionCapture({
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [liveUnavailable, setLiveUnavailable] = useState(false);
+  const [hasLiveFrame, setHasLiveFrame] = useState(false);
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    setHasLiveFrame(false);
   }, []);
 
   useEffect(() => {
     return () => stopStream();
   }, [stopStream]);
 
+  function openNativeCameraFallback(message?: string) {
+    stopStream();
+    setLiveUnavailable(true);
+    setState("idle");
+    if (message) setError(message);
+    requestAnimationFrame(() => fileInputRef.current?.click());
+  }
+
+  async function waitForUsableVideo(video: HTMLVideoElement): Promise<void> {
+    await video.play();
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0) return;
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error("Camera opened, but no live picture was received"));
+      }, 2500);
+
+      function cleanup() {
+        window.clearTimeout(timeout);
+        video.removeEventListener("loadedmetadata", onReady);
+        video.removeEventListener("loadeddata", onReady);
+        video.removeEventListener("canplay", onReady);
+      }
+
+      function onReady() {
+        if (video.videoWidth === 0) return;
+        cleanup();
+        resolve();
+      }
+
+      video.addEventListener("loadedmetadata", onReady);
+      video.addEventListener("loadeddata", onReady);
+      video.addEventListener("canplay", onReady);
+    });
+  }
+
   async function startCamera() {
     setError(null);
     setState("requesting");
+    setHasLiveFrame(false);
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("Camera API not available in this context");
       }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false,
-      });
+      stopStream();
+      const stream = await navigator.mediaDevices
+        .getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        })
+        .catch(() => navigator.mediaDevices.getUserMedia({ video: true, audio: false }));
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        await waitForUsableVideo(videoRef.current);
       }
+      setHasLiveFrame(true);
       setState("preview");
     } catch (err) {
       console.warn("[vision] getUserMedia failed, falling back to native camera", err);
@@ -62,9 +106,7 @@ export function VisionCapture({
       // gesture, so the picker actually opens — this works inside iframes
       // (like the Lovable preview) and on browsers that don't grant
       // getUserMedia to embedded contexts.
-      setLiveUnavailable(true);
-      setState("idle");
-      fileInputRef.current?.click();
+      openNativeCameraFallback("Live camera preview was blocked. Opening your device camera instead.");
     }
   }
 
@@ -179,14 +221,19 @@ export function VisionCapture({
 
       {/* Viewfinder */}
       <div className="relative mx-4 overflow-hidden rounded-2xl bg-black">
-        {state === "preview" ? (
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="aspect-[3/4] w-full object-cover"
-          />
-        ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          onLoadedData={() => setHasLiveFrame(true)}
+          onCanPlay={() => setHasLiveFrame(true)}
+          className={`aspect-[3/4] w-full object-cover ${
+            state === "preview" && hasLiveFrame ? "block" : "absolute inset-0 opacity-0"
+          }`}
+        />
+
+        {state !== "preview" && (
           <button
             type="button"
             onClick={() =>
@@ -205,6 +252,13 @@ export function VisionCapture({
               </>
             )}
           </button>
+        )}
+
+        {state === "preview" && !hasLiveFrame && (
+          <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 text-primary-foreground">
+            <RefreshCw className="size-8 animate-spin" />
+            <span className="text-sm font-medium">Starting camera…</span>
+          </div>
         )}
 
         {/* Framed overlay with corner brackets */}
