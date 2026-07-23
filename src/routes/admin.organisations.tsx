@@ -8,6 +8,7 @@ import {
   deleteOrganisation,
 } from "@/lib/admin.functions";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/admin/organisations")({
   ssr: false,
@@ -32,6 +33,7 @@ function OrganisationsPage() {
     mutationFn: (id: string) => deleteOrganisation({ data: { id } }),
     onSuccess: invalidate,
   });
+  const pager = usePaged(data ?? undefined);
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
@@ -104,7 +106,7 @@ function OrganisationsPage() {
                 </td>
               </tr>
             )}
-            {(data ?? []).map((o) => (
+            {pager.paged.map((o) => (
               <tr key={o.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{o.name}</td>
                 <td className="px-4 py-3 font-mono text-xs text-muted">{o.slug}</td>
@@ -152,6 +154,14 @@ function OrganisationsPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
     </div>
   );
 }
