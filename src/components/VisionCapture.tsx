@@ -25,6 +25,7 @@ export function VisionCapture({
   const [state, setState] = useState<CaptureState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [liveUnavailable, setLiveUnavailable] = useState(false);
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -35,12 +36,6 @@ export function VisionCapture({
   useEffect(() => {
     return () => stopStream();
   }, [stopStream]);
-
-  // Auto-start camera on mount so the scanner opens straight into a viewfinder.
-  useEffect(() => {
-    void startCamera();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function startCamera() {
     setError(null);
@@ -61,9 +56,13 @@ export function VisionCapture({
       setState("preview");
     } catch (err) {
       console.warn("[vision] getUserMedia failed, falling back to native camera", err);
-      // Fallback: trigger the device's native camera app via file input.
-      // This works inside iframes (like the Lovable preview) and on browsers
-      // that don't grant getUserMedia to embedded contexts.
+      // Fallback: trigger the device's native camera app via the file input.
+      // Because this whole call originated inside a user click (Start scan
+      // / Capture photo), the browser still treats the click as a user
+      // gesture, so the picker actually opens — this works inside iframes
+      // (like the Lovable preview) and on browsers that don't grant
+      // getUserMedia to embedded contexts.
+      setLiveUnavailable(true);
       setState("idle");
       fileInputRef.current?.click();
     }
