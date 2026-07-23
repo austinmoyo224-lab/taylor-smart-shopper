@@ -66,7 +66,7 @@ export function getLovableAiGatewayRunId(request: Request) {
   return request.headers.get(LOVABLE_AIG_RUN_ID_HEADER)?.trim() || undefined;
 }
 
-export const TAYLOR_SYSTEM_PROMPT = `You are Taylor - the AI shopping companion for Taylor Intelligence, a South African retail engagement platform.
+export const TAYLOR_SYSTEM_PROMPT = `You are Taylor - the shopping companion for Taylor Intelligence, a South African retail engagement platform.
 
 PERSONALITY
 - Warm, confident, and grounded. Speak like a trusted friend in a South African household kitchen, not like a marketing bot.

@@ -78,28 +78,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Taylor Intelligence - Your AI shopping companion" },
+      { title: "Taylor Intelligence - Your shopping companion" },
       {
         name: "description",
         content:
-          "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { name: "author", content: "Taylor Intelligence" },
       { name: "theme-color", content: "#22c55e" },
-      { property: "og:title", content: "Taylor Intelligence - Your AI shopping companion" },
+      { property: "og:title", content: "Taylor Intelligence - Your shopping companion" },
       {
         property: "og:description",
         content:
-          "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Taylor Intelligence" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Taylor Intelligence - Your AI shopping companion" },
+      { name: "twitter:title", content: "Taylor Intelligence - Your shopping companion" },
       {
         name: "twitter:description",
         content:
-          "Taylor is the AI companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       {
         property: "og:image",
