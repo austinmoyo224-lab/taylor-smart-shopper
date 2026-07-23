@@ -187,13 +187,24 @@ export function VisionCapture({
             className="aspect-[3/4] w-full object-cover"
           />
         ) : (
-          <div className="flex aspect-[3/4] w-full items-center justify-center text-white/70">
+          <button
+            type="button"
+            onClick={() =>
+              liveUnavailable ? fileInputRef.current?.click() : void startCamera()
+            }
+            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 text-white/80"
+          >
             {state === "requesting" ? (
               <RefreshCw className="size-8 animate-spin" />
             ) : (
-              <Camera className="size-8" />
+              <>
+                <Camera className="size-10" />
+                <span className="text-sm font-medium">
+                  {liveUnavailable ? "Open camera" : "Tap to start camera"}
+                </span>
+              </>
             )}
-          </div>
+          </button>
         )}
 
         {/* Framed overlay with corner brackets */}
@@ -219,11 +230,17 @@ export function VisionCapture({
       <div className="px-4 pt-4 pb-6">
         <button
           type="button"
-          onClick={state === "preview" ? capture : () => fileInputRef.current?.click()}
+          onClick={
+            state === "preview"
+              ? capture
+              : liveUnavailable
+                ? () => fileInputRef.current?.click()
+                : () => void startCamera()
+          }
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 active:scale-[0.99]"
         >
           <Camera className="size-5" />
-          Capture photo
+          {state === "preview" ? "Capture photo" : "Start scan"}
         </button>
         <button
           type="button"
