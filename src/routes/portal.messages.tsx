@@ -602,6 +602,7 @@ function ThreadsTab({
     queryFn: () => listStoreConversations({ data: { store_id: storeId } }),
     enabled: !!storeId,
   });
+  const pager = usePaged(data ?? undefined);
   return (
     <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
       <div className="rounded-2xl border border-border bg-card">
@@ -612,7 +613,7 @@ function ThreadsTab({
           </p>
         )}
         <ul className="divide-y divide-border">
-          {(data ?? []).map((c) => (
+          {pager.paged.map((c) => (
             <li key={c.id}>
               <button
                 onClick={() => setOpenId(c.id)}
@@ -649,6 +650,14 @@ function ThreadsTab({
             </li>
           ))}
         </ul>
+        <Paginator
+          page={pager.page}
+          pageCount={pager.pageCount}
+          total={pager.total}
+          start={pager.start}
+          end={pager.end}
+          onPageChange={pager.setPage}
+        />
       </div>
       <div className="min-h-[60vh] rounded-2xl border border-border bg-card">
         {openId ? (
