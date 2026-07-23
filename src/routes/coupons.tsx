@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { listMyCoupons } from "@/lib/subscriptions.functions";
 import { QrCode, X } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/coupons")({
   ssr: false,
@@ -37,6 +38,7 @@ function CouponsPage() {
     queryFn: () => listMyCoupons(),
     enabled: !!user,
   });
+  const pager = usePaged(q.data ?? undefined);
 
   return (
     <AppShell>
@@ -69,8 +71,9 @@ function CouponsPage() {
             </div>
           </div>
         ) : (
+          <>
           <ul className="space-y-3">
-            {(q.data ?? []).map((c) => (
+            {pager.paged.map((c) => (
               <li key={c.id}>
                 <button
                   onClick={() => setActive(c)}
@@ -97,6 +100,15 @@ function CouponsPage() {
               </li>
             ))}
           </ul>
+          <Paginator
+            page={pager.page}
+            pageCount={pager.pageCount}
+            total={pager.total}
+            start={pager.start}
+            end={pager.end}
+            onPageChange={pager.setPage}
+          />
+          </>
         )}
       </main>
 

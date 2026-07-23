@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { listMyInbox } from "@/lib/store-messages.functions";
 import { Megaphone, MessageCircle } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/inbox")({
   ssr: false,
@@ -73,6 +74,7 @@ function InboxIndex() {
     store: c.store,
   }));
   const merged = [...items, ...threads].sort((a, b) => (a.at < b.at ? 1 : -1));
+  const pager = usePaged(merged);
 
   return (
     <>
@@ -95,7 +97,7 @@ function InboxIndex() {
           </p>
         )}
         <ul className="space-y-2">
-          {merged.map((m) => (
+          {pager.paged.map((m) => (
             <li key={`${m.kind}-${m.id}`}>
               <Link
                 to="/inbox/$storeId"
@@ -135,6 +137,14 @@ function InboxIndex() {
             </li>
           ))}
         </ul>
+        <Paginator
+          page={pager.page}
+          pageCount={pager.pageCount}
+          total={pager.total}
+          start={pager.start}
+          end={pager.end}
+          onPageChange={pager.setPage}
+        />
       </div>
     </>
   );

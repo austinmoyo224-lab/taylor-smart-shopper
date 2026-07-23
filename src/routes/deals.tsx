@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { listMyDeals } from "@/lib/subscriptions.functions";
 import { Sparkles, Tag } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/deals")({
   ssr: false,
@@ -34,6 +35,7 @@ function DealsPage() {
     queryFn: () => listMyDeals(),
     enabled: !!user,
   });
+  const pager = usePaged(deals.data ?? undefined);
 
   return (
     <AppShell>
@@ -69,8 +71,9 @@ function DealsPage() {
             </div>
           </div>
         ) : (
+          <>
           <ul className="space-y-3">
-            {(deals.data ?? []).map((p) => {
+            {pager.paged.map((p) => {
               const store = Array.isArray(p.stores) ? p.stores[0] : p.stores;
               return (
                 <li
@@ -136,6 +139,15 @@ function DealsPage() {
               );
             })}
           </ul>
+          <Paginator
+            page={pager.page}
+            pageCount={pager.pageCount}
+            total={pager.total}
+            start={pager.start}
+            end={pager.end}
+            onPageChange={pager.setPage}
+          />
+          </>
         )}
       </main>
     </AppShell>

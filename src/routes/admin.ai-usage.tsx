@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getAiUsageSummary, getAiUsageTopUsers } from "@/lib/admin.functions";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/admin/ai-usage")({
   head: () => ({ meta: [{ title: "AI usage — Taylor Intelligence" }] }),
@@ -20,6 +21,7 @@ function AiUsagePage() {
   });
 
   const s = summary.data;
+  const topPager = usePaged(top.data ?? undefined);
   const maxDaily = Math.max(
     1,
     ...(s?.daily ?? []).map((d) => d.chat + d.stt + d.tts + d.vision),
@@ -128,7 +130,7 @@ function AiUsagePage() {
               </tr>
             </thead>
             <tbody>
-              {(top.data ?? []).map((u) => (
+              {topPager.paged.map((u) => (
                 <tr key={u.userId} className="border-t border-border">
                   <td className="px-4 py-3">{u.name}</td>
                   <td className="px-4 py-3">{u.calls}</td>
@@ -149,6 +151,14 @@ function AiUsagePage() {
             </tbody>
           </table>
         </div>
+        <Paginator
+          page={topPager.page}
+          pageCount={topPager.pageCount}
+          total={topPager.total}
+          start={topPager.start}
+          end={topPager.end}
+          onPageChange={topPager.setPage}
+        />
       </section>
     </div>
   );

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listUsers, setUserRole, listOrganisations } from "@/lib/admin.functions";
 import { useState } from "react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 type Role = "super_admin" | "retailer_admin" | "store_manager" | "staff" | "subscriber";
 
@@ -23,6 +24,7 @@ function UsersPage() {
     queryFn: () => listOrganisations(),
   });
   const [error, setError] = useState<string | null>(null);
+  const pager = usePaged(users.data ?? undefined);
 
   const mut = useMutation({
     mutationFn: (v: {
@@ -53,7 +55,7 @@ function UsersPage() {
 
       <div className="space-y-3">
         {users.isLoading && <p className="text-sm text-muted">Loading…</p>}
-        {(users.data ?? []).map((u) => (
+        {pager.paged.map((u) => (
           <UserRow
             key={u.id}
             user={u}
@@ -70,6 +72,14 @@ function UsersPage() {
           />
         ))}
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { addPantryItem, deletePantryItem, listMyPantry } from "@/lib/pantry.functions";
 import { Camera, Plus, Trash2 } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/pantry")({
   ssr: false,
@@ -51,6 +52,8 @@ function PantryScreen() {
     mutationFn: (id: string) => deletePantryItem({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["pantry", "mine"] }),
   });
+
+  const pager = usePaged(pantry.data);
 
   return (
     <AppShell>
@@ -106,7 +109,7 @@ function PantryScreen() {
           </div>
         </form>
         <ul className="space-y-2">
-          {(pantry.data ?? []).map((it) => {
+          {pager.paged.map((it) => {
             const expiring =
               it.expires_at &&
               new Date(it.expires_at).getTime() - Date.now() < 7 * 24 * 3600 * 1000;
@@ -144,6 +147,14 @@ function PantryScreen() {
             </div>
           )}
         </ul>
+        <Paginator
+          page={pager.page}
+          pageCount={pager.pageCount}
+          total={pager.total}
+          start={pager.start}
+          end={pager.end}
+          onPageChange={pager.setPage}
+        />
       </main>
     </AppShell>
   );

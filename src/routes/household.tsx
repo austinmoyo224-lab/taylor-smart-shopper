@@ -14,6 +14,7 @@ import {
   sharePantryWithHousehold,
 } from "@/lib/households.functions";
 import { Copy, Home, LogOut, Plus, UserMinus, Users } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/household")({
   ssr: false,
@@ -103,6 +104,9 @@ function HouseholdScreen() {
   });
 
   const empty = !households.isLoading && (households.data?.length ?? 0) === 0;
+
+  const membersPager = usePaged(detail.data?.members ?? undefined);
+  const invitesPager = usePaged(detail.data?.invites ?? undefined);
 
   return (
     <AppShell>
@@ -205,7 +209,7 @@ function HouseholdScreen() {
               </div>
 
               <ul className="space-y-2">
-                {detail.data.members.map((m) => (
+                {membersPager.paged.map((m) => (
                   <li
                     key={m.user_id}
                     className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-sm"
@@ -226,6 +230,14 @@ function HouseholdScreen() {
                   </li>
                 ))}
               </ul>
+              <Paginator
+                page={membersPager.page}
+                pageCount={membersPager.pageCount}
+                total={membersPager.total}
+                start={membersPager.start}
+                end={membersPager.end}
+                onPageChange={membersPager.setPage}
+              />
             </section>
 
             <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
@@ -241,8 +253,9 @@ function HouseholdScreen() {
                 <Plus className="size-4" /> Create invite code
               </button>
               {detail.data.invites.length > 0 && (
+                <>
                 <ul className="space-y-2">
-                  {detail.data.invites.map((i) => (
+                  {invitesPager.paged.map((i) => (
                     <li
                       key={i.id}
                       className="flex items-center justify-between rounded-xl border border-dashed border-border px-3 py-2 text-sm"
@@ -263,6 +276,15 @@ function HouseholdScreen() {
                     </li>
                   ))}
                 </ul>
+                <Paginator
+                  page={invitesPager.page}
+                  pageCount={invitesPager.pageCount}
+                  total={invitesPager.total}
+                  start={invitesPager.start}
+                  end={invitesPager.end}
+                  onPageChange={invitesPager.setPage}
+                />
+                </>
               )}
             </section>
 

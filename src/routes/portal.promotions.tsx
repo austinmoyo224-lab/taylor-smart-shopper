@@ -12,6 +12,7 @@ import { usePortal } from "@/lib/portal-context";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
 import { X } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/portal/promotions")({
   ssr: false,
@@ -59,6 +60,7 @@ function PromotionsPage() {
     queryFn: () => listPromotions({ data: { organisation_id: activeOrgId } }),
     enabled: !!activeOrgId,
   });
+  const pager = usePaged(data ?? undefined);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">
@@ -109,7 +111,7 @@ function PromotionsPage() {
         {!isLoading && (data?.length ?? 0) === 0 && (
           <p className="text-sm text-muted">No promotions yet.</p>
         )}
-        {(data ?? []).map((p) => {
+        {pager.paged.map((p) => {
           const s = (p as { stores?: { name: string } | null }).stores;
           return (
             <div key={p.id} className="rounded-2xl border border-border bg-card p-4">
@@ -191,7 +193,7 @@ function PromotionsPage() {
                 </td>
               </tr>
             )}
-            {(data ?? []).map((p) => {
+            {pager.paged.map((p) => {
               const s = (p as { stores?: { name: string } | null }).stores;
               const items = ((p as { promotion_products?: { products?: { name?: string | null } | { name?: string | null }[] | null }[] }).promotion_products ?? [])
                 .flatMap((row) => {
@@ -251,6 +253,14 @@ function PromotionsPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
     </div>
   );
 }

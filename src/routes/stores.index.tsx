@@ -11,6 +11,7 @@ import {
 } from "@/lib/subscriptions.functions";
 import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode } from "lucide-react";
 import { HeaderTrolley } from "@/components/HeaderTrolley";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/stores/")({
   ssr: false,
@@ -62,6 +63,7 @@ function StoresScreen() {
   const allAds = ads.data ?? [];
   const heroAd = allAds[0] ?? null;
   const railAds = allAds.slice(1);
+  const subsPager = usePaged(subs.data ?? undefined);
 
   return (
     <AppShell>
@@ -179,8 +181,9 @@ function StoresScreen() {
             </ol>
           </motion.div>
         ) : (
+          <>
           <ul className="mt-3 space-y-3">
-            {(subs.data ?? []).map((s, i) => (
+            {subsPager.paged.map((s, i) => (
               <motion.li
                 key={s.id}
                 initial={reduce ? false : { opacity: 0, y: 14 }}
@@ -220,6 +223,15 @@ function StoresScreen() {
               </motion.li>
             ))}
           </ul>
+          <Paginator
+            page={subsPager.page}
+            pageCount={subsPager.pageCount}
+            total={subsPager.total}
+            start={subsPager.start}
+            end={subsPager.end}
+            onPageChange={subsPager.setPage}
+          />
+          </>
         )}
 
         <div className="mt-8 rounded-2xl border border-dashed border-border p-4 text-xs text-muted">

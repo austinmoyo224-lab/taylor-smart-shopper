@@ -14,6 +14,7 @@ import {
 } from "@/lib/lists.functions";
 import { Camera, Plus, Trash2, ChevronLeft } from "lucide-react";
 import { HeaderTrolley } from "@/components/HeaderTrolley";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/lists")({
   ssr: false,
@@ -59,6 +60,8 @@ function ListsScreen() {
     mutationFn: (id: string) => deleteShoppingList({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["lists", "mine"] }),
   });
+
+  const pager = usePaged(lists.data ?? undefined);
 
   if (openId) return <ListDetail id={openId} onBack={() => setOpenId(null)} />;
 
@@ -116,7 +119,7 @@ function ListsScreen() {
           </div>
         )}
         <ul className="space-y-2">
-          {(lists.data ?? []).map((l) => (
+          {pager.paged.map((l) => (
             <li
               key={l.id}
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
@@ -138,6 +141,14 @@ function ListsScreen() {
             </li>
           ))}
         </ul>
+        <Paginator
+          page={pager.page}
+          pageCount={pager.pageCount}
+          total={pager.total}
+          start={pager.start}
+          end={pager.end}
+          onPageChange={pager.setPage}
+        />
       </main>
     </AppShell>
   );
@@ -169,6 +180,7 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
 
   const list = detail.data?.list;
   const items = detail.data?.items ?? [];
+  const itemsPager = usePaged(items);
 
   return (
     <AppShell>
@@ -209,7 +221,7 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
           </button>
         </form>
         <ul className="space-y-1">
-          {items.map((it) => (
+          {itemsPager.paged.map((it) => (
             <li
               key={it.id}
               className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2"
@@ -241,6 +253,14 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
             </p>
           )}
         </ul>
+        <Paginator
+          page={itemsPager.page}
+          pageCount={itemsPager.pageCount}
+          total={itemsPager.total}
+          start={itemsPager.start}
+          end={itemsPager.end}
+          onPageChange={itemsPager.setPage}
+        />
       </main>
     </AppShell>
   );

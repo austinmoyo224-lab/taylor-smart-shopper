@@ -15,6 +15,7 @@ import { BarChart3, Copy, Edit3, LayoutDashboard, MapPin, Plus, QrCode, Trash2, 
 import QRCode from "qrcode";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
 import { downloadBrandedStoreQr } from "@/lib/qr-composer";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/admin/stores")({
   ssr: false,
@@ -37,6 +38,8 @@ function StoresPage() {
   useEffect(() => {
     if (!selectedStoreId && data?.[0]) setSelectedStoreId(data[0].id);
   }, [data, selectedStoreId]);
+
+  const pager = usePaged(data ?? undefined);
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10">
@@ -106,7 +109,7 @@ function StoresPage() {
                 </td>
               </tr>
             )}
-            {(data ?? []).map((s) => {
+            {pager.paged.map((s) => {
               const org = (s as { organisations?: { name: string } | null }).organisations;
               const active = selectedStoreId === s.id;
               return (
@@ -160,6 +163,14 @@ function StoresPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
 
       {selectedStoreId && (
         <StoreControlPanel

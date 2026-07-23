@@ -7,6 +7,7 @@ import {
   rejectStoreOnboardingRequest,
 } from "@/lib/store-onboarding.functions";
 import { Check, X, Clock, Store, Mail, Phone, MapPin } from "lucide-react";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/admin/onboarding")({
   head: () => ({
@@ -50,6 +51,7 @@ function OnboardingRequestsPage() {
   });
 
   const rows = requests.data ?? [];
+  const pager = usePaged(rows);
 
   return (
     <div className="mx-auto max-w-5xl px-8 py-10">
@@ -83,7 +85,7 @@ function OnboardingRequestsPage() {
             No {status === "all" ? "" : status} applications.
           </p>
         )}
-        {rows.map((r) => {
+        {pager.paged.map((r) => {
           const isOpen = open === r.id;
           const busy = approve.isPending || reject.isPending;
           return (
@@ -196,6 +198,14 @@ function OnboardingRequestsPage() {
           );
         })}
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
     </div>
   );
 }
