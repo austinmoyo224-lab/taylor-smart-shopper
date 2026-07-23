@@ -5,6 +5,7 @@ import { createCampaign, listCampaigns, sendCampaignNow } from "@/lib/notificati
 import { usePortal } from "@/lib/portal-context";
 import { Plus, Send } from "lucide-react";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
+import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/portal/campaigns")({
   ssr: false,
@@ -22,6 +23,7 @@ function CampaignsPage() {
     queryFn: () => listCampaigns({ data: { organisation_id: activeOrgId } }),
     enabled: !!activeOrgId,
   });
+  const pager = usePaged(data ?? undefined);
 
   const send = useMutation({
     mutationFn: (campaignId: string) => sendCampaignNow({ data: { campaignId } }),
@@ -88,7 +90,7 @@ function CampaignsPage() {
                 </td>
               </tr>
             )}
-            {(data ?? []).map((c) => {
+            {pager.paged.map((c) => {
               const s = (c as { stores?: { name: string } | null }).stores;
               const sched = (c.schedule ?? {}) as {
                 title?: string;
@@ -120,6 +122,14 @@ function CampaignsPage() {
           </tbody>
         </table>
       </div>
+      <Paginator
+        page={pager.page}
+        pageCount={pager.pageCount}
+        total={pager.total}
+        start={pager.start}
+        end={pager.end}
+        onPageChange={pager.setPage}
+      />
 
       {send.data && (
         <p className="mt-3 text-xs text-muted">Delivered to {send.data.delivered} subscribers.</p>
