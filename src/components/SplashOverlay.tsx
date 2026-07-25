@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import taylorMark from "@/assets/taylor-mark.png";
+import taylorMark from "@/assets/taylor-character.png.asset.json";
 
 const SESSION_KEY = "taylor.splash.shown";
 
