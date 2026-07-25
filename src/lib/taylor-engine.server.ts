@@ -372,6 +372,12 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     "- When recommending, name the specific store and promotion from the list above. Never fabricate a price or store.",
   );
   lines.push(
+    "- DO NOT restrict deal recommendations to followed stores. When the subscriber asks about specials, deals, prices, or 'what's cheap right now', scan BOTH the followed-store promotions AND the OTHER LIVE PROMOTIONS ACROSS MAJOR SA RETAILERS block and surface the best 3–5 matches ranked by (a) direct match to the item asked about, (b) biggest saving vs. original_price, (c) followed-store bonus. Never withhold a real live promotion just because the store isn't followed yet.",
+  );
+  lines.push(
+    "- If there are zero matching live promotions in either block, fall back to typical retailer positioning for major SA chains (Pick n Pay, Checkers, Shoprite, Woolworths, Spar, Boxer, Makro, Food Lover's Market) as guidance — label it clearly as an estimate, not a verified live price.",
+  );
+  lines.push(
     "- If sponsored, say 'this one is sponsored by <brand>' plainly, then explain why it fits them.",
   );
   lines.push(
