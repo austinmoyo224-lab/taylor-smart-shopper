@@ -3,33 +3,7 @@ import { Store, ListChecks, ChefHat, Inbox } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyInboxUnread } from "@/lib/store-messages.functions";
 import { useAuth } from "@/hooks/useAuth";
-
-function ChatHeyIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 28 28"
-      fill="none"
-      className={className}
-      aria-hidden="true"
-    >
-      <path
-        d="M8 6 h11 a3 3 0 0 1 3 3 v9 a3 3 0 0 1 -3 3 h-6 l-3 3 v-3 h-2 a3 3 0 0 1 -3 -3 v-9 a3 3 0 0 1 3 -3 z"
-        className="fill-current"
-      />
-      <text
-        x="14"
-        y="16"
-        textAnchor="middle"
-        fill="hsl(var(--primary))"
-        fontSize="6.5"
-        fontWeight="700"
-        fontFamily="sans-serif"
-      >
-        Hey!
-      </text>
-    </svg>
-  );
-}
+import taylorCharacter from "@/assets/taylor-mark.png";
 
 
 // Taylor is the centre "hero" action; other tabs flank it two-per-side.
@@ -115,13 +89,18 @@ export function BottomNav() {
             to="/chat"
             aria-label="Chat with Taylor"
             className={
-              "relative -mt-8 flex size-16 items-center justify-center rounded-full border-4 border-background shadow-lg transition-transform active:scale-95 " +
+              "relative -mt-8 flex size-16 items-center justify-center overflow-hidden rounded-full border-4 border-background shadow-lg transition-transform active:scale-95 " +
               (taylorActive
                 ? "bg-primary text-primary-foreground"
                 : "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground")
             }
           >
-            <ChatHeyIcon className="size-8" />
+            <img
+              src={taylorCharacter}
+              alt="Taylor"
+              className="size-full object-cover object-top"
+              draggable={false}
+            />
           </Link>
           <span className="absolute -bottom-0.5 text-[10px] font-medium tracking-tight text-muted">
             Taylor
