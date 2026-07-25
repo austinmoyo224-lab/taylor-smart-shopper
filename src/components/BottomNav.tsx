@@ -96,7 +96,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="sticky bottom-0 z-30 min-h-[92px] border-t border-border bg-card pt-3"
+      className="sticky bottom-0 z-30 min-h-[92px] border-t border-border bg-card pb-5 pt-3"
       style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
     >
       <div className="relative flex h-full min-h-[inherit] items-end justify-between px-4">
