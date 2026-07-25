@@ -48,7 +48,7 @@ export function SplashOverlay() {
 
           {/* Mark */}
           <motion.img
-            src={taylorMark}
+            src={taylorMark.url}
             alt=""
             width={128}
             height={128}

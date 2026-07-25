@@ -96,7 +96,7 @@ export function BottomNav() {
             }
           >
             <img
-              src={taylorCharacter}
+              src={taylorCharacter.url}
               alt="Taylor"
               className="size-full object-cover object-top"
               draggable={false}
