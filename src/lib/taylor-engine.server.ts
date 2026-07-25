@@ -274,7 +274,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
 
   lines.push("");
   if (activePromos.length === 0) {
-    lines.push("LIVE PROMOTIONS: none right now. Say so honestly rather than inventing one.");
+    lines.push(
+      "LIVE PROMOTIONS from followed stores: none right now. You can still help by comparing typical prices across major SA retailers (frame as guidance, not verified live prices) and suggesting stores worth following for live deals.",
+    );
   } else {
     lines.push(
       `LIVE PROMOTIONS (${activePromos.length}) — quote only these when the subscriber asks about deals. Include the store name. If is_sponsored=true, LABEL it as sponsored.`,
