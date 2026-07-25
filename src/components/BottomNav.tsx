@@ -1,16 +1,17 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageCircle, Store, ListChecks, User, Inbox } from "lucide-react";
+import { Sparkles, Store, ListChecks, User, Inbox } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyInboxUnread } from "@/lib/store-messages.functions";
 import { useAuth } from "@/hooks/useAuth";
 
-// Stores is the landing tab and sits in the centre of the bottom nav.
-const tabs = [
-  { to: "/chat", label: "Taylor", icon: MessageCircle, target: "/chat" as const },
-  { to: "/lists", label: "Lists", icon: ListChecks, target: "/lists" as const },
-  { to: "/stores", label: "Stores", icon: Store, target: "/stores" as const },
-  { to: "/inbox", label: "Inbox", icon: Inbox, target: "/inbox" as const },
-  { to: "/profile", label: "Profile", icon: User, target: "/profile" as const },
+// Taylor is the centre "hero" action; other tabs flank it two-per-side.
+const leftTabs = [
+  { label: "Stores", icon: Store, target: "/stores" as const },
+  { label: "Lists", icon: ListChecks, target: "/lists" as const },
+] as const;
+const rightTabs = [
+  { label: "Inbox", icon: Inbox, target: "/inbox" as const },
+  { label: "Profile", icon: User, target: "/profile" as const },
 ] as const;
 
 export function BottomNav() {
@@ -24,42 +25,83 @@ export function BottomNav() {
     staleTime: 15000,
   });
   const unread = data?.count ?? 0;
+
+  const isActive = (target: string) =>
+    pathname === target ||
+    (target === "/stores" && pathname === "/") ||
+    (target === "/chat" && pathname.startsWith("/chat")) ||
+    (target === "/inbox" && pathname.startsWith("/inbox"));
+
+  const renderTab = (
+    { target, label, icon: Icon }: { target: string; label: string; icon: typeof Store },
+  ) => {
+    const active = isActive(target);
+    const showBadge = target === "/inbox" && unread > 0;
+    return (
+      <Link
+        key={target}
+        to={target}
+        className={
+          "flex flex-1 flex-col items-center gap-1 py-1 transition-colors " +
+          (active ? "text-primary" : "text-muted hover:text-foreground")
+        }
+      >
+        <span className="relative">
+          <Icon className="size-5" strokeWidth={active ? 2.25 : 1.75} />
+          {showBadge && (
+            <span
+              aria-label={`${unread} unread`}
+              className="absolute -right-2 -top-1.5 inline-flex min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold leading-4 text-primary-foreground"
+            >
+              {unread > 99 ? "99+" : unread}
+            </span>
+          )}
+        </span>
+        <span className="text-[10px] font-medium tracking-tight">{label}</span>
+      </Link>
+    );
+  };
+
+  const taylorActive = isActive("/chat");
+
   return (
     <nav
       aria-label="Primary"
-      className="sticky bottom-0 z-30 flex items-center justify-between border-t border-border bg-card px-6 pb-8 pt-2"
+      className="sticky bottom-0 z-30 border-t border-border bg-card pb-8 pt-2"
     >
-      {tabs.map(({ target, label, icon: Icon }) => {
-        const active =
-          pathname === target ||
-          (target === "/stores" && pathname === "/") ||
-          (target === "/chat" && pathname.startsWith("/chat")) ||
-          (target === "/inbox" && pathname.startsWith("/inbox"));
-        const showBadge = target === "/inbox" && unread > 0;
-        return (
+      <div className="relative flex items-end justify-between px-4">
+        <div className="flex flex-1 items-end justify-around">
+          {leftTabs.map(renderTab)}
+        </div>
+
+        {/* Centre notch + floating Taylor button */}
+        <div className="relative flex w-20 shrink-0 justify-center">
+          {/* Cut-out arc that dips into the nav */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-16 w-20 rounded-b-[999px] bg-background"
+          />
           <Link
-            key={target}
-            to={target}
+            to="/chat"
+            aria-label="Chat with Taylor"
             className={
-              "flex flex-col items-center gap-1 transition-colors " +
-              (active ? "text-primary" : "text-muted hover:text-foreground")
+              "relative -mt-8 flex size-16 items-center justify-center rounded-full border-4 border-background shadow-lg transition-transform active:scale-95 " +
+              (taylorActive
+                ? "bg-primary text-primary-foreground"
+                : "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground")
             }
           >
-            <span className="relative">
-              <Icon className="size-5" strokeWidth={active ? 2.25 : 1.75} />
-              {showBadge && (
-                <span
-                  aria-label={`${unread} unread`}
-                  className="absolute -right-2 -top-1.5 inline-flex min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold leading-4 text-primary-foreground"
-                >
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
-            </span>
-            <span className="text-[10px] font-medium tracking-tight">{label}</span>
+            <Sparkles className="size-6" strokeWidth={2.25} />
           </Link>
-        );
-      })}
+          <span className="absolute -bottom-0.5 text-[10px] font-medium tracking-tight text-muted">
+            Taylor
+          </span>
+        </div>
+
+        <div className="flex flex-1 items-end justify-around">
+          {rightTabs.map(renderTab)}
+        </div>
+      </div>
     </nav>
   );
 }
