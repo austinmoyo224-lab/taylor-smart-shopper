@@ -13,6 +13,7 @@ import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
 import { logAiUsage } from "@/lib/ai-usage.server";
 import { routeChatModel } from "@/lib/model-router.server";
 import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
+import { firecrawlSearch, firecrawlScrape } from "@/lib/firecrawl.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -78,7 +79,9 @@ export const Route = createFileRoute("/api/chat")({
           `[taylor chat] routed -> ${routed.tier} (${routed.model}) — ${routed.reason}`,
         );
 
-        const tools = userId ? buildTaylorTools(userId) : undefined;
+        const tools = userId
+          ? { ...buildTaylorTools(userId), lookup_live_prices: livePricesTool(userId) }
+          : { lookup_live_prices: livePricesTool(null) };
         const result = streamText({
           model,
           system: systemPrompt,
