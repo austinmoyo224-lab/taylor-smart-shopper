@@ -182,7 +182,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
       .eq("is_published", true)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
-      .limit(120),
+      .limit(200),
   ]);
   const allStores = (allStoresRes.data ?? []) as typeof stores;
   const allPromos = (allPromosRes.data ?? []) as typeof promos;
@@ -335,9 +335,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   if (activeAllPromos.length) {
     lines.push("");
     lines.push(
-      `OTHER LIVE PROMOTIONS ACROSS TAYLOR (${activeAllPromos.length}) — quote only these when the subscriber asks about a deal or price at a store they don't follow. Same rules: name the store, label sponsored, never fabricate prices.`,
+      `OTHER LIVE PROMOTIONS ACROSS MAJOR SA RETAILERS (${activeAllPromos.length}) — surface these PROACTIVELY whenever the subscriber asks about deals, specials, best price, cheapest, "what's on sale", or a specific product, EVEN IF they haven't followed the store. Always name the store, label sponsored, never fabricate prices. When you recommend a deal from an unfollowed store, add a one-line nudge: "Follow <store> to get their specials in your inbox."`,
     );
-    for (const p of activeAllPromos.slice(0, 40)) {
+    for (const p of activeAllPromos.slice(0, 80)) {
       const store = p.store_id ? allStoreById.get(p.store_id)?.name : null;
       const price = p.sale_price
         ? `${p.currency_code} ${p.sale_price}${p.original_price ? ` (was ${p.original_price})` : ""}`
