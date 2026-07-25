@@ -23,7 +23,6 @@ import {
 import ReactMarkdown from "react-markdown";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/BottomNav";
-import { HeaderTrolley } from "@/components/HeaderTrolley";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";
 import taylorAvatarAsset from "@/assets/taylor-avatar.png.asset.json";
@@ -357,15 +356,14 @@ function ChatScreen() {
   return (
     <div className="flex w-full justify-center bg-background">
       <div className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
-      <header className="relative isolate shrink-0 overflow-hidden border-b border-border bg-background/85 px-6 pb-4 pt-10 backdrop-blur-md">
-        <HeaderTrolley />
+      <header className="relative isolate shrink-0 overflow-hidden border-b border-border bg-background/85 px-6 pb-4 pt-8 backdrop-blur-md">
         <div className="flex items-end justify-between">
           <div>
             <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
               Taylor Intelligence
             </p>
             <h1
-              className="text-balance text-3xl italic tracking-tight"
+              className="text-balance text-xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
               {user
