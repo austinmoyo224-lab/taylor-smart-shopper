@@ -102,9 +102,6 @@ export function BottomNav() {
               draggable={false}
             />
           </Link>
-          <span className="absolute -bottom-0.5 text-[10px] font-medium tracking-tight text-muted">
-            Taylor
-          </span>
         </div>
 
         <div className="flex flex-1 items-end justify-around">
