@@ -10,7 +10,6 @@ import {
   unsubscribeFromStore,
 } from "@/lib/subscriptions.functions";
 import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode } from "lucide-react";
-import { HeaderTrolley } from "@/components/HeaderTrolley";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/stores/")({
@@ -71,9 +70,8 @@ function StoresScreen() {
         initial={reduce ? false : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative isolate overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-5 pt-10"
+        className="relative isolate overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-5 pt-8"
       >
-        <HeaderTrolley />
         <motion.div
           initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -86,7 +84,7 @@ function StoresScreen() {
           initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-3xl italic tracking-tight"
+          className="text-xl italic tracking-tight"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
