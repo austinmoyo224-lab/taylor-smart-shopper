@@ -275,7 +275,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   lines.push("");
   if (activePromos.length === 0) {
     lines.push(
-      "LIVE PROMOTIONS from followed stores: none right now. You can still help by comparing typical prices across major SA retailers (frame as guidance, not verified live prices) and suggesting stores worth following for live deals.",
+      "LIVE PROMOTIONS from followed stores: none right now. Do NOT stop here — pull matching deals from the OTHER LIVE PROMOTIONS ACROSS MAJOR SA RETAILERS block below (real live promos, just from stores the subscriber hasn't followed yet). Only if that block is also empty for the request, fall back to general SA retailer guidance labelled as an estimate.",
     );
   } else {
     lines.push(
