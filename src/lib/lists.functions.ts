@@ -180,16 +180,17 @@ export const compareBasket = createServerFn({ method: "POST" })
         .in("product_id", productIds)
         .lte("effective_from", nowIso);
       const active = (priceRows ?? []).filter(
-        (p) => !p.effective_to || p.effective_to > nowIso,
+        (p) => p.store_id && (!p.effective_to || p.effective_to > nowIso),
       );
       // Keep latest per (product, store) — assume rows sorted by effective_from desc
       active.sort((a, b) => (b.effective_from ?? "").localeCompare(a.effective_from ?? ""));
       const seen = new Set<string>();
       for (const p of active) {
-        const k = `${p.product_id}|${p.store_id}`;
+        const storeId = p.store_id as string;
+        const k = `${p.product_id}|${storeId}`;
         if (seen.has(k)) continue;
         seen.add(k);
-        prices.push({ product_id: p.product_id, store_id: p.store_id, price: Number(p.price) });
+        prices.push({ product_id: p.product_id, store_id: storeId, price: Number(p.price) });
       }
       const storeIds = Array.from(new Set(prices.map((p) => p.store_id)));
       if (storeIds.length) {
