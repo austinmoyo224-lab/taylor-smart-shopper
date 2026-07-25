@@ -96,9 +96,10 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="sticky bottom-0 z-30 border-t border-border bg-card pb-8 pt-2"
+      className="sticky bottom-0 z-30 min-h-[92px] border-t border-border bg-card pb-5 pt-3"
+      style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="relative flex items-end justify-between px-4">
+      <div className="relative flex h-full min-h-[inherit] items-end justify-between px-4">
         <div className="flex flex-1 items-end justify-around">
           {leftTabs.map(renderTab)}
         </div>
@@ -108,7 +109,7 @@ export function BottomNav() {
           {/* Cut-out arc that dips into the nav */}
           <span
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-16 w-20 rounded-b-[999px] bg-background"
+            className="pointer-events-none absolute left-1/2 top-0 h-16 w-20 -translate-x-1/2 -translate-y-1/2 rounded-b-[999px] bg-background"
           />
           <Link
             to="/chat"
