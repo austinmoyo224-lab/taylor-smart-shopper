@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import {
   addListItem,
+  compareBasket,
   createShoppingList,
   deleteListItem,
   deleteShoppingList,
@@ -12,7 +13,7 @@ import {
   listMyShoppingLists,
   toggleListItem,
 } from "@/lib/lists.functions";
-import { Camera, Plus, Trash2, ChevronLeft } from "lucide-react";
+import { Camera, Plus, Trash2, ChevronLeft, Scale, X } from "lucide-react";
 import { HeaderTrolley } from "@/components/HeaderTrolley";
 import { Paginator, usePaged } from "@/components/Paginator";
 
@@ -157,6 +158,7 @@ function ListsScreen() {
 function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [compareOpen, setCompareOpen] = useState(false);
   const detail = useQuery({
     queryKey: ["list", id],
     queryFn: () => getShoppingList({ data: { id } }),
@@ -191,12 +193,21 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
         >
           <ChevronLeft className="size-3.5" /> Back
         </button>
-        <h1
-          className="text-2xl italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {list?.name ?? "…"}
-        </h1>
+        <div className="flex items-end justify-between gap-3">
+          <h1
+            className="text-2xl italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {list?.name ?? "…"}
+          </h1>
+          <button
+            onClick={() => setCompareOpen(true)}
+            disabled={items.length === 0}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted/10 disabled:opacity-40"
+          >
+            <Scale className="size-3.5" /> Compare prices
+          </button>
+        </div>
       </header>
       <main className="flex-1 overflow-y-auto px-6 py-4">
         <form
@@ -262,6 +273,161 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
           onPageChange={itemsPager.setPage}
         />
       </main>
+      {compareOpen && <BasketCompare listId={id} onClose={() => setCompareOpen(false)} />}
     </AppShell>
+  );
+}
+
+function BasketCompare({ listId, onClose }: { listId: string; onClose: () => void }) {
+  const q = useQuery({
+    queryKey: ["compare", listId],
+    queryFn: () => compareBasket({ data: { listId } }),
+  });
+  const currency = q.data?.list.currency ?? "ZAR";
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-ZA", { style: "currency", currency }).format(n);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+      <header className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">Basket</p>
+          <h2
+            className="text-xl italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Price comparison
+          </h2>
+        </div>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="rounded-full border border-border p-2 hover:bg-muted/10"
+        >
+          <X className="size-4" />
+        </button>
+      </header>
+      <main className="flex-1 overflow-auto">
+        {q.isLoading && (
+          <p className="p-6 text-center text-sm text-muted">Fetching live prices…</p>
+        )}
+        {q.error && (
+          <p className="p-6 text-center text-sm text-destructive">
+            {(q.error as Error).message}
+          </p>
+        )}
+        {q.data && q.data.stores.length === 0 && (
+          <p className="p-6 text-center text-sm text-muted">
+            No matching store prices found for the items in this basket yet.
+          </p>
+        )}
+        {q.data && q.data.stores.length > 0 && (
+          <BasketCompareTable data={q.data} fmt={fmt} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+function BasketCompareTable({
+  data,
+  fmt,
+}: {
+  data: Awaited<ReturnType<typeof compareBasket>>;
+  fmt: (n: number) => string;
+}) {
+  const winner = data.storeTotals[0];
+  return (
+    <div className="min-w-full">
+      <div className="grid gap-2 border-b border-border bg-card/40 px-4 py-3 sm:grid-cols-3">
+        {data.storeTotals.slice(0, 3).map((s, i) => (
+          <div
+            key={s.storeId}
+            className={
+              "rounded-xl border p-3 " +
+              (i === 0 ? "border-primary bg-primary/5" : "border-border bg-background")
+            }
+          >
+            <div className="flex items-center gap-2">
+              {s.logo_url ? (
+                <img src={s.logo_url} alt="" className="size-6 rounded-full object-cover" />
+              ) : null}
+              <span className="truncate text-sm font-medium">{s.name}</span>
+            </div>
+            <p className="mt-1 text-lg font-semibold">{fmt(s.total)}</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted">
+              {s.matched}/{data.totalItems} matched
+              {i === 0 && data.storeTotals.length > 1 && winner ? " · best" : ""}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse text-xs">
+          <thead>
+            <tr className="bg-muted/5 text-left">
+              <th className="sticky left-0 z-10 min-w-[140px] bg-muted/5 px-3 py-2 font-medium">
+                Item
+              </th>
+              {data.stores.map((s) => (
+                <th key={s.id} className="min-w-[110px] px-3 py-2 font-medium">
+                  {s.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.items.map((row) => (
+              <tr key={row.id} className="border-t border-border">
+                <td className="sticky left-0 z-10 bg-background px-3 py-2">
+                  <div className="font-medium">{row.name}</div>
+                  <div className="text-[10px] text-muted">
+                    ×{row.quantity}
+                    {row.matched ? "" : " · unmatched"}
+                  </div>
+                </td>
+                {data.stores.map((s) => {
+                  const v = row.perStore[s.id];
+                  const isBest = row.cheapestStoreId === s.id && v != null;
+                  return (
+                    <td
+                      key={s.id}
+                      className={
+                        "px-3 py-2 " +
+                        (isBest ? "font-semibold text-primary" : "text-foreground")
+                      }
+                    >
+                      {v == null ? <span className="text-muted">—</span> : fmt(v)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+            <tr className="border-t-2 border-border bg-card/50">
+              <td className="sticky left-0 z-10 bg-card/80 px-3 py-2 font-semibold">Total</td>
+              {data.stores.map((s) => {
+                const t = data.storeTotals.find((x) => x.storeId === s.id);
+                const isWinner = winner && s.id === winner.storeId;
+                return (
+                  <td
+                    key={s.id}
+                    className={
+                      "px-3 py-2 font-semibold " +
+                      (isWinner ? "text-primary" : "text-foreground")
+                    }
+                  >
+                    {t ? fmt(t.total) : "—"}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="px-4 py-3 text-[11px] text-muted">
+        Prices shown are the latest active retailer prices in Taylor's catalogue. Items without a
+        catalogue match are excluded from store totals.
+      </p>
+    </div>
   );
 }
