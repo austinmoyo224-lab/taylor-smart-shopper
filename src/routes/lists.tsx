@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import {
   addListItem,
+  compareBasket,
   createShoppingList,
   deleteListItem,
   deleteShoppingList,
@@ -12,7 +13,7 @@ import {
   listMyShoppingLists,
   toggleListItem,
 } from "@/lib/lists.functions";
-import { Camera, Plus, Trash2, ChevronLeft } from "lucide-react";
+import { Camera, Plus, Trash2, ChevronLeft, Scale, X } from "lucide-react";
 import { HeaderTrolley } from "@/components/HeaderTrolley";
 import { Paginator, usePaged } from "@/components/Paginator";
 
