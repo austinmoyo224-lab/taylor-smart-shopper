@@ -12,9 +12,9 @@ export interface RoutedModel {
   fast: boolean; // whether to set service_tier: "priority"
 }
 
-const NANO_MODEL = "openai/gpt-5.4-nano"; // cheapest
-const MINI_MODEL = "openai/gpt-5.4-mini"; // balanced
-const FLAGSHIP_MODEL = "openai/gpt-5.5"; // premium
+const NANO_MODEL = "openai/gpt-5.5"; // pinned to gpt-5.5 per user request
+const MINI_MODEL = "openai/gpt-5.5";
+const FLAGSHIP_MODEL = "openai/gpt-5.5";
 
 // Signals that a message needs deeper reasoning.
 const COMPLEX_KEYWORDS = [
