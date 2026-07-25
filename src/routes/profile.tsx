@@ -4,7 +4,6 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
-import { HeaderTrolley } from "@/components/HeaderTrolley";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
 
@@ -184,10 +183,9 @@ function ProfileScreen() {
   if (!profile || !memory) {
     return (
       <AppShell>
-        <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
-          <HeaderTrolley />
+        <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-8">
           <h1
-            className="text-3xl italic tracking-tight"
+            className="text-2xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Profile
@@ -200,8 +198,7 @@ function ProfileScreen() {
 
   return (
     <AppShell>
-      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
-        <HeaderTrolley />
+      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-8">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -235,7 +232,7 @@ function ProfileScreen() {
             <div>
               <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">You</p>
               <h1
-                className="text-2xl italic tracking-tight"
+                className="text-xl italic tracking-tight"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {profile.display_name || profile.first_name || "Your profile"}

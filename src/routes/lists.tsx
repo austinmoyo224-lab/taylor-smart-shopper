@@ -14,7 +14,6 @@ import {
   toggleListItem,
 } from "@/lib/lists.functions";
 import { Camera, Plus, Trash2, ChevronLeft, Scale, X } from "lucide-react";
-import { HeaderTrolley } from "@/components/HeaderTrolley";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/lists")({
@@ -68,13 +67,12 @@ function ListsScreen() {
 
   return (
     <AppShell>
-      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-10">
-        <HeaderTrolley />
+      <header className="relative isolate overflow-hidden border-b border-border bg-background px-6 pb-4 pt-8">
         <div className="flex items-end justify-between">
           <div>
             <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Plan</p>
             <h1
-              className="text-3xl italic tracking-tight"
+              className="text-2xl italic tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Shopping lists
@@ -128,7 +126,7 @@ function ListsScreen() {
               <button onClick={() => setOpenId(l.id)} className="flex-1 text-left">
                 <p className="text-sm font-medium">{l.name}</p>
                 <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted">
-                  {l.is_ai_generated ? "AI · " : ""}
+                  {l.is_ai_generated ? "Taylor's Suggested List · " : ""}
                   {l.status}
                 </p>
               </button>
