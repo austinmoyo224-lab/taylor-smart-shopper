@@ -73,23 +73,23 @@ export function BottomNav() {
       className="sticky bottom-0 z-30 min-h-[92px] border-t border-border bg-card pb-5 pt-3"
       style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="relative flex h-full min-h-[inherit] items-end justify-between px-4">
+      <div className="relative flex h-full min-h-[inherit] items-end justify-between px-2 sm:px-4">
         <div className="flex flex-1 items-end justify-around">
           {leftTabs.map(renderTab)}
         </div>
 
         {/* Centre notch + floating Taylor button */}
-        <div className="relative flex w-20 shrink-0 justify-center">
+        <div className="relative flex w-[72px] shrink-0 justify-center sm:w-20">
           {/* Cut-out arc that dips into the nav */}
           <span
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-0 h-16 w-20 -translate-x-1/2 -translate-y-1/2 rounded-b-[999px] bg-background"
+            className="pointer-events-none absolute left-1/2 top-0 h-14 w-[72px] -translate-x-1/2 -translate-y-1/2 rounded-b-[999px] bg-background sm:h-16 sm:w-20"
           />
           <Link
             to="/chat"
             aria-label="Chat with Taylor"
             className={
-              "relative -mt-8 flex size-16 items-center justify-center overflow-hidden rounded-full border-4 border-background shadow-lg transition-transform active:scale-95 " +
+              "relative -mt-7 flex size-14 items-center justify-center overflow-hidden rounded-full border-[3px] border-background shadow-lg transition-transform active:scale-95 sm:-mt-8 sm:size-16 sm:border-4 " +
               (taylorActive
                 ? "bg-primary text-primary-foreground"
                 : "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground")
