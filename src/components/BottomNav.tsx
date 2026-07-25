@@ -83,24 +83,24 @@ export function BottomNav() {
           {/* Cut-out arc that dips into the nav */}
           <span
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-0 h-14 w-[72px] -translate-x-1/2 -translate-y-1/2 rounded-b-[999px] bg-background sm:h-16 sm:w-20"
+            className="pointer-events-none absolute left-1/2 top-0 h-14 w-[72px] -translate-x-1/2 -translate-y-1/2 rounded-b-[999px] bg-background ring-1 ring-border/40 sm:h-16 sm:w-20"
           />
           <Link
             to="/chat"
             aria-label="Chat with Taylor"
             className={
-              "relative -mt-7 flex size-14 items-center justify-center overflow-hidden rounded-full border-[3px] border-background shadow-lg transition-transform active:scale-95 sm:-mt-8 sm:size-16 sm:border-4 " +
-              (taylorActive
-                ? "bg-primary text-primary-foreground"
-                : "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground")
+              "relative -mt-7 flex size-14 items-center justify-center rounded-full border-[3px] border-background bg-background p-1 shadow-xl shadow-foreground/10 transition-transform active:scale-95 dark:border-border dark:bg-card dark:shadow-primary/25 sm:-mt-8 sm:size-16 sm:border-4 sm:p-1.5 " +
+              (taylorActive ? "ring-2 ring-primary/30" : "")
             }
           >
-            <img
-              src={taylorCharacter.url}
-              alt="Taylor"
-              className="size-full object-cover object-top"
-              draggable={false}
-            />
+            <span className="relative flex size-full overflow-hidden rounded-full bg-primary-foreground">
+              <img
+                src={taylorCharacter.url}
+                alt="Taylor"
+                className="size-full object-cover object-top"
+                draggable={false}
+              />
+            </span>
           </Link>
         </div>
 
