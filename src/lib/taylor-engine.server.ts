@@ -182,7 +182,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
       .eq("is_published", true)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
-      .limit(120),
+      .limit(200),
   ]);
   const allStores = (allStoresRes.data ?? []) as typeof stores;
   const allPromos = (allPromosRes.data ?? []) as typeof promos;
@@ -275,7 +275,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   lines.push("");
   if (activePromos.length === 0) {
     lines.push(
-      "LIVE PROMOTIONS from followed stores: none right now. You can still help by comparing typical prices across major SA retailers (frame as guidance, not verified live prices) and suggesting stores worth following for live deals.",
+      "LIVE PROMOTIONS from followed stores: none right now. Do NOT stop here — pull matching deals from the OTHER LIVE PROMOTIONS ACROSS MAJOR SA RETAILERS block below (real live promos, just from stores the subscriber hasn't followed yet). Only if that block is also empty for the request, fall back to general SA retailer guidance labelled as an estimate.",
     );
   } else {
     lines.push(
@@ -335,9 +335,9 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   if (activeAllPromos.length) {
     lines.push("");
     lines.push(
-      `OTHER LIVE PROMOTIONS ACROSS TAYLOR (${activeAllPromos.length}) — quote only these when the subscriber asks about a deal or price at a store they don't follow. Same rules: name the store, label sponsored, never fabricate prices.`,
+      `OTHER LIVE PROMOTIONS ACROSS MAJOR SA RETAILERS (${activeAllPromos.length}) — surface these PROACTIVELY whenever the subscriber asks about deals, specials, best price, cheapest, "what's on sale", or a specific product, EVEN IF they haven't followed the store. Always name the store, label sponsored, never fabricate prices. When you recommend a deal from an unfollowed store, add a one-line nudge: "Follow <store> to get their specials in your inbox."`,
     );
-    for (const p of activeAllPromos.slice(0, 40)) {
+    for (const p of activeAllPromos.slice(0, 80)) {
       const store = p.store_id ? allStoreById.get(p.store_id)?.name : null;
       const price = p.sale_price
         ? `${p.currency_code} ${p.sale_price}${p.original_price ? ` (was ${p.original_price})` : ""}`
@@ -370,6 +370,12 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   lines.push("DECISION ENGINE");
   lines.push(
     "- When recommending, name the specific store and promotion from the list above. Never fabricate a price or store.",
+  );
+  lines.push(
+    "- DO NOT restrict deal recommendations to followed stores. When the subscriber asks about specials, deals, prices, or 'what's cheap right now', scan BOTH the followed-store promotions AND the OTHER LIVE PROMOTIONS ACROSS MAJOR SA RETAILERS block and surface the best 3–5 matches ranked by (a) direct match to the item asked about, (b) biggest saving vs. original_price, (c) followed-store bonus. Never withhold a real live promotion just because the store isn't followed yet.",
+  );
+  lines.push(
+    "- If there are zero matching live promotions in either block, fall back to typical retailer positioning for major SA chains (Pick n Pay, Checkers, Shoprite, Woolworths, Spar, Boxer, Makro, Food Lover's Market) as guidance — label it clearly as an estimate, not a verified live price.",
   );
   lines.push(
     "- If sponsored, say 'this one is sponsored by <brand>' plainly, then explain why it fits them.",
