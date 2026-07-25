@@ -13,6 +13,7 @@ import { rateLimit, clientKeyFromRequest } from "@/lib/rate-limit.server";
 import { logAiUsage } from "@/lib/ai-usage.server";
 import { routeChatModel } from "@/lib/model-router.server";
 import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
+import { firecrawlSearch, firecrawlScrape } from "@/lib/firecrawl.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -78,7 +79,9 @@ export const Route = createFileRoute("/api/chat")({
           `[taylor chat] routed -> ${routed.tier} (${routed.model}) — ${routed.reason}`,
         );
 
-        const tools = userId ? buildTaylorTools(userId) : undefined;
+        const tools = userId
+          ? { ...buildTaylorTools(userId), lookup_live_prices: livePricesTool(userId) }
+          : { lookup_live_prices: livePricesTool(null) };
         const result = streamText({
           model,
           system: systemPrompt,
@@ -145,6 +148,74 @@ function slugify(s: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
+}
+
+function livePricesTool(userId: string | null) {
+  return tool({
+    description:
+      "Look up LIVE product prices on South African retailer websites (Pick n Pay, Checkers, Shoprite, Woolworths, Makro, Dis-Chem, Clicks, SPAR, Boxer, Food Lover's Market, Takealot, etc.) using a real-time web lookup. Call this whenever the subscriber asks for a specific product's price, wants to compare prices across retailers, asks 'where is X cheapest', or asks 'what does Y cost at <store>' AND you do not already have a matching LIVE promotion in context. Never invent a price — only quote what this tool returns. Prefer 2–4 retailers per comparison.",
+    inputSchema: z.object({
+      product: z
+        .string()
+        .min(2)
+        .max(160)
+        .describe("Exact product to price, e.g. 'Iwisa maize meal 5kg' or 'Coca-Cola 2L'"),
+      retailers: z
+        .array(z.string().min(2).max(60))
+        .max(6)
+        .optional()
+        .describe(
+          "Optional retailer names to focus on, e.g. ['Pick n Pay','Checkers','Woolworths']. Defaults to the top SA supermarkets.",
+        ),
+    }),
+    execute: async ({ product, retailers }) => {
+      const targets =
+        retailers && retailers.length
+          ? retailers
+          : ["Pick n Pay", "Checkers", "Shoprite", "Woolworths"];
+      const results: Array<{
+        retailer: string;
+        url?: string;
+        title?: string;
+        snippet?: string;
+      }> = [];
+      await Promise.all(
+        targets.map(async (retailer) => {
+          try {
+            const hits = await firecrawlSearch(`${product} price ${retailer} South Africa`, {
+              limit: 2,
+            });
+            const first = hits[0];
+            if (!first) return;
+            const snippet = (first.description || first.markdown || "").slice(0, 400);
+            results.push({
+              retailer,
+              url: first.url,
+              title: first.title,
+              snippet,
+            });
+          } catch (e) {
+            results.push({ retailer, snippet: `lookup failed: ${(e as Error).message}` });
+          }
+        }),
+      );
+      void userId;
+      if (results.length === 0) {
+        return {
+          ok: false,
+          error:
+            "No live results returned. Fall back to typical SA price guidance and label it as an estimate.",
+        };
+      }
+      return {
+        ok: true,
+        product,
+        results,
+        instruction:
+          "Quote ONLY prices visible in the snippets/title. If a snippet has no visible R price, say the price wasn't visible and share the URL so the subscriber can check. Always name the retailer.",
+      };
+    },
+  });
 }
 
 function buildTaylorTools(userId: string) {
