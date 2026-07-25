@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import taylorMark from "@/assets/taylor-mark.png";
+import taylorMark from "@/assets/taylor-character.png.asset.json";
 
 const SESSION_KEY = "taylor.splash.shown";
 
@@ -48,7 +48,7 @@ export function SplashOverlay() {
 
           {/* Mark */}
           <motion.img
-            src={taylorMark}
+            src={taylorMark.url}
             alt=""
             width={128}
             height={128}

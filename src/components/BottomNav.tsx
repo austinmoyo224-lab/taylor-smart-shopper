@@ -3,7 +3,7 @@ import { Store, ListChecks, ChefHat, Inbox } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyInboxUnread } from "@/lib/store-messages.functions";
 import { useAuth } from "@/hooks/useAuth";
-import taylorCharacter from "@/assets/taylor-mark.png";
+import taylorCharacter from "@/assets/taylor-character.png.asset.json";
 
 
 // Taylor is the centre "hero" action; other tabs flank it two-per-side.
@@ -96,7 +96,7 @@ export function BottomNav() {
             }
           >
             <img
-              src={taylorCharacter}
+              src={taylorCharacter.url}
               alt="Taylor"
               className="size-full object-cover object-top"
               draggable={false}
