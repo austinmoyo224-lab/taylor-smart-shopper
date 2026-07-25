@@ -25,7 +25,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/BottomNav";
 import sourdoughImg from "@/assets/sample-sourdough.jpg";
 import heroImg from "@/assets/chat-hero.jpg";
-import taylorAvatarAsset from "@/assets/taylor-avatar.png.asset.json";
+import taylorAvatarAsset from "@/assets/taylor-character.png.asset.json";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
