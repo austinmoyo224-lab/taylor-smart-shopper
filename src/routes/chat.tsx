@@ -356,14 +356,14 @@ function ChatScreen() {
   return (
     <div className="flex w-full justify-center bg-background">
       <div className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
-      <header className="relative isolate shrink-0 overflow-hidden border-b border-border bg-background/85 px-6 pb-4 pt-8 backdrop-blur-md">
-        <div className="flex items-end justify-between">
-          <div>
+      <header className="relative isolate shrink-0 overflow-hidden border-b border-border bg-background/85 px-4 pb-3 pt-6 backdrop-blur-md sm:px-6 sm:pb-4 sm:pt-8">
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
               Taylor Intelligence
             </p>
             <h1
-              className="text-balance text-xl italic tracking-tight"
+              className="truncate text-balance text-lg italic tracking-tight sm:text-xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
               {user
@@ -371,7 +371,7 @@ function ChatScreen() {
                 : "Good day"}
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {canVoice && (
               <button
                 type="button"
@@ -392,10 +392,19 @@ function ChatScreen() {
             <Link
               to="/profile"
               aria-label="Profile"
-              className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10 font-bold text-primary"
+              className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/10 font-bold text-primary"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              T
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt="Your profile"
+                  className="size-full object-cover"
+                  draggable={false}
+                />
+              ) : (
+                (user.user_metadata?.first_name?.[0] ?? user.email?.[0] ?? "T").toUpperCase()
+              )}
             </Link>
             ) : (
             <Link

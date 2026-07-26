@@ -389,7 +389,6 @@ function ProfileScreen() {
           fields={[
             { key: "pets", label: "Pets (types and names)", type: "text" },
             { key: "cooking_time", label: "Time you have for cooking on weeknights", type: "text" },
-            { key: "kids_ages", label: "Kids in the home (ages)", type: "text" },
             { key: "notes", label: "Anything else Taylor should know", type: "textarea" },
           ]}
         />
