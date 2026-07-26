@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { firecrawlSearch, type FirecrawlSearchResult } from "@/lib/firecrawl.server";
+import { fetchLivePricesForBasket, type StoreRow } from "@/lib/live-prices.server";
 
 export const listMyShoppingLists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -125,7 +125,6 @@ export const deleteListItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-type StoreRow = { id: string; name: string; logo_url: string | null };
 type PriceRow = { product_id: string; store_id: string; price: number };
 
 export const compareBasket = createServerFn({ method: "POST" })
@@ -309,72 +308,3 @@ export const compareBasket = createServerFn({ method: "POST" })
       totalItems: itemsOut.length,
     };
   });
-
-// -------- Live price lookup (Firecrawl) --------
-
-const LIVE_RETAILERS: { id: string; name: string; hostMatches: string[]; logo_url: null }[] = [
-  { id: "live:pnp", name: "Pick n Pay (live)", hostMatches: ["pnp.co.za", "picknpay"], logo_url: null },
-  { id: "live:checkers", name: "Checkers (live)", hostMatches: ["checkers.co.za"], logo_url: null },
-  { id: "live:shoprite", name: "Shoprite (live)", hostMatches: ["shoprite.co.za"], logo_url: null },
-  { id: "live:woolworths", name: "Woolworths (live)", hostMatches: ["woolworths.co.za"], logo_url: null },
-  { id: "live:spar", name: "SPAR (live)", hostMatches: ["spar.co.za"], logo_url: null },
-  { id: "live:makro", name: "Makro (live)", hostMatches: ["makro.co.za"], logo_url: null },
-];
-
-function matchRetailer(url: string) {
-  const u = url.toLowerCase();
-  return LIVE_RETAILERS.find((r) => r.hostMatches.some((h) => u.includes(h))) ?? null;
-}
-
-function extractPrice(text: string | undefined): number | null {
-  if (!text) return null;
-  const m = text.match(/R\s?(\d{1,4}(?:[.,]\d{2})?)/);
-  if (!m) return null;
-  const n = Number(m[1].replace(",", "."));
-  return Number.isFinite(n) && n > 0 && n < 10000 ? n : null;
-}
-
-async function fetchLivePricesForBasket(
-  items: { id: string; name: string; quantity: number }[],
-): Promise<{
-  stores: StoreRow[];
-  perItem: Map<string, Map<string, number>>; // item.id -> storeId -> unit price
-}> {
-  const perItem = new Map<string, Map<string, number>>();
-  const usedStoreIds = new Set<string>();
-
-  const searchable = items.filter((i) => i.name.trim()).slice(0, 15);
-  await Promise.all(
-    searchable.map(async (it) => {
-      let results: FirecrawlSearchResult[] = [];
-      try {
-        results = await firecrawlSearch(
-          `"${it.name}" price Pick n Pay OR Checkers OR Shoprite OR Woolworths South Africa`,
-          { limit: 8, timeoutMs: 15_000 },
-        );
-      } catch {
-        return;
-      }
-      const byStore = new Map<string, number>();
-      for (const r of results) {
-        const retailer = matchRetailer(r.url ?? "");
-        if (!retailer) continue;
-        const price =
-          extractPrice(r.title) ?? extractPrice(r.description) ?? extractPrice(r.markdown);
-        if (price == null) continue;
-        const prev = byStore.get(retailer.id);
-        if (prev == null || price < prev) byStore.set(retailer.id, price);
-        usedStoreIds.add(retailer.id);
-      }
-      if (byStore.size > 0) perItem.set(it.id, byStore);
-    }),
-  );
-
-  const stores: StoreRow[] = LIVE_RETAILERS.filter((r) => usedStoreIds.has(r.id)).map((r) => ({
-    id: r.id,
-    name: r.name,
-    logo_url: null,
-  }));
-
-  return { stores, perItem };
-}
