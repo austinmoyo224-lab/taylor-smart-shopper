@@ -602,7 +602,10 @@ function HouseholdSection({
       <div className="space-y-2">
         <span className="block text-[11px] font-medium text-muted">Members</span>
         {members.map((m, i) => (
-          <div key={i} className="grid grid-cols-[1fr_60px_1fr_28px] gap-2">
+          <div
+            key={i}
+            className="grid grid-cols-[minmax(0,1fr)_56px_28px] gap-2 sm:grid-cols-[minmax(0,1.2fr)_60px_minmax(0,1fr)_28px]"
+          >
             <input
               placeholder="Name"
               value={m.name}
@@ -611,7 +614,7 @@ function HouseholdSection({
                 next[i] = { ...next[i], name: e.target.value };
                 setMembers(next);
               }}
-              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
+              className="min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
             />
             <input
               placeholder="Age"
@@ -622,8 +625,16 @@ function HouseholdSection({
                 next[i] = { ...next[i], age: e.target.value };
                 setMembers(next);
               }}
-              className="rounded-xl border border-border bg-background px-2 py-2 text-sm outline-none focus:border-primary/40"
+              className="min-w-0 rounded-xl border border-border bg-background px-2 py-2 text-sm outline-none focus:border-primary/40"
             />
+            <button
+              type="button"
+              aria-label="Remove"
+              onClick={() => setMembers(members.filter((_, idx) => idx !== i))}
+              className="flex shrink-0 items-center justify-center rounded-lg border border-border text-muted hover:text-foreground sm:order-last"
+            >
+              <X className="size-3.5" />
+            </button>
             <input
               placeholder="Favourite food"
               value={m.favourite_food}
@@ -632,16 +643,8 @@ function HouseholdSection({
                 next[i] = { ...next[i], favourite_food: e.target.value };
                 setMembers(next);
               }}
-              className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40"
+              className="col-span-3 min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/40 sm:col-span-1"
             />
-            <button
-              type="button"
-              aria-label="Remove"
-              onClick={() => setMembers(members.filter((_, idx) => idx !== i))}
-              className="flex items-center justify-center rounded-lg border border-border text-muted hover:text-foreground"
-            >
-              <X className="size-3.5" />
-            </button>
           </div>
         ))}
         <button
