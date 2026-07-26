@@ -119,8 +119,8 @@ export const getRecipeBySlug = createServerFn({ method: "GET" })
         "id, slug, title, description, hero_image_url, cooking_time_minutes, servings, difficulty, cuisine_tags, instructions, nutrition, is_sponsored",
       )
       .eq("slug", data.slug)
-      .eq("is_published", true)
       .is("deleted_at", null)
+      .or("is_published.eq.true,is_shareable.eq.true")
       .maybeSingle();
     if (!recipe) return null;
     const { data: ingredients } = await supabase
@@ -129,6 +129,44 @@ export const getRecipeBySlug = createServerFn({ method: "GET" })
       .eq("recipe_id", recipe.id)
       .order("sort_order", { ascending: true });
     return { recipe, ingredients: ingredients ?? [] };
+  });
+
+export const markRecipeShareable = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ recipe_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("recipes")
+      .update({ is_shareable: true })
+      .eq("id", data.recipe_id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const recordRecipeShareEvent = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        recipe_id: z.string().uuid(),
+        event_type: z.enum(["share_click", "share_success", "link_copy", "open"]),
+        channel: z.string().max(60).optional(),
+        referrer: z.string().max(500).optional(),
+        user_agent: z.string().max(500).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const supabase = pub();
+    const { error } = await supabase.from("recipe_share_events").insert({
+      recipe_id: data.recipe_id,
+      event_type: data.event_type,
+      channel: data.channel ?? null,
+      referrer: data.referrer ?? null,
+      user_agent: data.user_agent ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 function normalize(s: string) {
