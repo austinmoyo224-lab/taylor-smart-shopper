@@ -288,7 +288,7 @@ export const getStorePublicProfile = createServerFn({ method: "GET" })
     const { data: promotions } = await supabaseAdmin
       .from("promotions")
       .select(
-        "id, title, description, type, is_sponsored, original_price, sale_price, currency_code, hero_image_url, starts_at, ends_at",
+        "id, title, description, type, is_sponsored, original_price, sale_price, currency_code, hero_image_url, starts_at, ends_at, metadata",
       )
       .eq("store_id", store.id)
       .eq("is_published", true)
