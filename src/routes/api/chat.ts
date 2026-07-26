@@ -530,6 +530,7 @@ function buildTaylorTools(userId: string) {
             cuisine_tags: input.cuisine_tags ?? [],
             instructions: input.instructions.map((step, i) => ({ step: i + 1, text: step })),
             is_published: false,
+            is_shareable: true,
             source: input.source ?? "chat",
           })
           .select("id, slug")
