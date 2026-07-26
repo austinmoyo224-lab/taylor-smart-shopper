@@ -338,7 +338,7 @@ function BasketCompareTable({
   return (
     <div className="min-w-full">
       <div className="grid gap-2 border-b border-border bg-card/40 px-4 py-3 sm:grid-cols-3">
-        {data.storeTotals.slice(0, 3).map((s, i) => (
+                {data.storeTotals.slice(0, 3).map((s, i) => (
           <div
             key={s.storeId}
             className={
@@ -357,6 +357,11 @@ function BasketCompareTable({
               {s.matched}/{data.totalItems} matched
               {i === 0 && data.storeTotals.length > 1 && winner ? " · best" : ""}
             </p>
+                    {s.unverified > 0 ? (
+                      <p className="mt-0.5 text-[10px] uppercase tracking-widest text-warning">
+                        {s.unverified} unverified excluded
+                      </p>
+                    ) : null}
           </div>
         ))}
       </div>
@@ -395,7 +400,23 @@ function BasketCompareTable({
                         (isBest ? "font-semibold text-primary" : "text-foreground")
                       }
                     >
-                      {v == null ? <span className="text-muted">—</span> : fmt(v)}
+                      {v == null ? (
+                        <span className="text-muted">—</span>
+                      ) : (
+                        <div className="flex flex-col gap-0.5">
+                          <span>{fmt(v.price)}</span>
+                          <span
+                            className={
+                              "inline-flex w-fit rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-widest " +
+                              (v.verified
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted/20 text-muted")
+                            }
+                          >
+                            {v.verified ? "Verified" : "Not verified"}
+                          </span>
+                        </div>
+                      )}
                     </td>
                   );
                 })}
@@ -423,8 +444,10 @@ function BasketCompareTable({
         </table>
       </div>
       <p className="px-4 py-3 text-[11px] text-muted">
-        Live prices are only included when Taylor can verify them on official retailer product pages.
-        Unverified catalogue snippets and PDFs are excluded from totals.
+        Only <span className="font-semibold text-foreground">Verified</span> prices — sourced from
+        official retailer product pages or a store's own catalogue — are added to the totals.
+        Prices marked <span className="font-semibold text-foreground">Not verified</span> are shown
+        for reference only and are excluded.
       </p>
     </div>
   );
