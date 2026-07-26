@@ -87,6 +87,28 @@ export const deleteMyRecipe = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const generateRecipePhoto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ recipe_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: recipe } = await context.supabase
+      .from("recipes")
+      .select("id, title, description, cuisine_tags, user_id")
+      .eq("id", data.recipe_id)
+      .maybeSingle();
+    if (!recipe) throw new Error("Recipe not found");
+    if (recipe.user_id !== context.userId) throw new Error("Not allowed");
+    const { generateAndAttachRecipeHero } = await import("@/lib/recipe-image.server");
+    const url = await generateAndAttachRecipeHero({
+      recipeId: recipe.id,
+      title: recipe.title,
+      description: recipe.description,
+      cuisineTags: recipe.cuisine_tags,
+    });
+    if (!url) throw new Error("Could not generate photo — please try again in a moment.");
+    return { hero_image_url: url };
+  });
+
 export const getRecipeBySlug = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(200) }).parse(d))
   .handler(async ({ data }) => {
