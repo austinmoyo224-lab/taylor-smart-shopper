@@ -98,12 +98,12 @@ function StoreDetail() {
           <img
             src={store.hero_image_url}
             alt={store.name}
-            className="h-44 w-full object-cover"
+            className="h-48 w-full object-cover"
           />
         ) : (
-          <div className="h-32 w-full bg-gradient-to-br from-primary/30 via-primary/10 to-background" />
+          <div className="h-48 w-full bg-gradient-to-br from-primary/30 via-primary/10 to-background" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/90 to-transparent" />
         <button
           onClick={() => navigate({ to: "/stores" })}
           className="absolute left-4 top-4 flex size-9 items-center justify-center rounded-full bg-background/90 backdrop-blur"
@@ -114,15 +114,15 @@ function StoreDetail() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pb-8">
-        <div className="-mt-8 flex items-end gap-3">
+        <div className="relative z-10 -mt-12 flex items-end gap-3">
           {store.logo_url ? (
             <img
               src={store.logo_url}
               alt={store.name}
-              className="size-16 rounded-2xl border-4 border-background object-cover shadow"
+              className="size-20 rounded-2xl border-4 border-background bg-background object-cover shadow-lg"
             />
           ) : (
-            <div className="flex size-16 items-center justify-center rounded-2xl border-4 border-background bg-primary/10 text-xl font-bold text-primary shadow">
+            <div className="flex size-20 items-center justify-center rounded-2xl border-4 border-background bg-primary/10 text-2xl font-bold text-primary shadow-lg">
               {store.name.charAt(0)}
             </div>
           )}
