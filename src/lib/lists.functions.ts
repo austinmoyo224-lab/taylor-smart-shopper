@@ -249,7 +249,8 @@ export const compareBasket = createServerFn({ method: "POST" })
               price: (item.perStore[item.cheapestStoreId]!.price) / item.quantity,
             }
           : null;
-      for (const [storeId, unit] of live.entries()) {
+      for (const [storeId, match] of live.entries()) {
+        const unit = match.price;
         item.perStore[storeId] = { price: unit * item.quantity, verified: true };
         if (cheapestUnit == null || unit < cheapestUnit.price) {
           cheapestUnit = { storeId, price: unit };
