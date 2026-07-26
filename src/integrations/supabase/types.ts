@@ -1761,6 +1761,47 @@ export type Database = {
           },
         ]
       }
+      recipe_share_events: {
+        Row: {
+          channel: string | null
+          created_at: string
+          event_type: string
+          id: string
+          recipe_id: string
+          referrer: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          recipe_id: string
+          referrer?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          recipe_id?: string
+          referrer?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_share_events_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipes: {
         Row: {
           cooking_time_minutes: number | null
@@ -1773,6 +1814,7 @@ export type Database = {
           id: string
           instructions: Json
           is_published: boolean
+          is_shareable: boolean
           is_sponsored: boolean
           nutrition: Json
           organisation_id: string | null
@@ -1796,6 +1838,7 @@ export type Database = {
           id?: string
           instructions?: Json
           is_published?: boolean
+          is_shareable?: boolean
           is_sponsored?: boolean
           nutrition?: Json
           organisation_id?: string | null
@@ -1819,6 +1862,7 @@ export type Database = {
           id?: string
           instructions?: Json
           is_published?: boolean
+          is_shareable?: boolean
           is_sponsored?: boolean
           nutrition?: Json
           organisation_id?: string | null
