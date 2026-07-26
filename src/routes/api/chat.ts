@@ -80,8 +80,12 @@ export const Route = createFileRoute("/api/chat")({
         );
 
         const tools = userId
-          ? { ...buildTaylorTools(userId), lookup_live_prices: livePricesTool(userId) }
-          : { lookup_live_prices: livePricesTool(null) };
+          ? {
+              ...buildTaylorTools(userId),
+              lookup_live_prices: livePricesTool(userId),
+              lookup_weather: weatherTool(),
+            }
+          : { lookup_live_prices: livePricesTool(null), lookup_weather: weatherTool() };
         const result = streamText({
           model,
           system: systemPrompt,
