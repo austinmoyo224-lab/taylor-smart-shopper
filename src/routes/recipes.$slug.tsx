@@ -2,7 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { addRecipeToShoppingList, generateRecipePhoto, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
+import {
+  addRecipeToShoppingList,
+  generateRecipePhoto,
+  getMyRecipeBySlug,
+  getRecipeBySlug,
+  markRecipeShareable,
+  recordRecipeShareEvent,
+} from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronLeft, Clock, ShoppingBasket, Minus, Plus, ImagePlus, Loader2, Share2 } from "lucide-react";
@@ -124,12 +131,43 @@ function RecipeBody() {
   });
 
   const [shareMsg, setShareMsg] = useState<string | null>(null);
+
+  // Log an "open" event when arriving via a shared link (?s=1).
+  useEffect(() => {
+    if (!recipe?.id || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("s") !== "1") return;
+    recordRecipeShareEvent({
+      data: {
+        recipe_id: recipe.id,
+        event_type: "open",
+        referrer: document.referrer || undefined,
+        user_agent: navigator.userAgent,
+      },
+    }).catch(() => {});
+  }, [recipe?.id]);
+
   async function handleShare() {
     if (!recipe) return;
-    const url = typeof window !== "undefined" ? window.location.href : "";
+    // Ensure the recipe is publicly viewable via link when the owner shares.
+    if (isOwner) {
+      try {
+        await markRecipeShareable({ data: { recipe_id: recipe.id } });
+      } catch {
+        /* non-fatal */
+      }
+    }
+    const base =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/recipes/${recipe.slug}`
+        : "";
+    const url = base ? `${base}?s=1` : "";
     const title = recipe.title;
     const text =
       `${recipe.title}${recipe.description ? ` — ${recipe.description}` : ""}\n\nShared from Taylor 🛒`;
+    recordRecipeShareEvent({
+      data: { recipe_id: recipe.id, event_type: "share_click" },
+    }).catch(() => {});
     try {
       let files: File[] | undefined;
       if (recipe.hero_image_url) {
@@ -145,9 +183,19 @@ function RecipeBody() {
       }
       if (navigator.share) {
         await navigator.share({ title, text, url, ...(files ? { files } : {}) });
+        recordRecipeShareEvent({
+          data: {
+            recipe_id: recipe.id,
+            event_type: "share_success",
+            channel: "native_share",
+          },
+        }).catch(() => {});
         return;
       }
       await navigator.clipboard.writeText(`${title}\n${url}`);
+      recordRecipeShareEvent({
+        data: { recipe_id: recipe.id, event_type: "link_copy", channel: "clipboard" },
+      }).catch(() => {});
       setShareMsg("Link copied to clipboard");
       setTimeout(() => setShareMsg(null), 2500);
     } catch (e) {
@@ -155,6 +203,13 @@ function RecipeBody() {
       setShareMsg("Couldn't share — link copied instead");
       try {
         await navigator.clipboard.writeText(url);
+        recordRecipeShareEvent({
+          data: {
+            recipe_id: recipe.id,
+            event_type: "link_copy",
+            channel: "clipboard_fallback",
+          },
+        }).catch(() => {});
       } catch {
         /* noop */
       }
