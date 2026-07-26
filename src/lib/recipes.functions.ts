@@ -169,6 +169,90 @@ export const recordRecipeShareEvent = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Clone a public (or shareable) recipe into the signed-in user's own recipes.
+ * Returns the new slug so the client can navigate there.
+ */
+export const saveRecipeToMine = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ recipe_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const supa = pub();
+    // Source recipe must be either published or shareable.
+    const { data: src, error: sErr } = await supa
+      .from("recipes")
+      .select(
+        "id, title, description, hero_image_url, cooking_time_minutes, servings, difficulty, cuisine_tags, weather_tags, instructions, nutrition",
+      )
+      .eq("id", data.recipe_id)
+      .is("deleted_at", null)
+      .or("is_published.eq.true,is_shareable.eq.true")
+      .maybeSingle();
+    if (sErr || !src) throw new Error("Recipe not available");
+
+    // Prevent duplicates — reuse existing saved copy if present.
+    const { data: existing } = await context.supabase
+      .from("recipes")
+      .select("id, slug")
+      .eq("user_id", context.userId)
+      .eq("title", src.title)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (existing) return { id: existing.id, slug: existing.slug, existed: true };
+
+    const rand = Math.random().toString(36).slice(2, 8);
+    const baseSlug = (src.title || "recipe")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 60);
+    const slug = `${baseSlug || "recipe"}-${rand}`;
+
+    const { data: inserted, error: iErr } = await context.supabase
+      .from("recipes")
+      .insert({
+        user_id: context.userId,
+        title: src.title,
+        slug,
+        description: src.description,
+        hero_image_url: src.hero_image_url,
+        cooking_time_minutes: src.cooking_time_minutes,
+        servings: src.servings,
+        difficulty: src.difficulty,
+        cuisine_tags: src.cuisine_tags ?? [],
+        weather_tags: src.weather_tags ?? [],
+        instructions: src.instructions ?? [],
+        nutrition: src.nutrition ?? {},
+        source: "saved",
+        is_published: false,
+        is_shareable: false,
+      })
+      .select("id, slug")
+      .single();
+    if (iErr || !inserted) throw new Error(iErr?.message ?? "Could not save recipe");
+
+    // Copy ingredients.
+    const { data: ings } = await supa
+      .from("recipe_ingredients")
+      .select("name, quantity, unit, notes, sort_order, is_sponsored")
+      .eq("recipe_id", src.id)
+      .order("sort_order", { ascending: true });
+    if (ings && ings.length > 0) {
+      const rows = ings.map((i) => ({
+        recipe_id: inserted.id,
+        name: i.name,
+        quantity: i.quantity,
+        unit: i.unit,
+        notes: i.notes,
+        sort_order: i.sort_order,
+        is_sponsored: i.is_sponsored ?? false,
+      }));
+      const { error: ingErr } = await context.supabase.from("recipe_ingredients").insert(rows);
+      if (ingErr) throw new Error(ingErr.message);
+    }
+    return { id: inserted.id, slug: inserted.slug, existed: false };
+  });
+
 function normalize(s: string) {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }

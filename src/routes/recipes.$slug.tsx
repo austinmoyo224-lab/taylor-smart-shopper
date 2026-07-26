@@ -9,10 +9,11 @@ import {
   getRecipeBySlug,
   markRecipeShareable,
   recordRecipeShareEvent,
+  saveRecipeToMine,
 } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { ChevronLeft, Clock, ShoppingBasket, Minus, Plus, ImagePlus, Loader2, Share2 } from "lucide-react";
+import { ChevronLeft, Clock, ShoppingBasket, Minus, Plus, ImagePlus, Loader2, Share2, BookmarkPlus, Sparkles, Download, X } from "lucide-react";
 
 const recipeQO = (slug: string) =>
   queryOptions({
@@ -131,6 +132,18 @@ function RecipeBody() {
   });
 
   const [shareMsg, setShareMsg] = useState<string | null>(null);
+  const [joinOpen, setJoinOpen] = useState(false);
+
+  const saveMine = useMutation({
+    mutationFn: () =>
+      recipe
+        ? saveRecipeToMine({ data: { recipe_id: recipe.id } })
+        : Promise.reject(new Error("Recipe not loaded")),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["recipes", "mine"] });
+      navigate({ to: "/recipes/$slug", params: { slug: r.slug } });
+    },
+  });
 
   // Log an "open" event when arriving via a shared link (?s=1).
   useEffect(() => {
@@ -371,7 +384,7 @@ function RecipeBody() {
           </p>
           {!user ? (
             <button
-              onClick={() => navigate({ to: "/auth" })}
+              onClick={() => setJoinOpen(true)}
               className="w-full rounded-full bg-primary py-2.5 text-sm text-primary-foreground"
             >
               Sign in to add
@@ -423,6 +436,49 @@ function RecipeBody() {
           )}
         </section>
 
+        {!isOwner && (
+          <section className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-primary">
+              Save this recipe
+            </p>
+            {user ? (
+              <>
+                <p className="mb-3 text-xs text-muted">
+                  Keep a copy in your recipes so Taylor can suggest it, scale it, and add its
+                  ingredients to a list anytime.
+                </p>
+                <button
+                  onClick={() => saveMine.mutate()}
+                  disabled={saveMine.isPending}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm text-primary-foreground disabled:opacity-60"
+                >
+                  <BookmarkPlus className="size-4" />
+                  {saveMine.isPending ? "Saving…" : "Save to my recipes"}
+                </button>
+                {saveMine.error && (
+                  <p className="mt-2 text-xs text-destructive">
+                    {(saveMine.error as Error).message}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="mb-3 text-xs text-muted">
+                  Join Taylor free to save recipes, scale servings, and turn ingredients into a
+                  shopping list.
+                </p>
+                <button
+                  onClick={() => setJoinOpen(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm text-primary-foreground"
+                >
+                  <Sparkles className="size-4" />
+                  Join Taylor to save
+                </button>
+              </>
+            )}
+          </section>
+        )}
+
         {instructions.length > 0 && (
           <section className="mt-6">
             <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -444,6 +500,100 @@ function RecipeBody() {
           </section>
         )}
       </main>
+      {joinOpen && (
+        <JoinTaylorModal recipeTitle={recipe.title} onClose={() => setJoinOpen(false)} />
+      )}
     </>
+  );
+}
+
+function JoinTaylorModal({
+  recipeTitle,
+  onClose,
+}: {
+  recipeTitle: string;
+  onClose: () => void;
+}) {
+  const navigate = useNavigate();
+  const [installEvt, setInstallEvt] = useState<
+    (Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }) | null
+  >(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallEvt(
+        e as Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> },
+      );
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-primary">
+              Join Taylor
+            </p>
+            <h2
+              className="text-xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Save “{recipeTitle}”
+            </h2>
+          </div>
+          <button
+            aria-label="Close"
+            onClick={onClose}
+            className="rounded-full p-1 text-muted hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <p className="mb-4 text-sm text-muted">
+          Taylor is your free shopping companion. Join to save recipes, scale servings, and turn
+          ingredients into a smart shopping list with live South African prices.
+        </p>
+        <button
+          onClick={() => navigate({ to: "/auth" })}
+          className="mb-2 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm text-primary-foreground"
+        >
+          <Sparkles className="size-4" /> Join Taylor free
+        </button>
+        {installEvt && (
+          <button
+            onClick={async () => {
+              try {
+                await installEvt.prompt();
+                await installEvt.userChoice;
+              } finally {
+                onClose();
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-border py-2.5 text-sm"
+          >
+            <Download className="size-4" /> Install the app
+          </button>
+        )}
+        <p className="mt-3 text-center text-[10px] text-muted">
+          Already have an account?{" "}
+          <button
+            onClick={() => navigate({ to: "/auth" })}
+            className="font-medium text-primary underline"
+          >
+            Sign in
+          </button>
+        </p>
+      </div>
+    </div>
   );
 }
