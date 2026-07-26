@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -17,6 +18,8 @@ import {
   Tag,
   CheckCircle2,
   Clock,
+  X,
+  ImageIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/stores/$storeId")({
@@ -82,6 +85,8 @@ function StoreDetail() {
   }
 
   const { store, promotions } = q.data;
+  const [openPromoId, setOpenPromoId] = useState<string | null>(null);
+  const openPromo = promotions.find((p) => p.id === openPromoId) ?? null;
   const location = [store.address_line1, store.city, store.region, store.country_code]
     .filter(Boolean)
     .join(", ");
@@ -240,6 +245,203 @@ function StoreDetail() {
           ) : (
             <ul className="space-y-3">
               {promotions.map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenPromoId(p.id)}
+                    className="block w-full overflow-hidden rounded-2xl border border-border bg-card text-left transition hover:border-primary/50 hover:shadow-md"
+                  >
+                    {p.hero_image_url && (
+                      <img
+                        src={p.hero_image_url}
+                        alt={p.title}
+                        className="aspect-[16/9] w-full object-cover"
+                      />
+                    )}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-primary">
+                          <Tag className="mr-1 inline size-2.5" />
+                          {p.type.replace("_", " ")}
+                        </span>
+                        {p.is_sponsored && (
+                          <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted">
+                            Sponsored
+                          </span>
+                        )}
+                        {galleryFromPromo(p).length > 0 && (
+                          <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted">
+                            <ImageIcon className="size-3" />
+                            {galleryFromPromo(p).length + (p.hero_image_url ? 1 : 0)}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="mt-2 text-base font-semibold">{p.title}</h3>
+                      {p.description && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
+                          {p.description}
+                        </p>
+                      )}
+                      {p.sale_price != null && (
+                        <p className="mt-2 flex items-baseline gap-2 text-sm">
+                          <span className="font-semibold text-primary">
+                            {p.currency_code} {Number(p.sale_price).toFixed(2)}
+                          </span>
+                          {p.original_price != null &&
+                            Number(p.original_price) > Number(p.sale_price) && (
+                              <span className="text-xs text-muted line-through">
+                                {p.currency_code} {Number(p.original_price).toFixed(2)}
+                              </span>
+                            )}
+                        </p>
+                      )}
+                      <p className="mt-2 text-[10px] uppercase tracking-widest text-primary">
+                        Tap to view catalogue
+                        {p.ends_at &&
+                          ` · Ends ${new Date(p.ends_at).toLocaleDateString("en-ZA")}`}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
+
+      {openPromo && (
+        <PromotionModal
+          promotion={openPromo}
+          storeName={store.name}
+          onClose={() => setOpenPromoId(null)}
+        />
+      )}
+    </AppShell>
+  );
+}
+
+type PromotionRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  type: string;
+  is_sponsored: boolean | null;
+  original_price: number | string | null;
+  sale_price: number | string | null;
+  currency_code: string;
+  hero_image_url: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  metadata: unknown;
+};
+
+function galleryFromPromo(p: { metadata?: unknown }): string[] {
+  const meta = p.metadata as { gallery?: unknown } | null | undefined;
+  const g = meta?.gallery;
+  if (!Array.isArray(g)) return [];
+  return g.filter((s): s is string => typeof s === "string");
+}
+
+function PromotionModal({
+  promotion,
+  storeName,
+  onClose,
+}: {
+  promotion: PromotionRow;
+  storeName: string;
+  onClose: () => void;
+}) {
+  const gallery = galleryFromPromo(promotion);
+  const all = [
+    ...(promotion.hero_image_url ? [promotion.hero_image_url] : []),
+    ...gallery,
+  ];
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-background sm:rounded-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur">
+          <div className="min-w-0">
+            <p className="truncate font-mono text-[10px] uppercase tracking-widest text-muted">
+              {storeName}
+            </p>
+            <h3 className="truncate text-sm font-semibold">{promotion.title}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="ml-3 flex size-9 shrink-0 items-center justify-center rounded-full border border-border"
+            aria-label="Close"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <div className="px-5 pb-8 pt-4">
+          {promotion.sale_price != null && (
+            <p className="mb-3 flex items-baseline gap-2">
+              <span className="text-xl font-semibold text-primary">
+                {promotion.currency_code} {Number(promotion.sale_price).toFixed(2)}
+              </span>
+              {promotion.original_price != null &&
+                Number(promotion.original_price) > Number(promotion.sale_price) && (
+                  <span className="text-sm text-muted line-through">
+                    {promotion.currency_code} {Number(promotion.original_price).toFixed(2)}
+                  </span>
+                )}
+            </p>
+          )}
+          {promotion.description && (
+            <p className="mb-4 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+              {promotion.description}
+            </p>
+          )}
+          {promotion.ends_at && (
+            <p className="mb-4 text-[10px] uppercase tracking-widest text-muted">
+              Valid until {new Date(promotion.ends_at).toLocaleDateString("en-ZA")}
+            </p>
+          )}
+
+          {all.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-xs text-muted">
+              No catalogue images uploaded for this promotion yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                Catalogue &amp; brochures ({all.length})
+              </p>
+              {all.map((src, i) => (
+                <a
+                  key={`${src}-${i}`}
+                  href={src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  <img
+                    src={src}
+                    alt={`${promotion.title} page ${i + 1}`}
+                    className="w-full object-contain"
+                    loading="lazy"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// The original inline promotion list body has been replaced above; the
+// legacy renderer below is intentionally removed.
+/*
                 <li
                   key={p.id}
                   className="overflow-hidden rounded-2xl border border-border bg-card"
@@ -295,6 +497,7 @@ function StoreDetail() {
     </AppShell>
   );
 }
+*/
 
 const DAY_ORDER: { key: string; label: string }[] = [
   { key: "mon", label: "Mon" },

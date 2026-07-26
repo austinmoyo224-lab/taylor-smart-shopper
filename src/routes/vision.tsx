@@ -14,7 +14,18 @@ import {
 } from "@/lib/vision.functions";
 import { addListItem, createShoppingList, listMyShoppingLists } from "@/lib/lists.functions";
 import { addPantryItem } from "@/lib/pantry.functions";
-import { Camera, Check, ChefHat, ListPlus, RefreshCw, ShoppingBasket, Trash2 } from "lucide-react";
+import {
+  Camera,
+  Check,
+  ChefHat,
+  ListPlus,
+  Plus,
+  RefreshCw,
+  ShoppingBasket,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 
 type VisionScan = {
   id: string;
@@ -51,6 +62,8 @@ function VisionScreen() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [targetListId, setTargetListId] = useState<string>("new");
   const [newListName, setNewListName] = useState("");
+  const [queued, setQueued] = useState<{ path: string; url: string }[]>([]);
+  const [showCapture, setShowCapture] = useState(true);
   const [recipes, setRecipes] = useState<
     {
       id: string;
@@ -78,13 +91,14 @@ function VisionScreen() {
   });
 
   const analyze = useMutation({
-    mutationFn: (storagePath: string) => analyzeVisionScan({ data: { storagePath } }),
+    mutationFn: (storagePaths: string[]) => analyzeVisionScan({ data: { storagePaths } }),
     onSuccess: (res) => {
       setScanId(res.scanId);
       setImageUrl(res.imageUrl);
       setItems(res.items);
       setSelected(new Set(res.items.map((_, i) => i)));
       setMode("results");
+      setQueued([]);
       void qc.invalidateQueries({ queryKey: ["vision", "history"] });
     },
     onError: (err) => {
@@ -164,9 +178,15 @@ function VisionScreen() {
     setSelected(next);
   }
 
-  function onCapture(storagePath: string) {
+  function onCapture(storagePath: string, previewUrl: string) {
+    setQueued((q) => [...q, { path: storagePath, url: previewUrl }]);
+    setShowCapture(false);
+  }
+
+  function analyseQueue() {
+    if (queued.length === 0) return;
     setMode("analysing");
-    analyze.mutate(storagePath);
+    analyze.mutate(queued.map((q) => q.path));
   }
 
   function loadScan(scan: VisionScan) {
@@ -205,11 +225,76 @@ function VisionScreen() {
       <main className="flex-1 overflow-y-auto px-6 py-6">
         {mode === "capture" && (
           <>
-            <VisionCapture
-              userId={user.id}
-              onCapture={(path) => onCapture(path)}
-              onCancel={() => setMode("history")}
-            />
+            {showCapture ? (
+              <VisionCapture
+                userId={user.id}
+                onCapture={(path, url) => onCapture(path, url)}
+                onCancel={() =>
+                  queued.length > 0 ? setShowCapture(false) : setMode("history")
+                }
+              />
+            ) : (
+              <div className="rounded-3xl border border-border bg-card p-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">
+                    {queued.length} photo{queued.length === 1 ? "" : "s"} ready
+                  </p>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    Up to 8
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted">
+                  Add more angles of your fridge or pantry, then let Taylor combine them into one
+                  inventory.
+                </p>
+                <div className="mt-4 grid grid-cols-4 gap-2">
+                  {queued.map((q, i) => (
+                    <div key={q.path} className="relative aspect-square overflow-hidden rounded-xl border border-border">
+                      <img src={q.url} alt={`Photo ${i + 1}`} className="size-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setQueued((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-background/90 text-destructive shadow"
+                        aria-label="Remove photo"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {queued.length < 8 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCapture(true)}
+                      className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-border text-muted hover:border-primary hover:text-primary"
+                      aria-label="Add another photo"
+                    >
+                      <Plus className="size-5" />
+                    </button>
+                  )}
+                </div>
+                <div className="mt-5 space-y-2">
+                  <button
+                    type="button"
+                    onClick={analyseQueue}
+                    disabled={queued.length === 0}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-50"
+                  >
+                    <Sparkles className="size-4" />
+                    Analyse {queued.length} photo{queued.length === 1 ? "" : "s"}
+                  </button>
+                  {queued.length < 8 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCapture(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border py-3 text-sm font-medium"
+                    >
+                      <Camera className="size-4" />
+                      Add another photo
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="mt-6 flex items-center justify-between">
               <p className="text-sm font-medium">Recent scans</p>
               <button
@@ -409,7 +494,7 @@ function VisionScreen() {
           if (!file) return;
           setMode("analysing");
           const path = await uploadFromFile(file, user.id);
-          if (path) analyze.mutate(path);
+          if (path) analyze.mutate([path]);
           else setMode("capture");
         }}
       />
