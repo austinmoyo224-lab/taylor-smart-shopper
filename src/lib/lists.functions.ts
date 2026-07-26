@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { firecrawlSearch, type FirecrawlSearchResult } from "@/lib/firecrawl.server";
 
 export const listMyShoppingLists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -245,11 +246,135 @@ export const compareBasket = createServerFn({ method: "POST" })
       return a.total - b.total;
     });
 
+    // Live price fallback: for every item, query Firecrawl across major SA retailers
+    // and merge results as virtual "stores" so shoppers always see a comparison.
+    const liveStores = await fetchLivePricesForBasket(
+      resolved.map((r) => ({ id: r.id, name: r.name ?? "", quantity: Number(r.quantity ?? 1) || 1 })),
+    );
+
+    // Merge live per-item prices into itemsOut
+    for (const item of itemsOut) {
+      const live = liveStores.perItem.get(item.id);
+      if (!live) continue;
+      let cheapestUnit: { storeId: string; price: number } | null = item.cheapestStoreId
+        ? {
+            storeId: item.cheapestStoreId,
+            price: (item.perStore[item.cheapestStoreId] ?? 0) / item.quantity,
+          }
+        : null;
+      for (const [storeId, unit] of live.entries()) {
+        item.perStore[storeId] = unit * item.quantity;
+        if (cheapestUnit == null || unit < cheapestUnit.price) {
+          cheapestUnit = { storeId, price: unit };
+        }
+      }
+      item.cheapestStoreId = cheapestUnit?.storeId ?? item.cheapestStoreId;
+      if (live.size > 0) item.matched = true;
+    }
+
+    // Add live stores to the store list + totals
+    const allStores: (StoreRow & { live?: boolean })[] = [...stores];
+    for (const ls of liveStores.stores) {
+      if (!allStores.find((s) => s.id === ls.id)) allStores.push({ ...ls, live: true });
+    }
+    const mergedTotals = allStores.map((s) => {
+      let total = 0;
+      let matched = 0;
+      for (const row of itemsOut) {
+        const v = row.perStore[s.id];
+        if (v != null) {
+          total += v;
+          matched += 1;
+        }
+      }
+      return {
+        storeId: s.id,
+        name: s.name,
+        logo_url: s.logo_url,
+        total,
+        matched,
+        live: !!(s as { live?: boolean }).live,
+      };
+    });
+    mergedTotals.sort((a, b) => {
+      if (b.matched !== a.matched) return b.matched - a.matched;
+      return a.total - b.total;
+    });
+
     return {
       list: { id: list.id, name: list.name, currency: list.currency_code ?? "ZAR" },
-      stores,
+      stores: allStores,
       items: itemsOut,
-      storeTotals,
+      storeTotals: mergedTotals,
       totalItems: itemsOut.length,
     };
   });
+
+// -------- Live price lookup (Firecrawl) --------
+
+const LIVE_RETAILERS: { id: string; name: string; hostMatches: string[]; logo_url: null }[] = [
+  { id: "live:pnp", name: "Pick n Pay (live)", hostMatches: ["pnp.co.za", "picknpay"], logo_url: null },
+  { id: "live:checkers", name: "Checkers (live)", hostMatches: ["checkers.co.za"], logo_url: null },
+  { id: "live:shoprite", name: "Shoprite (live)", hostMatches: ["shoprite.co.za"], logo_url: null },
+  { id: "live:woolworths", name: "Woolworths (live)", hostMatches: ["woolworths.co.za"], logo_url: null },
+  { id: "live:spar", name: "SPAR (live)", hostMatches: ["spar.co.za"], logo_url: null },
+  { id: "live:makro", name: "Makro (live)", hostMatches: ["makro.co.za"], logo_url: null },
+];
+
+function matchRetailer(url: string) {
+  const u = url.toLowerCase();
+  return LIVE_RETAILERS.find((r) => r.hostMatches.some((h) => u.includes(h))) ?? null;
+}
+
+function extractPrice(text: string | undefined): number | null {
+  if (!text) return null;
+  const m = text.match(/R\s?(\d{1,4}(?:[.,]\d{2})?)/);
+  if (!m) return null;
+  const n = Number(m[1].replace(",", "."));
+  return Number.isFinite(n) && n > 0 && n < 10000 ? n : null;
+}
+
+async function fetchLivePricesForBasket(
+  items: { id: string; name: string; quantity: number }[],
+): Promise<{
+  stores: StoreRow[];
+  perItem: Map<string, Map<string, number>>; // item.id -> storeId -> unit price
+}> {
+  const perItem = new Map<string, Map<string, number>>();
+  const usedStoreIds = new Set<string>();
+
+  const searchable = items.filter((i) => i.name.trim()).slice(0, 15);
+  await Promise.all(
+    searchable.map(async (it) => {
+      let results: FirecrawlSearchResult[] = [];
+      try {
+        results = await firecrawlSearch(
+          `"${it.name}" price Pick n Pay OR Checkers OR Shoprite OR Woolworths South Africa`,
+          { limit: 8, timeoutMs: 15_000 },
+        );
+      } catch {
+        return;
+      }
+      const byStore = new Map<string, number>();
+      for (const r of results) {
+        const retailer = matchRetailer(r.url ?? "");
+        if (!retailer) continue;
+        const price =
+          extractPrice(r.title) ?? extractPrice(r.description) ?? extractPrice(r.markdown);
+        if (price == null) continue;
+        const prev = byStore.get(retailer.id);
+        if (prev == null || price < prev) byStore.set(retailer.id, price);
+        usedStoreIds.add(retailer.id);
+      }
+      if (byStore.size > 0) perItem.set(it.id, byStore);
+    }),
+  );
+
+  const stores: StoreRow[] = LIVE_RETAILERS.filter((r) => usedStoreIds.has(r.id)).map((r) => ({
+    id: r.id,
+    name: r.name,
+    logo_url: null,
+  }));
+
+  return { stores, perItem };
+}
