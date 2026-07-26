@@ -205,15 +205,17 @@ export const compareBasket = createServerFn({ method: "POST" })
     const priceIndex = new Map<string, number>();
     for (const p of prices) priceIndex.set(`${p.product_id}|${p.store_id}`, p.price);
 
+    // Catalogue prices from product_prices are treated as verified
+    // (they are supplied by the store itself).
     const itemsOut = resolved.map((it) => {
       const qty = Number(it.quantity ?? 1) || 1;
-      const perStore: Record<string, number | null> = {};
+      const perStore: Record<string, { price: number; verified: boolean } | null> = {};
       let cheapest: { storeId: string; price: number } | null = null;
       for (const s of stores) {
         const unit = it.resolvedProductId
           ? priceIndex.get(`${it.resolvedProductId}|${s.id}`) ?? null
           : null;
-        perStore[s.id] = unit == null ? null : unit * qty;
+        perStore[s.id] = unit == null ? null : { price: unit * qty, verified: true };
         if (unit != null && (cheapest == null || unit < cheapest.price)) {
           cheapest = { storeId: s.id, price: unit };
         }
@@ -228,41 +230,27 @@ export const compareBasket = createServerFn({ method: "POST" })
       };
     });
 
-    const storeTotals = stores.map((s) => {
-      let total = 0;
-      let matched = 0;
-      for (const row of itemsOut) {
-        const v = row.perStore[s.id];
-        if (v != null) {
-          total += v;
-          matched += 1;
-        }
-      }
-      return { storeId: s.id, name: s.name, logo_url: s.logo_url, total, matched };
-    });
-    storeTotals.sort((a, b) => {
-      if (b.matched !== a.matched) return b.matched - a.matched;
-      return a.total - b.total;
-    });
-
     // Live price fallback: for every item, query Firecrawl across major SA retailers
     // and merge results as virtual "stores" so shoppers always see a comparison.
     const liveStores = await fetchLivePricesForBasket(
       resolved.map((r) => ({ id: r.id, name: r.name ?? "", quantity: Number(r.quantity ?? 1) || 1 })),
     );
 
-    // Merge live per-item prices into itemsOut
+    // Merge live per-item prices into itemsOut. Live prices only come back when
+    // they were extracted from an official retailer product page, so we mark
+    // them as verified. Any other source would be flagged unverified.
     for (const item of itemsOut) {
       const live = liveStores.perItem.get(item.id);
       if (!live) continue;
-      let cheapestUnit: { storeId: string; price: number } | null = item.cheapestStoreId
-        ? {
-            storeId: item.cheapestStoreId,
-            price: (item.perStore[item.cheapestStoreId] ?? 0) / item.quantity,
-          }
-        : null;
+      let cheapestUnit: { storeId: string; price: number } | null =
+        item.cheapestStoreId && item.perStore[item.cheapestStoreId]
+          ? {
+              storeId: item.cheapestStoreId,
+              price: (item.perStore[item.cheapestStoreId]!.price) / item.quantity,
+            }
+          : null;
       for (const [storeId, unit] of live.entries()) {
-        item.perStore[storeId] = unit * item.quantity;
+        item.perStore[storeId] = { price: unit * item.quantity, verified: true };
         if (cheapestUnit == null || unit < cheapestUnit.price) {
           cheapestUnit = { storeId, price: unit };
         }
@@ -276,14 +264,19 @@ export const compareBasket = createServerFn({ method: "POST" })
     for (const ls of liveStores.stores) {
       if (!allStores.find((s) => s.id === ls.id)) allStores.push({ ...ls, live: true });
     }
+    // Totals sum ONLY verified cells so unverified estimates never mislead.
     const mergedTotals = allStores.map((s) => {
       let total = 0;
       let matched = 0;
+      let unverified = 0;
       for (const row of itemsOut) {
         const v = row.perStore[s.id];
-        if (v != null) {
-          total += v;
+        if (v == null) continue;
+        if (v.verified) {
+          total += v.price;
           matched += 1;
+        } else {
+          unverified += 1;
         }
       }
       return {
@@ -292,6 +285,7 @@ export const compareBasket = createServerFn({ method: "POST" })
         logo_url: s.logo_url,
         total,
         matched,
+        unverified,
         live: !!(s as { live?: boolean }).live,
       };
     });
