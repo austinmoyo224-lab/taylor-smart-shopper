@@ -423,8 +423,8 @@ function BasketCompareTable({
         </table>
       </div>
       <p className="px-4 py-3 text-[11px] text-muted">
-        Prices shown are the latest active retailer prices in Taylor's catalogue. Items without a
-        catalogue match are excluded from store totals.
+        Live prices are only included when Taylor can verify them on official retailer product pages.
+        Unverified catalogue snippets and PDFs are excluded from totals.
       </p>
     </div>
   );
