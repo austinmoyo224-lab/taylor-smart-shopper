@@ -34,7 +34,11 @@ const SIGNED_URL_TTL = 60 * 60; // 1 hour
 
 export const analyzeVisionScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ storagePath: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) =>
+    z
+      .object({ storagePaths: z.array(z.string().min(1)).min(1).max(8) })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Missing LOVABLE_API_KEY");
@@ -49,17 +53,21 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
 
     // Only allow analysis of the user's own uploads.
     const expectedPrefix = `${context.userId}/`;
-    if (!data.storagePath.startsWith(expectedPrefix)) {
-      throw new Error("Invalid storage path");
+    for (const p of data.storagePaths) {
+      if (!p.startsWith(expectedPrefix)) throw new Error("Invalid storage path");
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: signed, error: signError } = await supabaseAdmin.storage
-      .from(STORAGE_BUCKET)
-      .createSignedUrl(data.storagePath, SIGNED_URL_TTL);
-    if (signError || !signed?.signedUrl) {
-      throw new Error(signError?.message ?? "Could not access uploaded image");
+    const signedUrls: string[] = [];
+    for (const p of data.storagePaths) {
+      const { data: signed, error: signError } = await supabaseAdmin.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(p, SIGNED_URL_TTL);
+      if (signError || !signed?.signedUrl) {
+        throw new Error(signError?.message ?? "Could not access uploaded image");
+      }
+      signedUrls.push(signed.signedUrl);
     }
 
     const gateway = createLovableAiGatewayProvider(key, undefined, {
@@ -74,13 +82,20 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
         system:
           "You are a kitchen inventory assistant. Look at the photo and identify food and household items. " +
           "Return each item with name, quantity, unit, category, brand (if visible), estimated expiry days, and confidence. " +
-          "Only include items you are reasonably sure about. Do not invent prices or brands you cannot see.",
+          "Only include items you are reasonably sure about. Do not invent prices or brands you cannot see. " +
+          "When multiple photos are provided, treat them as different angles of the same fridge or pantry: merge duplicates and return a single combined inventory.",
         messages: [
           {
             role: "user",
             content: [
-              { type: "text", text: "What do you see in this photo?" },
-              { type: "image", image: signed.signedUrl },
+              {
+                type: "text",
+                text:
+                  signedUrls.length > 1
+                    ? `I've taken ${signedUrls.length} photos of my fridge/pantry from different angles. Give me one combined inventory.`
+                    : "What do you see in this photo?",
+              },
+              ...signedUrls.map((url) => ({ type: "image" as const, image: url })),
             ],
           },
         ],
@@ -121,9 +136,10 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
       .from("vision_scans")
       .insert({
         user_id: context.userId,
-        image_url: signed.signedUrl,
+        image_url: signedUrls[0],
         detected: {
-          storage_path: data.storagePath,
+          storage_path: data.storagePaths[0],
+          storage_paths: data.storagePaths,
           items: matchedItems,
         },
       })
@@ -136,7 +152,8 @@ export const analyzeVisionScan = createServerFn({ method: "POST" })
     return {
       scanId: scan.id,
       items: matchedItems,
-      imageUrl: signed.signedUrl,
+      imageUrl: signedUrls[0],
+      imageUrls: signedUrls,
     };
   });
 
@@ -165,8 +182,16 @@ export const deleteVisionScan = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!scan) return { ok: true };
 
-    const detected = scan.detected as { storage_path?: string } | null;
-    const storagePath = detected?.storage_path;
+    const detected = scan.detected as {
+      storage_path?: string;
+      storage_paths?: string[];
+    } | null;
+    const storagePaths =
+      detected?.storage_paths && detected.storage_paths.length > 0
+        ? detected.storage_paths
+        : detected?.storage_path
+          ? [detected.storage_path]
+          : [];
 
     const { error } = await context.supabase
       .from("vision_scans")
@@ -175,10 +200,10 @@ export const deleteVisionScan = createServerFn({ method: "POST" })
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
 
-    if (storagePath) {
+    if (storagePaths.length > 0) {
       const { error: storageError } = await context.supabase.storage
         .from(STORAGE_BUCKET)
-        .remove([storagePath]);
+        .remove(storagePaths);
       if (storageError) console.error("[vision] remove upload failed", storageError.message);
     }
 
