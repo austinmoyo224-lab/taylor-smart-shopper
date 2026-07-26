@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery, useMutation, useQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { addRecipeToShoppingList, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
+import { addRecipeToShoppingList, generateRecipePhoto, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { ChevronLeft, Clock, Users, ShoppingBasket, Minus, Plus } from "lucide-react";
+import { ChevronLeft, Clock, ShoppingBasket, Minus, Plus, ImagePlus, Loader2 } from "lucide-react";
 
 const recipeQO = (slug: string) =>
   queryOptions({
@@ -68,6 +68,7 @@ function RecipeBody() {
   const { data: publicData } = useSuspenseQuery(recipeQO(slug));
   const { user } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const mine = useQuery({
     queryKey: ["recipe", "mine", slug],
     queryFn: () => getMyRecipeBySlug({ data: { slug } }),
@@ -75,6 +76,7 @@ function RecipeBody() {
   });
   const data = publicData ?? mine.data ?? null;
   const recipe = data?.recipe ?? null;
+  const isOwner = !!mine.data && !publicData;
   const ingredients = data?.ingredients ?? [];
   const baseServings = Math.max(1, Number(recipe?.servings ?? 1));
   const [servings, setServings] = useState<number>(baseServings);
@@ -110,6 +112,17 @@ function RecipeBody() {
     onSuccess: (r) => setResult(r),
   });
 
+  const regenPhoto = useMutation({
+    mutationFn: () =>
+      recipe
+        ? generateRecipePhoto({ data: { recipe_id: recipe.id } })
+        : Promise.reject(new Error("Recipe not loaded")),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["recipe", "mine", slug] });
+      qc.invalidateQueries({ queryKey: ["recipes", "mine"] });
+    },
+  });
+
   if (!data || !recipe) {
     if (mine.isLoading) return <div className="p-8 text-sm text-muted">Loading…</div>;
     return <div className="p-8 text-sm text-muted">Recipe not found.</div>;
@@ -134,19 +147,59 @@ function RecipeBody() {
   return (
     <>
       <header className="relative">
-        {recipe.hero_image_url && (
+        {recipe.hero_image_url ? (
           <img
             src={recipe.hero_image_url}
             alt={recipe.title}
             className="h-56 w-full object-cover"
           />
-        )}
+        ) : isOwner ? (
+          <div className="flex h-56 w-full items-center justify-center bg-muted/30">
+            <button
+              onClick={() => regenPhoto.mutate()}
+              disabled={regenPhoto.isPending}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground disabled:opacity-60"
+            >
+              {regenPhoto.isPending ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" /> Plating your photo…
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="size-3.5" /> Generate photo
+                </>
+              )}
+            </button>
+          </div>
+        ) : null}
         <Link
           to="/recipes"
           className="absolute left-4 top-10 inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1.5 text-xs backdrop-blur"
         >
           <ChevronLeft className="size-3.5" /> Recipes
         </Link>
+        {isOwner && recipe.hero_image_url && (
+          <button
+            onClick={() => regenPhoto.mutate()}
+            disabled={regenPhoto.isPending}
+            className="absolute right-4 top-10 inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1.5 text-xs backdrop-blur disabled:opacity-60"
+          >
+            {regenPhoto.isPending ? (
+              <>
+                <Loader2 className="size-3 animate-spin" /> Replating…
+              </>
+            ) : (
+              <>
+                <ImagePlus className="size-3" /> Regenerate
+              </>
+            )}
+          </button>
+        )}
+        {regenPhoto.error && (
+          <p className="px-6 py-2 text-xs text-destructive">
+            {(regenPhoto.error as Error).message}
+          </p>
+        )}
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pb-24 pt-6">
