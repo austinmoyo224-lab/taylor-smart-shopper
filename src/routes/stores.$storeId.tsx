@@ -55,6 +55,8 @@ function StoreDetail() {
 
   const isFollowing = !!subs.data?.some((s) => s.id === storeId);
 
+  const [openPromoId, setOpenPromoId] = useState<string | null>(null);
+
   const follow = useMutation({
     mutationFn: () => subscribeToStore({ data: { storeId, source: "store_page" } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subs", "mine"] }),
@@ -85,7 +87,6 @@ function StoreDetail() {
   }
 
   const { store, promotions } = q.data;
-  const [openPromoId, setOpenPromoId] = useState<string | null>(null);
   const openPromo = promotions.find((p) => p.id === openPromoId) ?? null;
   const location = [store.address_line1, store.city, store.region, store.country_code]
     .filter(Boolean)
