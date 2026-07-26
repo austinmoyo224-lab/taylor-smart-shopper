@@ -545,6 +545,16 @@ function buildTaylorTools(userId: string) {
         }));
         const { error: iErr } = await supabaseAdmin.from("recipe_ingredients").insert(rows);
         if (iErr) return { ok: false, error: iErr.message };
+        // Fire-and-forget: generate a photo for the recipe so users "eat with
+        // their eyes first". Failure never blocks the chat response.
+        void import("@/lib/recipe-image.server").then(({ generateAndAttachRecipeHero }) =>
+          generateAndAttachRecipeHero({
+            recipeId: recipe.id,
+            title: input.title,
+            description: input.description ?? null,
+            cuisineTags: input.cuisine_tags ?? null,
+          }).catch(() => null),
+        );
         return { ok: true, recipe_id: recipe.id, slug: recipe.slug };
       },
     }),
