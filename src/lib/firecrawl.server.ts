@@ -21,6 +21,32 @@ export interface FirecrawlSearchResult {
   markdown?: string;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function asSearchResults(value: unknown): FirecrawlSearchResult[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.filter(
+    (item): item is FirecrawlSearchResult =>
+      item != null && typeof item === "object" && typeof (item as { url?: unknown }).url === "string",
+  );
+}
+
+function normalizeSearchResults(payload: unknown): FirecrawlSearchResult[] {
+  const root = asRecord(payload);
+  if (!root) return [];
+
+  const direct = asSearchResults(root.data) ?? asSearchResults(root.web) ?? asSearchResults(root.results);
+  if (direct) return direct;
+
+  const data = asRecord(root.data);
+  if (!data) return [];
+  return asSearchResults(data.web) ?? asSearchResults(data.data) ?? asSearchResults(data.results) ?? [];
+}
+
 export async function firecrawlSearch(
   query: string,
   opts: { limit?: number; scrape?: boolean; timeoutMs?: number } = {},
@@ -47,11 +73,8 @@ export async function firecrawlSearch(
       const txt = await res.text().catch(() => "");
       throw new Error(`Firecrawl search failed (${res.status}): ${txt.slice(0, 200)}`);
     }
-    const json = (await res.json()) as {
-      data?: FirecrawlSearchResult[];
-      web?: FirecrawlSearchResult[];
-    };
-    return json.data ?? json.web ?? [];
+    const json = await res.json();
+    return normalizeSearchResults(json);
   } finally {
     clearTimeout(t);
   }
