@@ -163,16 +163,22 @@ function RecipeBody() {
   async function handleShare() {
     if (!recipe) return;
     // Ensure the recipe is publicly viewable via link when the owner shares.
+    let sharedSlug = recipe.slug;
     if (isOwner) {
       try {
-        await markRecipeShareable({ data: { recipe_id: recipe.id } });
-      } catch {
-        /* non-fatal */
+        const marked = await markRecipeShareable({ data: { recipe_id: recipe.id } });
+        sharedSlug = marked.slug ?? recipe.slug;
+        await qc.invalidateQueries({ queryKey: ["recipe", slug] });
+        await qc.invalidateQueries({ queryKey: ["recipe", "mine", slug] });
+      } catch (e) {
+        setShareMsg((e as Error).message || "Couldn't prepare this recipe for sharing");
+        setTimeout(() => setShareMsg(null), 3000);
+        return;
       }
     }
     const base =
       typeof window !== "undefined"
-        ? `${window.location.origin}/recipes/${recipe.slug}`
+        ? `${window.location.origin}/recipes/${sharedSlug}`
         : "";
     const url = base ? `${base}?s=1` : "";
     const title = recipe.title;

@@ -135,13 +135,27 @@ export const markRecipeShareable = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ recipe_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { data: owned, error: ownErr } = await context.supabase
+      .from("recipes")
+      .select("id, slug, is_shareable")
+      .eq("id", data.recipe_id)
+      .eq("user_id", context.userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (ownErr) throw new Error(ownErr.message);
+    if (!owned) throw new Error("Recipe not found in your recipes");
+    if (owned.is_shareable) return { ok: true, slug: owned.slug };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: updated, error } = await supabaseAdmin
       .from("recipes")
       .update({ is_shareable: true })
       .eq("id", data.recipe_id)
-      .eq("user_id", context.userId);
+      .select("slug")
+      .maybeSingle();
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!updated) throw new Error("Could not prepare this recipe for sharing");
+    return { ok: true, slug: updated.slug };
   });
 
 export const recordRecipeShareEvent = createServerFn({ method: "POST" })
