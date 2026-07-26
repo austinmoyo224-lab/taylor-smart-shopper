@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { addRecipeToShoppingList, generateRecipePhoto, getMyRecipeBySlug, getRecipeBySlug } from "@/lib/recipes.functions";
 import { listMyShoppingLists } from "@/lib/lists.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { ChevronLeft, Clock, ShoppingBasket, Minus, Plus, ImagePlus, Loader2 } from "lucide-react";
+import { ChevronLeft, Clock, ShoppingBasket, Minus, Plus, ImagePlus, Loader2, Share2 } from "lucide-react";
 
 const recipeQO = (slug: string) =>
   queryOptions({
@@ -123,6 +123,45 @@ function RecipeBody() {
     },
   });
 
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+  async function handleShare() {
+    if (!recipe) return;
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const title = recipe.title;
+    const text =
+      `${recipe.title}${recipe.description ? ` — ${recipe.description}` : ""}\n\nShared from Taylor 🛒`;
+    try {
+      let files: File[] | undefined;
+      if (recipe.hero_image_url) {
+        try {
+          const res = await fetch(recipe.hero_image_url);
+          const blob = await res.blob();
+          const file = new File([blob], `${slug}.png`, { type: blob.type || "image/png" });
+          const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+          if (nav.canShare?.({ files: [file] })) files = [file];
+        } catch {
+          /* ignore, share without image */
+        }
+      }
+      if (navigator.share) {
+        await navigator.share({ title, text, url, ...(files ? { files } : {}) });
+        return;
+      }
+      await navigator.clipboard.writeText(`${title}\n${url}`);
+      setShareMsg("Link copied to clipboard");
+      setTimeout(() => setShareMsg(null), 2500);
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;
+      setShareMsg("Couldn't share — link copied instead");
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        /* noop */
+      }
+      setTimeout(() => setShareMsg(null), 2500);
+    }
+  }
+
   if (!data || !recipe) {
     if (mine.isLoading) return <div className="p-8 text-sm text-muted">Loading…</div>;
     return <div className="p-8 text-sm text-muted">Recipe not found.</div>;
@@ -178,11 +217,18 @@ function RecipeBody() {
         >
           <ChevronLeft className="size-3.5" /> Recipes
         </Link>
+        <button
+          onClick={handleShare}
+          aria-label="Share recipe"
+          className="absolute right-4 top-10 inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1.5 text-xs backdrop-blur"
+        >
+          <Share2 className="size-3.5" /> Share
+        </button>
         {isOwner && recipe.hero_image_url && (
           <button
             onClick={() => regenPhoto.mutate()}
             disabled={regenPhoto.isPending}
-            className="absolute right-4 top-10 inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1.5 text-xs backdrop-blur disabled:opacity-60"
+            className="absolute right-24 top-10 inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1.5 text-xs backdrop-blur disabled:opacity-60"
           >
             {regenPhoto.isPending ? (
               <>
@@ -194,6 +240,9 @@ function RecipeBody() {
               </>
             )}
           </button>
+        )}
+        {shareMsg && (
+          <p className="px-6 py-2 text-xs text-muted">{shareMsg}</p>
         )}
         {regenPhoto.error && (
           <p className="px-6 py-2 text-xs text-destructive">
