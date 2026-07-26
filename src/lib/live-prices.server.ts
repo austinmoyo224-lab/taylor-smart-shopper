@@ -95,6 +95,11 @@ const LIVE_RETAILERS: LiveRetailer[] = [
 
 const LIVE_RETAILER_LOOKUP_LIMIT = 5;
 const PRICE_MAX_RAND = 1_000;
+// Minimum confidence (0-1) required to surface a live price to shoppers.
+// Anything below this is discarded rather than shown as "unverified".
+const CONFIDENCE_THRESHOLD = 0.6;
+
+export type PriceMatch = { price: number; confidence: number };
 
 function hostFromUrl(url: string) {
   try {
@@ -163,7 +168,14 @@ function extractPrices(text: string | undefined): number[] {
   return prices;
 }
 
-function extractBestPrice(result: FirecrawlSearchResult, itemName: string): number | null {
+function scoreTermCoverage(text: string, terms: string[]): number {
+  if (!terms.length) return 0;
+  const lower = text.toLowerCase();
+  const hits = terms.filter((t) => lower.includes(t)).length;
+  return hits / terms.length;
+}
+
+function extractBestPrice(result: FirecrawlSearchResult, itemName: string): PriceMatch | null {
   if (!resultLooksRelevant(result, itemName)) return null;
 
   const lines = (result.markdown ?? "")
@@ -172,6 +184,20 @@ function extractBestPrice(result: FirecrawlSearchResult, itemName: string): numb
     .filter(Boolean);
   const title = (result.title ?? itemName).toLowerCase();
   const terms = normalizeItemTerms(itemName);
+  const titleCoverage = scoreTermCoverage(
+    [result.title, result.description].filter(Boolean).join(" "),
+    terms,
+  );
+
+  // Signals: proximity to product line, presence in title/description,
+  // price plausibility (retail groceries typically R5–R500), term coverage.
+  const plausibility = (price: number) => {
+    if (price < 3 || price >= PRICE_MAX_RAND) return 0;
+    if (price >= 5 && price <= 500) return 1;
+    if (price < 5) return 0.4;
+    return 0.6; // 500–999
+  };
+
   const productLineIndex = lines.findIndex((line) => {
     const lower = line.toLowerCase();
     return lower.includes(title) || terms.every((term) => lower.includes(term));
@@ -186,50 +212,81 @@ function extractBestPrice(result: FirecrawlSearchResult, itemName: string): numb
       nearbyLines.push(line);
     }
     const nearbyPrices = extractPrices(nearbyLines.join("\n"));
-    if (nearbyPrices.length) return nearbyPrices[0];
+    if (nearbyPrices.length) {
+      const price = nearbyPrices[0];
+      const confidence = Math.min(
+        1,
+        0.55 + 0.25 * titleCoverage + 0.2 * plausibility(price),
+      );
+      return { price, confidence };
+    }
   }
 
   const priorityText = [result.title, result.description].filter(Boolean).join("\n");
   const priorityPrices = extractPrices(priorityText);
-  if (priorityPrices.length) return priorityPrices[0];
+  if (priorityPrices.length) {
+    const price = priorityPrices[0];
+    const confidence = Math.min(
+      1,
+      0.4 + 0.35 * titleCoverage + 0.2 * plausibility(price),
+    );
+    return { price, confidence };
+  }
 
   const firstScreen = lines.slice(0, 60).join("\n");
   const firstScreenPrices = extractPrices(firstScreen);
-  return firstScreenPrices[0] ?? null;
+  if (firstScreenPrices.length) {
+    const price = firstScreenPrices[0];
+    // Weakest signal — first-screen match without proximity or title support.
+    const confidence = Math.min(
+      1,
+      0.2 + 0.3 * titleCoverage + 0.2 * plausibility(price),
+    );
+    return { price, confidence };
+  }
+  return null;
 }
 
-async function fetchRetailerItemPrice(itemName: string, retailer: LiveRetailer) {
+async function fetchRetailerItemPrice(
+  itemName: string,
+  retailer: LiveRetailer,
+): Promise<PriceMatch | null> {
   const siteClause = retailer.domains.map((domain) => `site:${domain}`).join(" OR ");
   const query = `${siteClause} "${itemName}" "${retailer.searchName}" price South Africa`;
   const results = await firecrawlSearch(query, { limit: 3, scrape: true, timeoutMs: 18_000 });
 
+  let best: PriceMatch | null = null;
   for (const result of results) {
     if (!isOfficialRetailerUrl(result, retailer)) continue;
-    const price = extractBestPrice(result, itemName);
-    if (price != null) return price;
+    const match = extractBestPrice(result, itemName);
+    if (!match) continue;
+    if (!best || match.confidence > best.confidence) best = match;
   }
-  return null;
+  // Only surface prices we are confident about — misleading prices are worse
+  // than no prices at all.
+  if (!best || best.confidence < CONFIDENCE_THRESHOLD) return null;
+  return best;
 }
 
 export async function fetchLivePricesForBasket(
   items: { id: string; name: string; quantity: number }[],
 ): Promise<{
   stores: StoreRow[];
-  perItem: Map<string, Map<string, number>>;
+  perItem: Map<string, Map<string, PriceMatch>>;
 }> {
-  const perItem = new Map<string, Map<string, number>>();
+  const perItem = new Map<string, Map<string, PriceMatch>>();
   const usedStoreIds = new Set<string>();
 
   const searchable = items.filter((item) => item.name.trim()).slice(0, 15);
   await Promise.all(
     searchable.map(async (item) => {
-      const byStore = new Map<string, number>();
+      const byStore = new Map<string, PriceMatch>();
       await Promise.all(
         LIVE_RETAILERS.slice(0, LIVE_RETAILER_LOOKUP_LIMIT).map(async (retailer) => {
           try {
-            const price = await fetchRetailerItemPrice(item.name, retailer);
-            if (price == null) return;
-            byStore.set(retailer.id, price);
+            const match = await fetchRetailerItemPrice(item.name, retailer);
+            if (!match) return;
+            byStore.set(retailer.id, match);
             usedStoreIds.add(retailer.id);
           } catch {
             // Keep comparison safe: one retailer lookup must never block the whole basket.
