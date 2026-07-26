@@ -79,7 +79,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
     supabaseAdmin
       .from("profiles")
       .select(
-        "display_name, first_name, locale, country_code, currency_code, preferred_greeting, communication_style",
+        "display_name, first_name, locale, country_code, currency_code, city, preferred_greeting, communication_style",
       )
       .eq("id", userId)
       .maybeSingle(),
@@ -235,6 +235,11 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   lines.push(
     `Locale: ${profile?.locale ?? "en-ZA"} / Currency: ${profile?.currency_code ?? "ZAR"}`,
   );
+  if (profile?.city) {
+    lines.push(
+      `Location: ${profile.city} — when the subscriber asks for meal, dinner, lunch or recipe ideas, CALL the lookup_weather tool with this city first, then tailor suggestions to the weather (hearty warm meals when cold/rainy, light/fresh/braai when hot, balanced otherwise). Mention the weather in one short natural sentence.`,
+    );
+  }
   if (greeting) lines.push(`Preferred greeting: "${greeting}"`);
   if (style) lines.push(`Conversation style: ${style}`);
 
