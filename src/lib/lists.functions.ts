@@ -6,7 +6,7 @@ import {
   buildShoppingPriceInput,
   cleanShoppingSearchName,
   prepareShoppingListItemForStorage,
-} from "@/lib/shopping-list.server";
+} from "@/lib/shopping-list-utils";
 
 export const listMyShoppingLists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

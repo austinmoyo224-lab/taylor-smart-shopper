@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { buildMeasurementNote, cleanRecipeIngredientName } from "@/lib/shopping-list.server";
+import { buildMeasurementNote, cleanRecipeIngredientName } from "@/lib/shopping-list-utils";
 
 function pub() {
   const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
