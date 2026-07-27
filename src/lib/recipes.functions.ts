@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildMeasurementNote, cleanRecipeIngredientName } from "@/lib/shopping-list.server";
 
 function pub() {
   const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
@@ -381,15 +382,13 @@ export const addRecipeToShoppingList = createServerFn({ method: "POST" })
       // instead of multiplying a per-pack price by the recipe quantity.
       // Keep the measurement in notes for the shopper's reference.
       const q = ing.quantity == null ? null : Number((Number(ing.quantity) * scale).toFixed(2));
-      const measurement =
-        q != null ? `${q}${ing.unit ? ing.unit : ""}`.trim() : ing.unit ?? "";
-      const noteParts = [measurement, ing.notes ?? ""].map((s) => s.trim()).filter(Boolean);
+      const cleanedName = cleanRecipeIngredientName(ing.name) || ing.name;
       rows.push({
         list_id: listId,
-        name: ing.name,
+        name: cleanedName,
         quantity: null,
         unit: null,
-        notes: noteParts.length ? noteParts.join(" · ") : null,
+        notes: buildMeasurementNote(q, ing.unit, ing.notes),
       });
       added++;
     }
