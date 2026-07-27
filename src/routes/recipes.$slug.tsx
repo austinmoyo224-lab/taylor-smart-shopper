@@ -80,11 +80,11 @@ function RecipeBody() {
   const mine = useQuery({
     queryKey: ["recipe", "mine", slug],
     queryFn: () => getMyRecipeBySlug({ data: { slug } }),
-    enabled: !!user && !publicData,
+    enabled: !!user,
   });
-  const data = publicData ?? mine.data ?? null;
+  const data = mine.data ?? publicData ?? null;
   const recipe = data?.recipe ?? null;
-  const isOwner = !!mine.data && !publicData;
+  const isOwner = !!mine.data;
   const ingredients = data?.ingredients ?? [];
   const baseServings = Math.max(1, Number(recipe?.servings ?? 1));
   const [servings, setServings] = useState<number>(baseServings);
