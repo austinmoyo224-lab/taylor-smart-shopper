@@ -12,8 +12,9 @@ import {
   getShoppingList,
   listMyShoppingLists,
   toggleListItem,
+  updateListItem,
 } from "@/lib/lists.functions";
-import { Camera, Plus, Trash2, ChevronLeft, Scale, X } from "lucide-react";
+import { Camera, Plus, Trash2, ChevronLeft, Scale, X, Pencil, Check, AlertTriangle } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/lists")({
@@ -23,6 +24,18 @@ export const Route = createFileRoute("/lists")({
       { title: "Shopping lists - Taylor Intelligence" },
       {
         name: "description",
+        content: "Your personal and AI-generated shopping lists with basket totals and savings.",
+      },
+      { property: "og:title", content: "Shopping lists - Taylor Intelligence" },
+      {
+        property: "og:description",
+        content: "Your personal and AI-generated shopping lists with basket totals and savings.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Shopping lists - Taylor Intelligence" },
+      {
+        name: "twitter:description",
         content: "Your personal and AI-generated shopping lists with basket totals and savings.",
       },
     ],
@@ -157,6 +170,10 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [compareOpen, setCompareOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editQuantity, setEditQuantity] = useState("");
+  const [editUnit, setEditUnit] = useState("");
   const detail = useQuery({
     queryKey: ["list", id],
     queryFn: () => getShoppingList({ data: { id } }),
@@ -177,6 +194,32 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
     mutationFn: (iid: string) => deleteListItem({ data: { id: iid } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["list", id] }),
   });
+  const update = useMutation({
+    mutationFn: (v: { id: string; name: string; quantity: number | null; unit: string | null }) =>
+      updateListItem({ data: v }),
+    onSuccess: () => {
+      setEditingId(null);
+      void qc.invalidateQueries({ queryKey: ["list", id] });
+    },
+  });
+
+  const startEdit = (item: { id: string; name: string; quantity: number | null; unit: string | null }) => {
+    setEditingId(item.id);
+    setEditName(item.name);
+    setEditQuantity(item.quantity == null ? "" : String(item.quantity));
+    setEditUnit(item.unit ?? "");
+  };
+
+  const saveEdit = (itemId: string) => {
+    if (!editName.trim()) return;
+    const quantity = editQuantity.trim() ? Number(editQuantity) : null;
+    update.mutate({
+      id: itemId,
+      name: editName.trim(),
+      quantity: quantity && Number.isFinite(quantity) ? quantity : null,
+      unit: editUnit.trim() || null,
+    });
+  };
 
   const list = detail.data?.list;
   const items = detail.data?.items ?? [];
@@ -208,6 +251,13 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="mb-4 flex gap-2 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-[11px] leading-relaxed text-foreground">
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          <p>
+            Before you compare prices please make sure you have the measurements right, e.g. you
+            can't search for a 2 cup rice price but you can check a 2kg rice price.
+          </p>
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -230,32 +280,87 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
           </button>
         </form>
         <ul className="space-y-1">
-          {itemsPager.paged.map((it) => (
-            <li
-              key={it.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2"
-            >
-              <input
-                type="checkbox"
-                checked={it.is_checked}
-                onChange={(e) => toggle.mutate({ id: it.id, checked: e.target.checked })}
-                className="size-4 accent-primary"
-              />
-              <span
-                className={"flex-1 text-sm " + (it.is_checked ? "text-muted line-through" : "")}
+          {itemsPager.paged.map((it) => {
+            const isEditing = editingId === it.id;
+            return (
+              <li
+                key={it.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2"
               >
-                {it.name}
-                {it.quantity ? ` · ${it.quantity}${it.unit ?? ""}` : ""}
-              </span>
-              <button
-                onClick={() => del.mutate(it.id)}
-                className="text-muted hover:text-destructive"
-                aria-label="Remove"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </li>
-          ))}
+                <input
+                  type="checkbox"
+                  checked={it.is_checked}
+                  onChange={(e) => toggle.mutate({ id: it.id, checked: e.target.checked })}
+                  className="size-4 accent-primary"
+                />
+                {isEditing ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveEdit(it.id);
+                    }}
+                    className="grid flex-1 grid-cols-[1fr_72px_64px] gap-2"
+                  >
+                    <input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      aria-label="Item name"
+                      className="min-w-0 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                    />
+                    <input
+                      value={editQuantity}
+                      onChange={(e) => setEditQuantity(e.target.value)}
+                      inputMode="decimal"
+                      aria-label="Quantity"
+                      placeholder="Qty"
+                      className="min-w-0 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                    />
+                    <input
+                      value={editUnit}
+                      onChange={(e) => setEditUnit(e.target.value)}
+                      aria-label="Unit"
+                      placeholder="kg"
+                      className="min-w-0 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                    />
+                  </form>
+                ) : (
+                  <span
+                    className={
+                      "flex-1 text-sm " + (it.is_checked ? "text-muted line-through" : "")
+                    }
+                  >
+                    {it.name}
+                    {it.quantity ? ` · ${it.quantity}${it.unit ?? ""}` : ""}
+                  </span>
+                )}
+                {isEditing ? (
+                  <button
+                    onClick={() => saveEdit(it.id)}
+                    className="text-primary hover:text-primary/80"
+                    aria-label="Save item"
+                    disabled={update.isPending}
+                  >
+                    <Check className="size-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => startEdit(it)}
+                    className="text-muted hover:text-foreground"
+                    aria-label="Edit item"
+                  >
+                    <Pencil className="size-3.5" />
+                  </button>
+                )}
+                <button
+                  onClick={() => (isEditing ? setEditingId(null) : del.mutate(it.id))}
+                  className="text-muted hover:text-destructive"
+                  aria-label={isEditing ? "Cancel edit" : "Remove"}
+                >
+                  {isEditing ? <X className="size-3.5" /> : <Trash2 className="size-3.5" />}
+                </button>
+              </li>
+            );
+          })}
           {items.length === 0 && !detail.isLoading && (
             <p className="py-6 text-center text-xs text-muted">
               Empty list — add your first item above.
@@ -358,7 +463,7 @@ function BasketCompareTable({
               {i === 0 && data.storeTotals.length > 1 && winner ? " · best" : ""}
             </p>
                     {s.unverified > 0 ? (
-                      <p className="mt-0.5 text-[10px] uppercase tracking-widest text-warning">
+                      <p className="mt-0.5 text-[10px] uppercase tracking-widest text-muted">
                         {s.unverified} unverified excluded
                       </p>
                     ) : null}
@@ -385,7 +490,7 @@ function BasketCompareTable({
                 <td className="sticky left-0 z-10 bg-background px-3 py-2">
                   <div className="font-medium">{row.name}</div>
                   <div className="text-[10px] text-muted">
-                    ×{row.quantity}
+                    {row.quantityLabel || (row.quantity === 1 ? "" : `×${row.quantity}`)}
                     {row.matched ? "" : " · unmatched"}
                   </div>
                 </td>
