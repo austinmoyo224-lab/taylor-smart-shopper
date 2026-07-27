@@ -80,6 +80,11 @@ function ChatScreen() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const taylorAvatarUrl = taylorAvatarAsset.url;
+  const [visionOpen, setVisionOpen] = useState(false);
+  const [visionQueue, setVisionQueue] = useState<{ path: string; url: string }[]>([]);
+  const [visionShowCapture, setVisionShowCapture] = useState(true);
+  const [visionAnalyzing, setVisionAnalyzing] = useState(false);
+  const [visionError, setVisionError] = useState<string | null>(null);
 
   useEffect(() => {
     setAutoSpeakState(getAutoSpeak());
@@ -345,11 +350,57 @@ function ChatScreen() {
   function handleMenuAction(action: "scan" | "camera" | "gallery") {
     setMenuOpen(false);
     if (action === "scan") {
-      void navigate({ to: user ? "/vision" : "/auth" });
+      if (!user) {
+        void navigate({ to: "/auth" });
+        return;
+      }
+      setVisionError(null);
+      setVisionQueue([]);
+      setVisionShowCapture(true);
+      setVisionOpen(true);
     } else if (action === "camera") {
       cameraInputRef.current?.click();
     } else {
       galleryInputRef.current?.click();
+    }
+  }
+
+  function closeVision() {
+    setVisionOpen(false);
+    setVisionQueue([]);
+    setVisionShowCapture(true);
+    setVisionAnalyzing(false);
+    setVisionError(null);
+  }
+
+  async function analyseVisionQueue() {
+    if (visionQueue.length === 0 || visionAnalyzing) return;
+    setVisionAnalyzing(true);
+    setVisionError(null);
+    try {
+      const paths = visionQueue.map((q) => q.path);
+      const result = await analyzeVisionScan({ data: { storagePaths: paths } });
+      const files: File[] = [];
+      for (let i = 0; i < visionQueue.length; i++) {
+        try {
+          const blob = await fetch(visionQueue[i].url).then((r) => r.blob());
+          files.push(
+            new File([blob], `pantry-${i + 1}.jpg`, { type: blob.type || "image/jpeg" }),
+          );
+        } catch {
+          /* skip if preview URL expired */
+        }
+      }
+      const summary = formatVisionSummary(result.items ?? []);
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      closeVision();
+      void sendMessage(
+        dt.files.length > 0 ? { text: summary, files: dt.files } : { text: summary },
+      );
+    } catch (err) {
+      setVisionError(err instanceof Error ? err.message : "Scan failed. Please try again.");
+      setVisionAnalyzing(false);
     }
   }
 
