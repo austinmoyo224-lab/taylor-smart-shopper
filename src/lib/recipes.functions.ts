@@ -376,13 +376,20 @@ export const addRecipeToShoppingList = createServerFn({ method: "POST" })
         skipped++;
         continue;
       }
+      // Intentionally omit quantity/unit on shopping list rows so price
+      // comparison matches on the product name only (e.g. "Mutton chops")
+      // instead of multiplying a per-pack price by the recipe quantity.
+      // Keep the measurement in notes for the shopper's reference.
       const q = ing.quantity == null ? null : Number((Number(ing.quantity) * scale).toFixed(2));
+      const measurement =
+        q != null ? `${q}${ing.unit ? ing.unit : ""}`.trim() : ing.unit ?? "";
+      const noteParts = [measurement, ing.notes ?? ""].map((s) => s.trim()).filter(Boolean);
       rows.push({
         list_id: listId,
         name: ing.name,
-        quantity: q,
-        unit: ing.unit ?? null,
-        notes: ing.notes ?? null,
+        quantity: null,
+        unit: null,
+        notes: noteParts.length ? noteParts.join(" · ") : null,
       });
       added++;
     }
