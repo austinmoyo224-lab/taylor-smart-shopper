@@ -37,6 +37,8 @@ import {
   setAutoSpeak,
   voiceSupported,
 } from "@/lib/voice-client";
+import { VisionCapture } from "@/components/VisionCapture";
+import { analyzeVisionScan, type MatchedItem } from "@/lib/vision.functions";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({
@@ -78,6 +80,11 @@ function ChatScreen() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const taylorAvatarUrl = taylorAvatarAsset.url;
+  const [visionOpen, setVisionOpen] = useState(false);
+  const [visionQueue, setVisionQueue] = useState<{ path: string; url: string }[]>([]);
+  const [visionShowCapture, setVisionShowCapture] = useState(true);
+  const [visionAnalyzing, setVisionAnalyzing] = useState(false);
+  const [visionError, setVisionError] = useState<string | null>(null);
 
   useEffect(() => {
     setAutoSpeakState(getAutoSpeak());
@@ -343,11 +350,57 @@ function ChatScreen() {
   function handleMenuAction(action: "scan" | "camera" | "gallery") {
     setMenuOpen(false);
     if (action === "scan") {
-      void navigate({ to: user ? "/vision" : "/auth" });
+      if (!user) {
+        void navigate({ to: "/auth" });
+        return;
+      }
+      setVisionError(null);
+      setVisionQueue([]);
+      setVisionShowCapture(true);
+      setVisionOpen(true);
     } else if (action === "camera") {
       cameraInputRef.current?.click();
     } else {
       galleryInputRef.current?.click();
+    }
+  }
+
+  function closeVision() {
+    setVisionOpen(false);
+    setVisionQueue([]);
+    setVisionShowCapture(true);
+    setVisionAnalyzing(false);
+    setVisionError(null);
+  }
+
+  async function analyseVisionQueue() {
+    if (visionQueue.length === 0 || visionAnalyzing) return;
+    setVisionAnalyzing(true);
+    setVisionError(null);
+    try {
+      const paths = visionQueue.map((q) => q.path);
+      const result = await analyzeVisionScan({ data: { storagePaths: paths } });
+      const files: File[] = [];
+      for (let i = 0; i < visionQueue.length; i++) {
+        try {
+          const blob = await fetch(visionQueue[i].url).then((r) => r.blob());
+          files.push(
+            new File([blob], `pantry-${i + 1}.jpg`, { type: blob.type || "image/jpeg" }),
+          );
+        } catch {
+          /* skip if preview URL expired */
+        }
+      }
+      const summary = formatVisionSummary(result.items ?? []);
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      closeVision();
+      void sendMessage(
+        dt.files.length > 0 ? { text: summary, files: dt.files } : { text: summary },
+      );
+    } catch (err) {
+      setVisionError(err instanceof Error ? err.message : "Scan failed. Please try again.");
+      setVisionAnalyzing(false);
     }
   }
 
@@ -643,9 +696,120 @@ function ChatScreen() {
 
       <BottomNav />
       <InstallPrompt />
+
+      {visionOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center">
+          <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-background shadow-2xl sm:rounded-3xl">
+            {visionAnalyzing ? (
+              <div className="flex flex-col items-center justify-center p-10 text-center">
+                <Loader2 className="size-8 animate-spin text-primary" />
+                <p className="mt-4 text-sm text-muted">Taylor is looking at your photos…</p>
+              </div>
+            ) : visionShowCapture ? (
+              <VisionCapture
+                userId={user!.id}
+                onCapture={(path, url) => {
+                  setVisionQueue((q) => [...q, { path, url }]);
+                  setVisionShowCapture(false);
+                }}
+                onCancel={() =>
+                  visionQueue.length > 0 ? setVisionShowCapture(false) : closeVision()
+                }
+              />
+            ) : (
+              <div className="p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold">
+                    {visionQueue.length} photo{visionQueue.length === 1 ? "" : "s"} ready
+                  </p>
+                  <button
+                    type="button"
+                    onClick={closeVision}
+                    className="flex size-8 items-center justify-center rounded-full border border-border text-muted"
+                    aria-label="Close"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+                <p className="mb-4 text-xs text-muted">
+                  Add more angles of your fridge or pantry, then send them to Taylor.
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {visionQueue.map((q, i) => (
+                    <div
+                      key={q.path}
+                      className="relative aspect-square overflow-hidden rounded-xl border border-border"
+                    >
+                      <img src={q.url} alt={`Photo ${i + 1}`} className="size-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVisionQueue((prev) => prev.filter((_, idx) => idx !== i))
+                        }
+                        className="absolute right-1 top-1 flex size-6 items-center justify-center rounded-full bg-background/90 text-destructive shadow"
+                        aria-label="Remove photo"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {visionQueue.length < 8 && (
+                    <button
+                      type="button"
+                      onClick={() => setVisionShowCapture(true)}
+                      className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-border text-muted hover:border-primary hover:text-primary"
+                      aria-label="Add another photo"
+                    >
+                      <Plus className="size-5" />
+                    </button>
+                  )}
+                </div>
+                {visionError && (
+                  <p className="mt-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
+                    {visionError}
+                  </p>
+                )}
+                <div className="mt-5 space-y-2">
+                  <button
+                    type="button"
+                    onClick={analyseVisionQueue}
+                    disabled={visionQueue.length === 0}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-50"
+                  >
+                    <Sparkles className="size-4" />
+                    Send to Taylor
+                  </button>
+                  {visionQueue.length < 8 && (
+                    <button
+                      type="button"
+                      onClick={() => setVisionShowCapture(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border py-3 text-sm font-medium"
+                    >
+                      <Camera className="size-4" />
+                      Add another photo
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
+}
+
+function formatVisionSummary(items: MatchedItem[]): string {
+  if (items.length === 0) {
+    return "I just scanned my pantry with Taylor Vision but nothing was detected. Can you take a look?";
+  }
+  const lines = items.slice(0, 20).map((it) => {
+    const qty = it.quantity ? `${it.quantity}${it.unit ? " " + it.unit : ""} ` : "";
+    return `- ${qty}${it.name}`;
+  });
+  const more = items.length > 20 ? `\n…and ${items.length - 20} more` : "";
+  return `I scanned my pantry/fridge with Taylor Vision. Here's what you found:\n${lines.join("\n")}${more}\n\nWhat can I cook or should I stock up on?`;
 }
 
 function MessageRow({
