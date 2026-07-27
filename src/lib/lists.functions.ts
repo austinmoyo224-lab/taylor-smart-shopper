@@ -2,7 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { fetchLivePricesForBasket, type StoreRow } from "@/lib/live-prices.server";
-import { buildShoppingPriceInput, cleanShoppingSearchName } from "@/lib/shopping-list.server";
+import {
+  buildShoppingPriceInput,
+  cleanShoppingSearchName,
+  prepareShoppingListItemForStorage,
+} from "@/lib/shopping-list.server";
 
 export const listMyShoppingLists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -93,11 +97,17 @@ export const addListItem = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .maybeSingle();
     if (!parent) throw new Error("List not found");
-    const { error } = await context.supabase.from("shopping_list_items").insert({
-      list_id: data.listId,
+    const item = prepareShoppingListItemForStorage({
       name: data.name,
       quantity: data.quantity ?? null,
       unit: data.unit ?? null,
+    });
+    const { error } = await context.supabase.from("shopping_list_items").insert({
+      list_id: data.listId,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      notes: item.notes,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -152,12 +162,18 @@ export const updateListItem = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .maybeSingle();
     if (!list) throw new Error("Item not found");
+    const item = prepareShoppingListItemForStorage({
+      name: data.name,
+      quantity: data.quantity ?? null,
+      unit: data.unit ?? null,
+    });
     const { error } = await context.supabase
       .from("shopping_list_items")
       .update({
-        name: cleanShoppingSearchName(data.name) || data.name.trim(),
-        quantity: data.quantity ?? null,
-        unit: data.unit?.trim() || null,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        notes: item.notes,
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);

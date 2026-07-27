@@ -14,6 +14,7 @@ import { logAiUsage } from "@/lib/ai-usage.server";
 import { routeChatModel } from "@/lib/model-router.server";
 import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
 import { firecrawlSearch, firecrawlScrape } from "@/lib/firecrawl.server";
+import { prepareShoppingListItemForStorage } from "@/lib/shopping-list.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -566,14 +567,22 @@ function buildTaylorTools(userId: string) {
           .select("id")
           .single();
         if (error || !list) return { ok: false, error: error?.message ?? "insert failed" };
-        const rows = items.map((it, i) => ({
-          list_id: list.id,
-          name: it.name,
-          quantity: it.quantity ?? null,
-          unit: it.unit ?? null,
-          notes: it.notes ?? null,
-          sort_order: i,
-        }));
+        const rows = items.map((it, i) => {
+          const item = prepareShoppingListItemForStorage({
+            name: it.name,
+            quantity: it.quantity ?? null,
+            unit: it.unit ?? null,
+            notes: it.notes ?? null,
+          });
+          return {
+            list_id: list.id,
+            name: item.name,
+            quantity: item.quantity,
+            unit: item.unit,
+            notes: item.notes,
+            sort_order: i,
+          };
+        });
         const { error: iErr } = await supabaseAdmin.from("shopping_list_items").insert(rows);
         if (iErr) return { ok: false, error: iErr.message };
         return { ok: true, list_id: list.id, item_count: rows.length };
