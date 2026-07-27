@@ -37,6 +37,8 @@ import {
   setAutoSpeak,
   voiceSupported,
 } from "@/lib/voice-client";
+import { VisionCapture } from "@/components/VisionCapture";
+import { analyzeVisionScan, type MatchedItem } from "@/lib/vision.functions";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({
