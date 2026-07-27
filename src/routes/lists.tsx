@@ -239,8 +239,8 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="mb-4 flex gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-[11px] leading-relaxed text-foreground">
-          <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
+        <div className="mb-4 flex gap-2 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-[11px] leading-relaxed text-foreground">
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-primary" />
           <p>
             Before you compare prices please make sure you have the measurements right, e.g. you
             can't search for a 2 cup rice price but you can check a 2kg rice price.
@@ -451,7 +451,7 @@ function BasketCompareTable({
               {i === 0 && data.storeTotals.length > 1 && winner ? " · best" : ""}
             </p>
                     {s.unverified > 0 ? (
-                      <p className="mt-0.5 text-[10px] uppercase tracking-widest text-warning">
+                      <p className="mt-0.5 text-[10px] uppercase tracking-widest text-muted">
                         {s.unverified} unverified excluded
                       </p>
                     ) : null}
