@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { fetchLivePricesForBasket, type StoreRow } from "@/lib/live-prices.server";
+import { buildShoppingPriceInput, cleanShoppingSearchName } from "@/lib/shopping-list.server";
 
 export const listMyShoppingLists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -125,6 +126,44 @@ export const deleteListItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const updateListItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        name: z.string().min(1).max(200),
+        quantity: z.number().positive().nullable().optional(),
+        unit: z.string().max(20).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: item } = await context.supabase
+      .from("shopping_list_items")
+      .select("id, list_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!item) throw new Error("Item not found");
+    const { data: list } = await context.supabase
+      .from("shopping_lists")
+      .select("id")
+      .eq("id", item.list_id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!list) throw new Error("Item not found");
+    const { error } = await context.supabase
+      .from("shopping_list_items")
+      .update({
+        name: cleanShoppingSearchName(data.name) || data.name.trim(),
+        quantity: data.quantity ?? null,
+        unit: data.unit?.trim() || null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 type PriceRow = { product_id: string; store_id: string; price: number };
 
 export const compareBasket = createServerFn({ method: "POST" })
@@ -143,7 +182,7 @@ export const compareBasket = createServerFn({ method: "POST" })
 
     const { data: rawItems } = await sb
       .from("shopping_list_items")
-      .select("id, name, quantity, product_id")
+      .select("id, name, quantity, unit, product_id")
       .eq("list_id", list.id)
       .order("sort_order", { ascending: true });
     const items = rawItems ?? [];
@@ -152,7 +191,8 @@ export const compareBasket = createServerFn({ method: "POST" })
     const resolved = await Promise.all(
       items.map(async (it) => {
         if (it.product_id) return { ...it, resolvedProductId: it.product_id as string };
-        const term = (it.name ?? "").trim();
+        const input = buildShoppingPriceInput(it.name ?? "", it.quantity, it.unit);
+        const term = input.searchName.trim();
         if (!term) return { ...it, resolvedProductId: null as string | null };
         const { data: match } = await sb
           .from("products")
@@ -208,7 +248,8 @@ export const compareBasket = createServerFn({ method: "POST" })
     // Catalogue prices from product_prices are treated as verified
     // (they are supplied by the store itself).
     const itemsOut = resolved.map((it) => {
-      const qty = Number(it.quantity ?? 1) || 1;
+      const input = buildShoppingPriceInput(it.name ?? "", it.quantity, it.unit);
+      const qty = input.priceMultiplier;
       const perStore: Record<string, { price: number; verified: boolean } | null> = {};
       let cheapest: { storeId: string; price: number } | null = null;
       for (const s of stores) {
@@ -222,8 +263,9 @@ export const compareBasket = createServerFn({ method: "POST" })
       }
       return {
         id: it.id,
-        name: it.name,
+        name: cleanShoppingSearchName(it.name ?? "") || it.name,
         quantity: qty,
+        quantityLabel: input.measurement || (qty === 1 ? "" : `×${qty}`),
         matched: !!it.resolvedProductId,
         perStore,
         cheapestStoreId: cheapest?.storeId ?? null,
@@ -233,7 +275,10 @@ export const compareBasket = createServerFn({ method: "POST" })
     // Live price fallback: for every item, query Firecrawl across major SA retailers
     // and merge results as virtual "stores" so shoppers always see a comparison.
     const liveStores = await fetchLivePricesForBasket(
-      resolved.map((r) => ({ id: r.id, name: r.name ?? "", quantity: Number(r.quantity ?? 1) || 1 })),
+      resolved.map((r) => {
+        const input = buildShoppingPriceInput(r.name ?? "", r.quantity, r.unit);
+        return { id: r.id, name: input.searchName, quantity: input.priceMultiplier };
+      }),
     );
 
     // Merge live per-item prices into itemsOut. Live prices only come back when
