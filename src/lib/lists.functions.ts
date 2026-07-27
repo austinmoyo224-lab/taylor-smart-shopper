@@ -149,20 +149,20 @@ export const updateListItem = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: item } = await context.supabase
+    const { data: existingItem } = await context.supabase
       .from("shopping_list_items")
       .select("id, list_id")
       .eq("id", data.id)
       .maybeSingle();
-    if (!item) throw new Error("Item not found");
+    if (!existingItem) throw new Error("Item not found");
     const { data: list } = await context.supabase
       .from("shopping_lists")
       .select("id")
-      .eq("id", item.list_id)
+      .eq("id", existingItem.list_id)
       .eq("user_id", context.userId)
       .maybeSingle();
     if (!list) throw new Error("Item not found");
-    const item = prepareShoppingListItemForStorage({
+    const preparedItem = prepareShoppingListItemForStorage({
       name: data.name,
       quantity: data.quantity ?? null,
       unit: data.unit ?? null,
@@ -170,10 +170,10 @@ export const updateListItem = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("shopping_list_items")
       .update({
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit,
-        notes: item.notes,
+        name: preparedItem.name,
+        quantity: preparedItem.quantity,
+        unit: preparedItem.unit,
+        notes: preparedItem.notes,
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
