@@ -435,14 +435,24 @@ function ChatScreen() {
           />
         ))}
 
-        {status === "submitted" && (
+        {(() => {
+          const last = messages[messages.length - 1];
+          const lastAssistantText =
+            last && last.role === "assistant"
+              ? last.parts.map((p) => (p.type === "text" ? p.text : "")).join("").trim()
+              : "";
+          const showThinking =
+            isLoading && (!last || last.role === "user" || lastAssistantText.length === 0);
+          if (!showThinking) return null;
+          return (
           <div className="animate-message flex items-start gap-2">
             <Avatar src={taylorAvatarUrl} label="T" />
             <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
               <span className="animate-shimmer text-sm leading-relaxed">Taylor is thinking...</span>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       <form onSubmit={onSubmit} className="shrink-0 border-t border-border bg-background px-4 py-4">
