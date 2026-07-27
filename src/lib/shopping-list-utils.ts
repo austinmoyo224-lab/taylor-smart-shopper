@@ -78,6 +78,19 @@ const RETAIL_SIZE_UNITS = new Set([
   "rolls",
 ]);
 
+const PACK_SIZED_PRODUCTS = [
+  "egg",
+  "eggs",
+  "sausage",
+  "sausages",
+  "roll",
+  "rolls",
+  "bun",
+  "buns",
+  "nappy",
+  "nappies",
+];
+
 const COOKING_UNIT_PATTERN = COOKING_UNITS.join("|");
 const RECIPE_MEASUREMENT_PATTERN = RECIPE_MEASUREMENT_UNITS.join("|");
 
@@ -177,6 +190,15 @@ export function buildShoppingPriceInput(
   }
 
   if (hasUsableQuantity && !unitText) {
+    const lowerName = cleanName.toLowerCase();
+    const shouldSearchPackSize = qty > 6 || PACK_SIZED_PRODUCTS.some((term) => lowerName.includes(term));
+    if (shouldSearchPackSize) {
+      return {
+        searchName: `${cleanName} ${formatQuantity(qty)}`,
+        priceMultiplier: 1,
+        measurement: `×${formatQuantity(qty)}`,
+      };
+    }
     return { searchName: cleanName, priceMultiplier: qty, measurement: `×${formatQuantity(qty)}` };
   }
 

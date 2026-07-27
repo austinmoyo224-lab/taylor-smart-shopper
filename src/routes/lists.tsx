@@ -26,6 +26,18 @@ export const Route = createFileRoute("/lists")({
         name: "description",
         content: "Your personal and AI-generated shopping lists with basket totals and savings.",
       },
+      { property: "og:title", content: "Shopping lists - Taylor Intelligence" },
+      {
+        property: "og:description",
+        content: "Your personal and AI-generated shopping lists with basket totals and savings.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Shopping lists - Taylor Intelligence" },
+      {
+        name: "twitter:description",
+        content: "Your personal and AI-generated shopping lists with basket totals and savings.",
+      },
     ],
   }),
   component: ListsScreen,
