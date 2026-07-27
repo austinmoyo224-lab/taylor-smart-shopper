@@ -111,6 +111,39 @@ export function buildMeasurementNote(
   return [measurement, existing ?? ""].map((part) => part.trim()).filter(Boolean).join(" · ") || null;
 }
 
+export function isRetailSizeUnit(unit?: string | null) {
+  const value = (unit ?? "").trim().toLowerCase();
+  return value ? RETAIL_SIZE_UNITS.has(value) : false;
+}
+
+export function prepareShoppingListItemForStorage(input: {
+  name: string;
+  quantity?: number | null;
+  unit?: string | null;
+  notes?: string | null;
+}) {
+  const name = cleanShoppingSearchName(input.name) || input.name.trim();
+  const unit = input.unit?.trim() || null;
+  const quantity = input.quantity == null ? null : Number(input.quantity);
+  const safeQuantity = quantity != null && Number.isFinite(quantity) && quantity > 0 ? quantity : null;
+
+  if (unit && !isRetailSizeUnit(unit)) {
+    return {
+      name,
+      quantity: null,
+      unit: null,
+      notes: buildMeasurementNote(safeQuantity, unit, input.notes),
+    };
+  }
+
+  return {
+    name,
+    quantity: safeQuantity,
+    unit,
+    notes: input.notes?.trim() || null,
+  };
+}
+
 function formatQuantity(quantity: number) {
   return Number.isInteger(quantity) ? String(quantity) : String(Number(quantity.toFixed(2)));
 }
