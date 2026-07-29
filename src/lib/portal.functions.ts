@@ -623,6 +623,59 @@ export const deleteProduct = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const bulkImportProductsSchema = z.object({
+  organisation_id: z.string().uuid(),
+  rows: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(200),
+        slug: z
+          .string()
+          .trim()
+          .min(2)
+          .max(120)
+          .regex(/^[a-z0-9-]+$/),
+        sku: z.string().trim().max(80).optional().nullable(),
+        unit: z.string().trim().max(20).optional().nullable(),
+        unit_amount: z.number().nonnegative().optional().nullable(),
+        base_price: z.number().nonnegative().optional().nullable(),
+        description: z.string().max(2000).optional().nullable(),
+        image_url: z.string().url().max(2000).optional().nullable(),
+        currency_code: z.string().length(3).optional(),
+      }),
+    )
+    .min(1)
+    .max(1000),
+  currency_code: z.string().length(3).default("ZAR"),
+});
+
+export const bulkImportProducts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => bulkImportProductsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOrgAccess(context.userId, data.organisation_id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = data.rows.map((r) => ({
+      organisation_id: data.organisation_id,
+      name: r.name,
+      slug: r.slug,
+      sku: r.sku || null,
+      unit: r.unit || null,
+      unit_amount: r.unit_amount ?? null,
+      base_price: r.base_price ?? null,
+      currency_code: r.currency_code || data.currency_code,
+      description: r.description || null,
+      images: r.image_url ? [r.image_url] : [],
+      is_available: true,
+    }));
+    const { data: rows, error } = await supabaseAdmin
+      .from("products")
+      .upsert(payload, { onConflict: "organisation_id,slug", ignoreDuplicates: false })
+      .select("id");
+    if (error) throw new Error(error.message);
+    return { imported: rows?.length ?? 0 };
+  });
+
 // ---------- PROMOTIONS ----------
 
 export const listPromotions = createServerFn({ method: "GET" })
