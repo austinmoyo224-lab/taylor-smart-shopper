@@ -13,6 +13,7 @@ import { Route as VisionRouteImport } from './routes/vision'
 import { Route as StoresRouteImport } from './routes/stores'
 import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RiderRouteImport } from './routes/rider'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -81,6 +82,11 @@ const StoreOnboardingRoute = StoreOnboardingRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiderRoute = RiderRouteImport.update({
+  id: '/rider',
+  path: '/rider',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesRoute = RecipesRouteImport.update({
@@ -347,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
+  '/rider': typeof RiderRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRouteWithChildren
@@ -399,6 +406,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/profile': typeof ProfileRoute
+  '/rider': typeof RiderRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/vision': typeof VisionRoute
@@ -453,6 +461,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
+  '/rider': typeof RiderRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRouteWithChildren
@@ -510,6 +519,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/profile'
     | '/recipes'
+    | '/rider'
     | '/settings'
     | '/store-onboarding'
     | '/stores'
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pantry'
     | '/profile'
+    | '/rider'
     | '/settings'
     | '/store-onboarding'
     | '/vision'
@@ -615,6 +626,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/profile'
     | '/recipes'
+    | '/rider'
     | '/settings'
     | '/store-onboarding'
     | '/stores'
@@ -671,6 +683,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRouteWithChildren
+  RiderRoute: typeof RiderRoute
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
   StoresRoute: typeof StoresRouteWithChildren
@@ -712,6 +725,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rider': {
+      id: '/rider'
+      path: '/rider'
+      fullPath: '/rider'
+      preLoaderRoute: typeof RiderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recipes': {
@@ -1182,6 +1202,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRouteWithChildren,
+  RiderRoute: RiderRoute,
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,
   StoresRoute: StoresRouteWithChildren,
