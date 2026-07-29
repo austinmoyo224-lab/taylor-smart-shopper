@@ -510,6 +510,195 @@ function PromotionModal({
 */
 
 const DAY_ORDER: { key: string; label: string }[] = [
+  // (moved below; kept for JSX order)
+];
+
+type ProductRow = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string | null;
+  unit: string | null;
+  unit_amount: number | string | null;
+  base_price: number | string | null;
+  currency_code: string;
+  images: unknown;
+  description: string | null;
+};
+
+function firstImg(images: unknown): string | null {
+  if (Array.isArray(images) && images.length > 0 && typeof images[0] === "string") {
+    return images[0] as string;
+  }
+  return null;
+}
+
+function ProductsSection({
+  storeName,
+  products,
+  isSignedIn,
+}: {
+  storeName: string;
+  products: ProductRow[];
+  isSignedIn: boolean;
+}) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [query, setQuery] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
+
+  const lists = useQuery({
+    queryKey: ["lists", "mine"],
+    queryFn: () => listMyShoppingLists(),
+    enabled: isSignedIn,
+  });
+
+  const add = useMutation({
+    mutationFn: async (p: ProductRow) => {
+      let listId = lists.data?.[0]?.id;
+      if (!listId) {
+        const created = await createShoppingList({
+          data: { name: `${storeName} basket` },
+        });
+        listId = (created as { id: string }).id;
+        await qc.invalidateQueries({ queryKey: ["lists", "mine"] });
+      }
+      await addListItem({
+        data: {
+          listId,
+          name: p.name,
+          quantity:
+            p.unit_amount != null && Number(p.unit_amount) > 0
+              ? Number(p.unit_amount)
+              : undefined,
+          unit: p.unit ?? undefined,
+        },
+      });
+      return p.name;
+    },
+    onSuccess: (name) => {
+      setFlash(`Added ${name} to your list`);
+      setBusyId(null);
+      window.setTimeout(() => setFlash(null), 1800);
+    },
+    onError: (e: Error) => {
+      setFlash(e.message);
+      setBusyId(null);
+      window.setTimeout(() => setFlash(null), 2200);
+    },
+  });
+
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.sku ?? "").toLowerCase().includes(q),
+      )
+    : products;
+  const visible = filtered.slice(0, 60);
+
+  return (
+    <section className="mt-8">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2
+          className="text-lg italic tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Shop the catalogue
+        </h2>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {products.length}
+        </span>
+      </div>
+
+      {products.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border p-6 text-center text-xs text-muted">
+          {storeName} hasn't published products yet.
+        </p>
+      ) : (
+        <>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search products…"
+            className="mb-3 w-full rounded-full border border-border bg-background px-4 py-2 text-sm"
+          />
+          <ul className="grid grid-cols-2 gap-3">
+            {visible.map((p) => {
+              const img = firstImg(p.images);
+              return (
+                <li
+                  key={p.id}
+                  className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={p.name}
+                      className="aspect-square w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex aspect-square w-full items-center justify-center bg-background/60 text-muted">
+                      <ShoppingBasket className="size-6" />
+                    </div>
+                  )}
+                  <div className="flex flex-1 flex-col p-3">
+                    <h3 className="line-clamp-2 text-sm font-medium">{p.name}</h3>
+                    {p.unit_amount && p.unit ? (
+                      <p className="mt-0.5 text-[11px] text-muted">
+                        {Number(p.unit_amount)} {p.unit}
+                      </p>
+                    ) : p.unit ? (
+                      <p className="mt-0.5 text-[11px] text-muted">{p.unit}</p>
+                    ) : null}
+                    <div className="mt-auto flex items-center justify-between pt-2">
+                      <span className="text-sm font-semibold text-primary">
+                        {p.base_price != null
+                          ? `${p.currency_code} ${Number(p.base_price).toFixed(2)}`
+                          : "—"}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (!isSignedIn) {
+                            void navigate({ to: "/auth" });
+                            return;
+                          }
+                          setBusyId(p.id);
+                          add.mutate(p);
+                        }}
+                        disabled={busyId === p.id}
+                        className="inline-flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-60"
+                        aria-label={`Add ${p.name} to list`}
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {filtered.length > visible.length && (
+            <p className="mt-3 text-center text-[11px] text-muted">
+              Showing {visible.length} of {filtered.length}. Refine your search to see more.
+            </p>
+          )}
+        </>
+      )}
+
+      {flash && (
+        <div className="fixed inset-x-0 bottom-24 z-40 mx-auto w-fit rounded-full bg-foreground px-4 py-2 text-xs text-background shadow-lg">
+          {flash}
+        </div>
+      )}
+    </section>
+  );
+}
+
+const DAY_ORDER_UNUSED_MARKER: { key: string; label: string }[] = [
   { key: "mon", label: "Mon" },
   { key: "tue", label: "Tue" },
   { key: "wed", label: "Wed" },
