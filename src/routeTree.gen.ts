@@ -36,6 +36,9 @@ import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StoresStoreIdRouteImport } from './routes/stores.$storeId'
+import { Route as RiderStoresRouteImport } from './routes/rider.stores'
+import { Route as RiderProfileRouteImport } from './routes/rider.profile'
+import { Route as RiderDeliveriesRouteImport } from './routes/rider.deliveries'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
 import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
@@ -199,6 +202,21 @@ const StoresStoreIdRoute = StoresStoreIdRouteImport.update({
   id: '/$storeId',
   path: '/$storeId',
   getParentRoute: () => StoresRoute,
+} as any)
+const RiderStoresRoute = RiderStoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
+  getParentRoute: () => RiderRoute,
+} as any)
+const RiderProfileRoute = RiderProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => RiderRoute,
+} as any)
+const RiderDeliveriesRoute = RiderDeliveriesRouteImport.update({
+  id: '/deliveries',
+  path: '/deliveries',
+  getParentRoute: () => RiderRoute,
 } as any)
 const RecipesSlugRoute = RecipesSlugRouteImport.update({
   id: '/$slug',
@@ -385,6 +403,9 @@ export interface FileRoutesByFullPath {
   '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
+  '/rider/deliveries': typeof RiderDeliveriesRoute
+  '/rider/profile': typeof RiderProfileRoute
+  '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -436,6 +457,9 @@ export interface FileRoutesByTo {
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
   '/recipes/$slug': typeof RecipesSlugRoute
+  '/rider/deliveries': typeof RiderDeliveriesRoute
+  '/rider/profile': typeof RiderProfileRoute
+  '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -494,6 +518,9 @@ export interface FileRoutesById {
   '/portal/rewards': typeof PortalRewardsRoute
   '/portal/stores': typeof PortalStoresRouteWithChildren
   '/recipes/$slug': typeof RecipesSlugRoute
+  '/rider/deliveries': typeof RiderDeliveriesRoute
+  '/rider/profile': typeof RiderProfileRoute
+  '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -553,6 +580,9 @@ export interface FileRouteTypes {
     | '/portal/rewards'
     | '/portal/stores'
     | '/recipes/$slug'
+    | '/rider/deliveries'
+    | '/rider/profile'
+    | '/rider/stores'
     | '/stores/$storeId'
     | '/admin/'
     | '/portal/'
@@ -604,6 +634,9 @@ export interface FileRouteTypes {
     | '/portal/promotions'
     | '/portal/rewards'
     | '/recipes/$slug'
+    | '/rider/deliveries'
+    | '/rider/profile'
+    | '/rider/stores'
     | '/stores/$storeId'
     | '/admin'
     | '/portal'
@@ -661,6 +694,9 @@ export interface FileRouteTypes {
     | '/portal/rewards'
     | '/portal/stores'
     | '/recipes/$slug'
+    | '/rider/deliveries'
+    | '/rider/profile'
+    | '/rider/stores'
     | '/stores/$storeId'
     | '/admin/'
     | '/portal/'
@@ -897,6 +933,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/stores/$storeId'
       preLoaderRoute: typeof StoresStoreIdRouteImport
       parentRoute: typeof StoresRoute
+    }
+    '/rider/stores': {
+      id: '/rider/stores'
+      path: '/stores'
+      fullPath: '/rider/stores'
+      preLoaderRoute: typeof RiderStoresRouteImport
+      parentRoute: typeof RiderRoute
+    }
+    '/rider/profile': {
+      id: '/rider/profile'
+      path: '/profile'
+      fullPath: '/rider/profile'
+      preLoaderRoute: typeof RiderProfileRouteImport
+      parentRoute: typeof RiderRoute
+    }
+    '/rider/deliveries': {
+      id: '/rider/deliveries'
+      path: '/deliveries'
+      fullPath: '/rider/deliveries'
+      preLoaderRoute: typeof RiderDeliveriesRouteImport
+      parentRoute: typeof RiderRoute
     }
     '/recipes/$slug': {
       id: '/recipes/$slug'
@@ -1190,10 +1247,16 @@ const RecipesRouteWithChildren =
   RecipesRoute._addFileChildren(RecipesRouteChildren)
 
 interface RiderRouteChildren {
+  RiderDeliveriesRoute: typeof RiderDeliveriesRoute
+  RiderProfileRoute: typeof RiderProfileRoute
+  RiderStoresRoute: typeof RiderStoresRoute
   RiderIndexRoute: typeof RiderIndexRoute
 }
 
 const RiderRouteChildren: RiderRouteChildren = {
+  RiderDeliveriesRoute: RiderDeliveriesRoute,
+  RiderProfileRoute: RiderProfileRoute,
+  RiderStoresRoute: RiderStoresRoute,
   RiderIndexRoute: RiderIndexRoute,
 }
 
