@@ -522,12 +522,14 @@ export type Database = {
           metadata: Json
           phone_e164: string | null
           rating: number | null
+          rejection_reason: string | null
           service_area: string | null
           service_city: string | null
           updated_at: string
           user_id: string
           vehicle_registration: string | null
           vehicle_type: string
+          verification_status: Database["public"]["Enums"]["rider_verification_status"]
           verified_at: string | null
           verified_by: string | null
         }
@@ -542,12 +544,14 @@ export type Database = {
           metadata?: Json
           phone_e164?: string | null
           rating?: number | null
+          rejection_reason?: string | null
           service_area?: string | null
           service_city?: string | null
           updated_at?: string
           user_id: string
           vehicle_registration?: string | null
           vehicle_type?: string
+          verification_status?: Database["public"]["Enums"]["rider_verification_status"]
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -562,12 +566,14 @@ export type Database = {
           metadata?: Json
           phone_e164?: string | null
           rating?: number | null
+          rejection_reason?: string | null
           service_area?: string | null
           service_city?: string | null
           updated_at?: string
           user_id?: string
           vehicle_registration?: string | null
           vehicle_type?: string
+          verification_status?: Database["public"]["Enums"]["rider_verification_status"]
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -2546,6 +2552,97 @@ export type Database = {
           },
         ]
       }
+      store_orders: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_rider_id: string | null
+          created_at: string
+          currency_code: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_notes: string | null
+          delivery_type: Database["public"]["Enums"]["delivery_type"]
+          id: string
+          items: Json
+          metadata: Json
+          organisation_id: string
+          paid_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          store_id: string
+          subtotal: number | null
+          total: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_rider_id?: string | null
+          created_at?: string
+          currency_code?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_notes?: string | null
+          delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          id?: string
+          items?: Json
+          metadata?: Json
+          organisation_id: string
+          paid_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          store_id: string
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_rider_id?: string | null
+          created_at?: string
+          currency_code?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_notes?: string | null
+          delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          id?: string
+          items?: Json
+          metadata?: Json
+          organisation_id?: string
+          paid_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          store_id?: string
+          subtotal?: number | null
+          total?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_orders_assigned_rider_id_fkey"
+            columns: ["assigned_rider_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_riders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_orders_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_staff: {
         Row: {
           created_at: string
@@ -3083,6 +3180,7 @@ export type Database = {
       campaign_scope: "store" | "brand" | "promotion" | "push"
       catalogue_type: "weekly_flyer" | "monthly" | "seasonal" | "campaign"
       coupon_status: "draft" | "active" | "paused" | "expired" | "archived"
+      delivery_type: "pickup" | "delivery"
       life_moment_type:
         | "birthday"
         | "anniversary"
@@ -3102,6 +3200,13 @@ export type Database = {
         | "system"
       notification_channel: "in_app" | "push" | "email" | "sms"
       notification_status: "queued" | "sent" | "delivered" | "failed" | "read"
+      order_status:
+        | "pending"
+        | "paid"
+        | "assigned"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
       organisation_type:
         | "retail_group"
         | "brand"
@@ -3121,6 +3226,7 @@ export type Database = {
         | "promotion"
         | "coupon"
         | "catalogue"
+      rider_verification_status: "pending" | "approved" | "rejected"
       store_status: "draft" | "pending" | "active" | "paused" | "archived"
       subscription_target:
         | "store"
@@ -3268,6 +3374,7 @@ export const Constants = {
       campaign_scope: ["store", "brand", "promotion", "push"],
       catalogue_type: ["weekly_flyer", "monthly", "seasonal", "campaign"],
       coupon_status: ["draft", "active", "paused", "expired", "archived"],
+      delivery_type: ["pickup", "delivery"],
       life_moment_type: [
         "birthday",
         "anniversary",
@@ -3289,6 +3396,14 @@ export const Constants = {
       ],
       notification_channel: ["in_app", "push", "email", "sms"],
       notification_status: ["queued", "sent", "delivered", "failed", "read"],
+      order_status: [
+        "pending",
+        "paid",
+        "assigned",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
       organisation_type: [
         "retail_group",
         "brand",
@@ -3311,6 +3426,7 @@ export const Constants = {
         "coupon",
         "catalogue",
       ],
+      rider_verification_status: ["pending", "approved", "rejected"],
       store_status: ["draft", "pending", "active", "paused", "archived"],
       subscription_target: [
         "store",

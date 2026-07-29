@@ -44,6 +44,7 @@ import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
+import { Route as PortalOrdersRouteImport } from './routes/portal.orders'
 import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
 import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
@@ -55,6 +56,7 @@ import { Route as AdminVaultRouteImport } from './routes/admin.vault'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaylorRouteImport } from './routes/admin.taylor'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
+import { Route as AdminRidersRouteImport } from './routes/admin.riders'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
@@ -243,6 +245,11 @@ const PortalProductsRoute = PortalProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalOrdersRoute = PortalOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalMessagesRoute = PortalMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -296,6 +303,11 @@ const AdminTaylorRoute = AdminTaylorRouteImport.update({
 const AdminStoresRoute = AdminStoresRouteImport.update({
   id: '/stores',
   path: '/stores',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRidersRoute = AdminRidersRouteImport.update({
+  id: '/riders',
+  path: '/riders',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
@@ -387,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/riders': typeof AdminRidersRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
@@ -398,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/orders': typeof PortalOrdersRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -442,6 +456,7 @@ export interface FileRoutesByTo {
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/riders': typeof AdminRidersRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
@@ -453,6 +468,7 @@ export interface FileRoutesByTo {
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/orders': typeof PortalOrdersRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -502,6 +518,7 @@ export interface FileRoutesById {
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/riders': typeof AdminRidersRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
@@ -513,6 +530,7 @@ export interface FileRoutesById {
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/orders': typeof PortalOrdersRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -564,6 +582,7 @@ export interface FileRouteTypes {
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
+    | '/admin/riders'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
@@ -575,6 +594,7 @@ export interface FileRouteTypes {
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/messages'
+    | '/portal/orders'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -619,6 +639,7 @@ export interface FileRouteTypes {
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
+    | '/admin/riders'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
@@ -630,6 +651,7 @@ export interface FileRouteTypes {
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/messages'
+    | '/portal/orders'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -678,6 +700,7 @@ export interface FileRouteTypes {
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
+    | '/admin/riders'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
@@ -689,6 +712,7 @@ export interface FileRouteTypes {
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/messages'
+    | '/portal/orders'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -990,6 +1014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalProductsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/orders': {
+      id: '/portal/orders'
+      path: '/orders'
+      fullPath: '/portal/orders'
+      preLoaderRoute: typeof PortalOrdersRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/messages': {
       id: '/portal/messages'
       path: '/messages'
@@ -1065,6 +1096,13 @@ declare module '@tanstack/react-router' {
       path: '/stores'
       fullPath: '/admin/stores'
       preLoaderRoute: typeof AdminStoresRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/riders': {
+      id: '/admin/riders'
+      path: '/riders'
+      fullPath: '/admin/riders'
+      preLoaderRoute: typeof AdminRidersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/organisations': {
@@ -1160,6 +1198,7 @@ interface AdminRouteChildren {
   AdminKnowledgeRoute: typeof AdminKnowledgeRoute
   AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
+  AdminRidersRoute: typeof AdminRidersRoute
   AdminStoresRoute: typeof AdminStoresRoute
   AdminTaylorRoute: typeof AdminTaylorRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -1173,6 +1212,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminKnowledgeRoute: AdminKnowledgeRoute,
   AdminOnboardingRoute: AdminOnboardingRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
+  AdminRidersRoute: AdminRidersRoute,
   AdminStoresRoute: AdminStoresRoute,
   AdminTaylorRoute: AdminTaylorRoute,
   AdminUsersRoute: AdminUsersRoute,
@@ -1211,6 +1251,7 @@ interface PortalRouteChildren {
   PortalCampaignsRoute: typeof PortalCampaignsRoute
   PortalCouponsRoute: typeof PortalCouponsRoute
   PortalMessagesRoute: typeof PortalMessagesRoute
+  PortalOrdersRoute: typeof PortalOrdersRoute
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
   PortalRewardsRoute: typeof PortalRewardsRoute
@@ -1223,6 +1264,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalCampaignsRoute: PortalCampaignsRoute,
   PortalCouponsRoute: PortalCouponsRoute,
   PortalMessagesRoute: PortalMessagesRoute,
+  PortalOrdersRoute: PortalOrdersRoute,
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
   PortalRewardsRoute: PortalRewardsRoute,

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminStatus } from "@/lib/admin.functions";
-import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft, Sparkles, Inbox, Activity } from "lucide-react";
+import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft, Sparkles, Inbox, Activity, Bike } from "lucide-react";
 import { FolderOpen, BookOpen } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -57,6 +57,7 @@ const nav: {
     | "/admin/organisations"
     | "/admin/stores"
     | "/admin/onboarding"
+    | "/admin/riders"
     | "/admin/users"
     | "/admin/audit"
     | "/admin/taylor"
@@ -69,6 +70,7 @@ const nav: {
 }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/onboarding", label: "Store applications", icon: Inbox },
+  { to: "/admin/riders", label: "Rider verification", icon: Bike },
   { to: "/admin/taylor", label: "Taylor AI", icon: Sparkles },
   { to: "/admin/knowledge", label: "Knowledge base", icon: BookOpen },
   { to: "/admin/ai-usage", label: "AI usage", icon: Activity },
