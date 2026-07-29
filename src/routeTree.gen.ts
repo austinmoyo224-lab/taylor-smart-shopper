@@ -44,6 +44,7 @@ import { Route as PortalStoresRouteImport } from './routes/portal.stores'
 import { Route as PortalRewardsRouteImport } from './routes/portal.rewards'
 import { Route as PortalPromotionsRouteImport } from './routes/portal.promotions'
 import { Route as PortalProductsRouteImport } from './routes/portal.products'
+import { Route as PortalOrdersRouteImport } from './routes/portal.orders'
 import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
 import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
@@ -244,6 +245,11 @@ const PortalProductsRoute = PortalProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalOrdersRoute = PortalOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalMessagesRoute = PortalMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -405,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/orders': typeof PortalOrdersRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -461,6 +468,7 @@ export interface FileRoutesByTo {
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/orders': typeof PortalOrdersRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -522,6 +530,7 @@ export interface FileRoutesById {
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/orders': typeof PortalOrdersRoute
   '/portal/products': typeof PortalProductsRoute
   '/portal/promotions': typeof PortalPromotionsRoute
   '/portal/rewards': typeof PortalRewardsRoute
@@ -585,6 +594,7 @@ export interface FileRouteTypes {
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/messages'
+    | '/portal/orders'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/messages'
+    | '/portal/orders'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -701,6 +712,7 @@ export interface FileRouteTypes {
     | '/portal/campaigns'
     | '/portal/coupons'
     | '/portal/messages'
+    | '/portal/orders'
     | '/portal/products'
     | '/portal/promotions'
     | '/portal/rewards'
@@ -1002,6 +1014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalProductsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/orders': {
+      id: '/portal/orders'
+      path: '/orders'
+      fullPath: '/portal/orders'
+      preLoaderRoute: typeof PortalOrdersRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/messages': {
       id: '/portal/messages'
       path: '/messages'
@@ -1232,6 +1251,7 @@ interface PortalRouteChildren {
   PortalCampaignsRoute: typeof PortalCampaignsRoute
   PortalCouponsRoute: typeof PortalCouponsRoute
   PortalMessagesRoute: typeof PortalMessagesRoute
+  PortalOrdersRoute: typeof PortalOrdersRoute
   PortalProductsRoute: typeof PortalProductsRoute
   PortalPromotionsRoute: typeof PortalPromotionsRoute
   PortalRewardsRoute: typeof PortalRewardsRoute
@@ -1244,6 +1264,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalCampaignsRoute: PortalCampaignsRoute,
   PortalCouponsRoute: PortalCouponsRoute,
   PortalMessagesRoute: PortalMessagesRoute,
+  PortalOrdersRoute: PortalOrdersRoute,
   PortalProductsRoute: PortalProductsRoute,
   PortalPromotionsRoute: PortalPromotionsRoute,
   PortalRewardsRoute: PortalRewardsRoute,
