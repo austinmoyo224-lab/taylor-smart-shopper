@@ -108,7 +108,7 @@ export const assignRider = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: order, error: oErr } = await supabaseAdmin
       .from("store_orders")
-      .select("id, store_id, status, delivery_type")
+      .select("id, store_id, status, delivery_type, assigned_rider_id, user_id")
       .eq("id", data.orderId)
       .single();
     if (oErr || !order) throw new Error("Order not found");
@@ -118,15 +118,19 @@ export const assignRider = createServerFn({ method: "POST" })
     if (order.status !== "paid" && order.status !== "assigned")
       throw new Error(`Cannot assign a rider to a ${order.status} order`);
 
+    let newRiderUserId: string | null = null;
+    let newRiderName: string | null = null;
     if (data.riderId) {
       const { data: rider } = await supabaseAdmin
         .from("delivery_riders")
-        .select("id, verification_status, is_available")
+        .select("id, verification_status, is_available, user_id, full_name")
         .eq("id", data.riderId)
         .single();
       if (!rider || rider.verification_status !== "approved")
         throw new Error("Rider is not approved");
       if (!rider.is_available) throw new Error("Rider is not currently available");
+      newRiderUserId = rider.user_id;
+      newRiderName = rider.full_name;
     }
 
     const { error } = await supabaseAdmin
@@ -147,6 +151,83 @@ export const assignRider = createServerFn({ method: "POST" })
       action: data.riderId ? "assign_rider" : "unassign_rider",
       changed_data: { rider_id: data.riderId } as never,
     });
+
+    // Notifications
+    const { data: store } = await supabaseAdmin
+      .from("stores")
+      .select("name, manager_id")
+      .eq("id", order.store_id)
+      .single();
+    const storeName = store?.name ?? "your store";
+    const shortId = data.orderId.slice(0, 8);
+    const notifs: Array<{
+      user_id: string;
+      category: "system";
+      channel: "in_app";
+      status: "delivered";
+      title: string;
+      body: string;
+      related_store_id: string;
+      payload: Record<string, unknown>;
+      delivered_at: string;
+    }> = [];
+    const now = new Date().toISOString();
+    const base = {
+      category: "system" as const,
+      channel: "in_app" as const,
+      status: "delivered" as const,
+      related_store_id: order.store_id,
+      delivered_at: now,
+    };
+
+    if (data.riderId && newRiderUserId) {
+      // Notify newly assigned rider
+      notifs.push({
+        ...base,
+        user_id: newRiderUserId,
+        title: "New delivery assigned",
+        body: `${storeName} assigned you order #${shortId}.`,
+        payload: { order_id: data.orderId, event: "assigned" },
+      });
+      // Notify store manager (if different from the acting user)
+      if (store?.manager_id) {
+        notifs.push({
+          ...base,
+          user_id: store.manager_id,
+          title: "Rider assigned",
+          body: `${newRiderName ?? "A rider"} is now handling order #${shortId}.`,
+          payload: { order_id: data.orderId, event: "assigned", rider_id: data.riderId },
+        });
+      }
+    } else if (!data.riderId && order.assigned_rider_id) {
+      // Unassign: notify previously assigned rider
+      const { data: prev } = await supabaseAdmin
+        .from("delivery_riders")
+        .select("user_id, full_name")
+        .eq("id", order.assigned_rider_id)
+        .single();
+      if (prev?.user_id) {
+        notifs.push({
+          ...base,
+          user_id: prev.user_id,
+          title: "Delivery unassigned",
+          body: `You are no longer assigned to order #${shortId} from ${storeName}.`,
+          payload: { order_id: data.orderId, event: "unassigned" },
+        });
+      }
+      if (store?.manager_id) {
+        notifs.push({
+          ...base,
+          user_id: store.manager_id,
+          title: "Rider unassigned",
+          body: `${prev?.full_name ?? "The rider"} was removed from order #${shortId}.`,
+          payload: { order_id: data.orderId, event: "unassigned" },
+        });
+      }
+    }
+    if (notifs.length) {
+      await supabaseAdmin.from("notifications").insert(notifs as never);
+    }
 
     return { ok: true };
   });
