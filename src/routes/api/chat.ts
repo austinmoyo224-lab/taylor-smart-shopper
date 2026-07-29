@@ -314,6 +314,153 @@ function _livePricesTool(userId: string | null) {
 }
 
 function buildTaylorTools(userId: string) {
+  void 0;
+  return _buildTaylorTools(userId);
+}
+
+function followedStoreProductsTool(userId: string) {
+  return tool({
+    description:
+      "Search products from the stores the subscriber FOLLOWS on Taylor before falling back to live web prices. Call this FIRST whenever the subscriber asks about buying/adding a product, price of a product, or 'do any of my stores have X'. Returns matching products with the retailer name, price (if the store set one), size/unit, and product id so you can offer to add them to a shopping list.",
+    inputSchema: z.object({
+      query: z
+        .string()
+        .min(2)
+        .max(120)
+        .describe("The product the shopper wants, e.g. 'maize meal', 'Coca-Cola 2L', 'chicken breast'"),
+      limit: z.number().int().min(1).max(20).optional(),
+    }),
+    execute: async ({ query, limit }) => {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: subs } = await supabaseAdmin
+          .from("subscriber_store_subs")
+          .select("target_type, target_id")
+          .eq("user_id", userId)
+          .eq("is_active", true);
+        const storeIds = (subs ?? [])
+          .filter((s) => s.target_type === "store")
+          .map((s) => s.target_id);
+        if (storeIds.length === 0) {
+          return {
+            ok: true,
+            followed_stores: 0,
+            results: [],
+            instruction:
+              "The subscriber doesn't follow any stores yet. Continue with lookup_live_prices and mention they can follow stores in the Stores tab to see their in-store prices here.",
+          };
+        }
+        const { data: stores } = await supabaseAdmin
+          .from("stores")
+          .select("id, name, organisation_id")
+          .in("id", storeIds)
+          .is("deleted_at", null);
+        const storeById = new Map((stores ?? []).map((s) => [s.id, s]));
+        const orgIds = Array.from(new Set((stores ?? []).map((s) => s.organisation_id)));
+        if (orgIds.length === 0) return { ok: true, followed_stores: 0, results: [] };
+
+        const terms = query
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((t) => t.length > 1)
+          .slice(0, 4);
+        const cap = Math.min(limit ?? 8, 20);
+        // Fuzzy match on name using ILIKE %term%; product_categories/brands stay optional.
+        let q = supabaseAdmin
+          .from("products")
+          .select("id, name, slug, sku, unit, unit_amount, base_price, currency_code, images, organisation_id")
+          .in("organisation_id", orgIds)
+          .is("deleted_at", null)
+          .eq("is_available", true)
+          .limit(cap * 3);
+        for (const t of terms) q = q.ilike("name", `%${t}%`);
+        const { data: products, error } = await q;
+        if (error) return { ok: false, error: error.message };
+
+        const productIds = (products ?? []).map((p) => p.id);
+        let priceByProductStore = new Map<string, number>();
+        let inventoryByProductStore = new Map<string, boolean>();
+        if (productIds.length > 0) {
+          const [{ data: prices }, { data: inv }] = await Promise.all([
+            supabaseAdmin
+              .from("product_prices")
+              .select("product_id, store_id, price, currency_code, effective_from, effective_to")
+              .in("product_id", productIds)
+              .in("store_id", storeIds),
+            supabaseAdmin
+              .from("product_inventory")
+              .select("product_id, store_id, is_in_stock, quantity")
+              .in("product_id", productIds)
+              .in("store_id", storeIds),
+          ]);
+          const now = Date.now();
+          for (const p of prices ?? []) {
+            const from = p.effective_from ? new Date(p.effective_from).getTime() : 0;
+            const to = p.effective_to ? new Date(p.effective_to).getTime() : Infinity;
+            if (now < from || now > to) continue;
+            priceByProductStore.set(`${p.product_id}:${p.store_id}`, Number(p.price));
+          }
+          for (const i of inv ?? []) {
+            inventoryByProductStore.set(`${i.product_id}:${i.store_id}`, !!i.is_in_stock);
+          }
+        }
+
+        const rows: Array<{
+          product_id: string;
+          name: string;
+          unit?: string | null;
+          unit_amount?: number | null;
+          store_id: string;
+          store_name: string;
+          price: number | null;
+          currency: string;
+          in_stock: boolean | null;
+          image?: string | null;
+        }> = [];
+        for (const p of products ?? []) {
+          const orgStores = (stores ?? []).filter((s) => s.organisation_id === p.organisation_id);
+          for (const s of orgStores) {
+            const key = `${p.id}:${s.id}`;
+            const price = priceByProductStore.get(key) ?? (p.base_price != null ? Number(p.base_price) : null);
+            const inStock = inventoryByProductStore.has(key) ? inventoryByProductStore.get(key)! : null;
+            rows.push({
+              product_id: p.id,
+              name: p.name,
+              unit: p.unit,
+              unit_amount: p.unit_amount,
+              store_id: s.id,
+              store_name: s.name,
+              price,
+              currency: p.currency_code || "ZAR",
+              in_stock: inStock,
+              image: Array.isArray(p.images) && p.images.length ? String(p.images[0]) : null,
+            });
+          }
+        }
+        rows.sort((a, b) => {
+          if ((a.price ?? Infinity) !== (b.price ?? Infinity)) return (a.price ?? Infinity) - (b.price ?? Infinity);
+          return a.name.localeCompare(b.name);
+        });
+        const trimmed = rows.slice(0, cap);
+        void storeById;
+        return {
+          ok: true,
+          followed_stores: storeIds.length,
+          match_count: trimmed.length,
+          results: trimmed,
+          instruction:
+            trimmed.length > 0
+              ? "Quote these in-store prices FIRST (name the retailer and price). Offer to add the chosen product to the subscriber's shopping list using save_shopping_list. Only call lookup_live_prices for retailers NOT covered here or when the shopper explicitly wants a wider comparison."
+              : "No matches inside the subscriber's followed stores. Fall back to lookup_live_prices and mention which stores you checked (by name) so the shopper knows.",
+        };
+      } catch (e) {
+        return { ok: false, error: (e as Error).message };
+      }
+    },
+  });
+}
+
+function _buildTaylorTools(userId: string) {
   return {
     read_promotion_flyer: tool({
       description:
