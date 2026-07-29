@@ -31,6 +31,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoresIndexRouteImport } from './routes/stores.index'
+import { Route as RiderIndexRouteImport } from './routes/rider.index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -173,6 +174,11 @@ const StoresIndexRoute = StoresIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoresRoute,
+} as any)
+const RiderIndexRoute = RiderIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RiderRoute,
 } as any)
 const RecipesIndexRoute = RecipesIndexRouteImport.update({
   id: '/',
@@ -353,7 +359,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
-  '/rider': typeof RiderRoute
+  '/rider': typeof RiderRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRouteWithChildren
@@ -383,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/recipes/': typeof RecipesIndexRoute
+  '/rider/': typeof RiderIndexRoute
   '/stores/': typeof StoresIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
@@ -406,7 +413,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/profile': typeof ProfileRoute
-  '/rider': typeof RiderRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/vision': typeof VisionRoute
@@ -434,6 +440,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
   '/recipes': typeof RecipesIndexRoute
+  '/rider': typeof RiderIndexRoute
   '/stores': typeof StoresIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
@@ -461,7 +468,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
-  '/rider': typeof RiderRoute
+  '/rider': typeof RiderRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRouteWithChildren
@@ -491,6 +498,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/recipes/': typeof RecipesIndexRoute
+  '/rider/': typeof RiderIndexRoute
   '/stores/': typeof StoresIndexRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
@@ -549,6 +557,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/portal/'
     | '/recipes/'
+    | '/rider/'
     | '/stores/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
@@ -572,7 +581,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pantry'
     | '/profile'
-    | '/rider'
     | '/settings'
     | '/store-onboarding'
     | '/vision'
@@ -600,6 +608,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/portal'
     | '/recipes'
+    | '/rider'
     | '/stores'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
@@ -656,6 +665,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/portal/'
     | '/recipes/'
+    | '/rider/'
     | '/stores/'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
@@ -683,7 +693,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRouteWithChildren
-  RiderRoute: typeof RiderRoute
+  RiderRoute: typeof RiderRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
   StoresRoute: typeof StoresRouteWithChildren
@@ -852,6 +862,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/stores/'
       preLoaderRoute: typeof StoresIndexRouteImport
       parentRoute: typeof StoresRoute
+    }
+    '/rider/': {
+      id: '/rider/'
+      path: '/'
+      fullPath: '/rider/'
+      preLoaderRoute: typeof RiderIndexRouteImport
+      parentRoute: typeof RiderRoute
     }
     '/recipes/': {
       id: '/recipes/'
@@ -1172,6 +1189,16 @@ const RecipesRouteChildren: RecipesRouteChildren = {
 const RecipesRouteWithChildren =
   RecipesRoute._addFileChildren(RecipesRouteChildren)
 
+interface RiderRouteChildren {
+  RiderIndexRoute: typeof RiderIndexRoute
+}
+
+const RiderRouteChildren: RiderRouteChildren = {
+  RiderIndexRoute: RiderIndexRoute,
+}
+
+const RiderRouteWithChildren = RiderRoute._addFileChildren(RiderRouteChildren)
+
 interface StoresRouteChildren {
   StoresStoreIdRoute: typeof StoresStoreIdRoute
   StoresIndexRoute: typeof StoresIndexRoute
@@ -1202,7 +1229,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRouteWithChildren,
-  RiderRoute: RiderRoute,
+  RiderRoute: RiderRouteWithChildren,
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,
   StoresRoute: StoresRouteWithChildren,
