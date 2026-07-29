@@ -55,6 +55,7 @@ import { Route as AdminVaultRouteImport } from './routes/admin.vault'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaylorRouteImport } from './routes/admin.taylor'
 import { Route as AdminStoresRouteImport } from './routes/admin.stores'
+import { Route as AdminRidersRouteImport } from './routes/admin.riders'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
@@ -298,6 +299,11 @@ const AdminStoresRoute = AdminStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRidersRoute = AdminRidersRouteImport.update({
+  id: '/riders',
+  path: '/riders',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminOrganisationsRoute = AdminOrganisationsRouteImport.update({
   id: '/organisations',
   path: '/organisations',
@@ -387,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/riders': typeof AdminRidersRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
@@ -442,6 +449,7 @@ export interface FileRoutesByTo {
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/riders': typeof AdminRidersRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
@@ -502,6 +510,7 @@ export interface FileRoutesById {
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
+  '/admin/riders': typeof AdminRidersRoute
   '/admin/stores': typeof AdminStoresRoute
   '/admin/taylor': typeof AdminTaylorRoute
   '/admin/users': typeof AdminUsersRoute
@@ -564,6 +573,7 @@ export interface FileRouteTypes {
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
+    | '/admin/riders'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
@@ -619,6 +629,7 @@ export interface FileRouteTypes {
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
+    | '/admin/riders'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
@@ -678,6 +689,7 @@ export interface FileRouteTypes {
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
+    | '/admin/riders'
     | '/admin/stores'
     | '/admin/taylor'
     | '/admin/users'
@@ -1067,6 +1079,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStoresRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/riders': {
+      id: '/admin/riders'
+      path: '/riders'
+      fullPath: '/admin/riders'
+      preLoaderRoute: typeof AdminRidersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/organisations': {
       id: '/admin/organisations'
       path: '/organisations'
@@ -1160,6 +1179,7 @@ interface AdminRouteChildren {
   AdminKnowledgeRoute: typeof AdminKnowledgeRoute
   AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
+  AdminRidersRoute: typeof AdminRidersRoute
   AdminStoresRoute: typeof AdminStoresRoute
   AdminTaylorRoute: typeof AdminTaylorRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -1173,6 +1193,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminKnowledgeRoute: AdminKnowledgeRoute,
   AdminOnboardingRoute: AdminOnboardingRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,
+  AdminRidersRoute: AdminRidersRoute,
   AdminStoresRoute: AdminStoresRoute,
   AdminTaylorRoute: AdminTaylorRoute,
   AdminUsersRoute: AdminUsersRoute,
