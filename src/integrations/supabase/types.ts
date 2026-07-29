@@ -510,6 +510,69 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_riders: {
+        Row: {
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          id_number: string | null
+          is_available: boolean
+          is_verified: boolean
+          metadata: Json
+          phone_e164: string | null
+          rating: number | null
+          service_area: string | null
+          service_city: string | null
+          updated_at: string
+          user_id: string
+          vehicle_registration: string | null
+          vehicle_type: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          id_number?: string | null
+          is_available?: boolean
+          is_verified?: boolean
+          metadata?: Json
+          phone_e164?: string | null
+          rating?: number | null
+          service_area?: string | null
+          service_city?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_registration?: string | null
+          vehicle_type?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          id_number?: string | null
+          is_available?: boolean
+          is_verified?: boolean
+          metadata?: Json
+          phone_e164?: string | null
+          rating?: number | null
+          service_area?: string | null
+          service_city?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_registration?: string | null
+          vehicle_type?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       household_invites: {
         Row: {
           code: string
@@ -3009,13 +3072,14 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      account_type: "user" | "store_owner"
+      account_type: "user" | "store_owner" | "delivery_boy"
       app_role:
         | "super_admin"
         | "retailer_admin"
         | "store_manager"
         | "staff"
         | "subscriber"
+        | "delivery_boy"
       campaign_scope: "store" | "brand" | "promotion" | "push"
       catalogue_type: "weekly_flyer" | "monthly" | "seasonal" | "campaign"
       coupon_status: "draft" | "active" | "paused" | "expired" | "archived"
@@ -3192,13 +3256,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_type: ["user", "store_owner"],
+      account_type: ["user", "store_owner", "delivery_boy"],
       app_role: [
         "super_admin",
         "retailer_admin",
         "store_manager",
         "staff",
         "subscriber",
+        "delivery_boy",
       ],
       campaign_scope: ["store", "brand", "promotion", "push"],
       catalogue_type: ["weekly_flyer", "monthly", "seasonal", "campaign"],

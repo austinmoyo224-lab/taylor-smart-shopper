@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 
 type Mode = "signin" | "signup";
-type AccountType = "user" | "store_owner";
+type AccountType = "user" | "store_owner" | "delivery_boy";
 type SignupStep = "choose" | "form";
 
 export const Route = createFileRoute("/auth")({
@@ -59,6 +59,8 @@ function AuthScreen() {
                 .in("role", ["retailer_admin", "store_manager", "staff"])
                 .limit(1);
               dest = roles && roles.length > 0 ? "/portal" : "/store-onboarding";
+            } else if (data?.account_type === "delivery_boy") {
+              dest = "/rider";
             } else if (!data?.onboarding_completed) {
               dest = "/profile?welcome=1";
             }
@@ -79,7 +81,12 @@ function AuthScreen() {
     try {
       if (mode === "signup") {
         const type: AccountType = accountType ?? "user";
-        const redirectPath = type === "store_owner" ? "/store-onboarding" : "/profile?welcome=1";
+        const redirectPath =
+          type === "store_owner"
+            ? "/store-onboarding"
+            : type === "delivery_boy"
+              ? "/rider"
+              : "/profile?welcome=1";
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -103,7 +110,7 @@ function AuthScreen() {
               display_name?: string;
               first_name?: string;
             } = { account_type: type };
-            if (type === "user" && fullName) {
+            if ((type === "user" || type === "delivery_boy") && fullName) {
               patch.display_name = fullName;
               patch.first_name = fullName.split(" ")[0];
             }
@@ -115,7 +122,9 @@ function AuthScreen() {
         setInfo(
           type === "store_owner"
             ? "Check your inbox to confirm your email. Then we'll take you to your store application."
-            : "Check your inbox to confirm your email. Then we'll help you set up your Taylor profile.",
+            : type === "delivery_boy"
+              ? "Check your inbox to confirm your email. Then we'll set up your rider profile."
+              : "Check your inbox to confirm your email. Then we'll help you set up your Taylor profile.",
         );
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -164,6 +173,7 @@ function AuthScreen() {
 
   const showChoose = mode === "signup" && signupStep === "choose";
   const isStoreOwner = accountType === "store_owner";
+  const isRider = accountType === "delivery_boy";
 
   return (
     <AppShell hideNav>
@@ -171,7 +181,15 @@ function AuthScreen() {
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/20 blur-3xl" aria-hidden />
         <div className="relative">
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-            {mode === "signin" ? "Welcome back" : showChoose ? "Join Taylor" : isStoreOwner ? "List your store" : "Create your account"}
+            {mode === "signin"
+              ? "Welcome back"
+              : showChoose
+                ? "Join Taylor"
+                : isStoreOwner
+                  ? "List your store"
+                  : isRider
+                    ? "Deliver with Taylor"
+                    : "Create your account"}
           </p>
           <h1
             className="text-balance text-3xl italic tracking-tight"
@@ -183,7 +201,9 @@ function AuthScreen() {
                 ? "How will you use Taylor?"
                 : isStoreOwner
                   ? "Store owner sign-up"
-                  : "Shopper sign-up"}
+                  : isRider
+                    ? "Delivery rider sign-up"
+                    : "Shopper sign-up"}
           </h1>
           <p className="mt-2 text-xs text-muted">
             {mode === "signin"
@@ -192,7 +212,9 @@ function AuthScreen() {
                 ? "Pick the path that fits you. You can always switch or add roles later from Settings."
                 : isStoreOwner
                   ? "Just an email to start. Your business details come next."
-                  : "Taylor will remember what matters to you — you're always in control."}
+                  : isRider
+                    ? "Just an email to start. Your rider profile and stores come next."
+                    : "Taylor will remember what matters to you — you're always in control."}
           </p>
         </div>
       </header>
@@ -225,6 +247,13 @@ function AuthScreen() {
               onClick={() => pickAccountType("store_owner")}
               accent
             />
+            <ChoiceCard
+              badge="Delivery rider"
+              title="Join as a Delivery rider"
+              desc="Deliver paid orders for the stores you follow. Set your area, get orders nearby."
+              bullets={["Follow the stores you deliver for", "Toggle availability on and off", "Track deliveries and earnings"]}
+              onClick={() => pickAccountType("delivery_boy")}
+            />
 
             <div className="mt-6 text-center text-xs text-muted">
               Already have an account?{" "}
@@ -247,7 +276,7 @@ function AuthScreen() {
                 onChange={setFullName}
                 required
                 autoComplete="name"
-                placeholder="Thandi Nkosi"
+                placeholder={isRider ? "Sipho Dlamini" : "Thandi Nkosi"}
               />
             )}
             <Field
@@ -274,7 +303,9 @@ function AuthScreen() {
                 ? "Sign in"
                 : isStoreOwner
                   ? "Continue to store application"
-                  : "Create my account"}
+                  : isRider
+                    ? "Continue to rider profile"
+                    : "Create my account"}
             </PrimaryButton>
 
             {error && (
