@@ -481,7 +481,7 @@ function ChatScreen() {
             key={message.id}
             role={message.role}
             parts={message.parts}
-            delay={i * 60}
+            delay={getMessageAnimationDelay(i, messages.length)}
             canVoice={canVoice}
             taylorAvatar={taylorAvatarUrl}
             userAvatar={userAvatar}
@@ -490,12 +490,7 @@ function ChatScreen() {
 
         {(() => {
           const last = messages[messages.length - 1];
-          const lastAssistantText =
-            last && last.role === "assistant"
-              ? last.parts.map((p) => (p.type === "text" ? p.text : "")).join("").trim()
-              : "";
-          const showThinking =
-            isLoading && (!last || last.role === "user" || lastAssistantText.length === 0);
+          const showThinking = isLoading && (!last || last.role === "user");
           if (!showThinking) return null;
           return (
           <div className="animate-message flex items-start gap-2">
@@ -812,6 +807,13 @@ function formatVisionSummary(items: MatchedItem[]): string {
   return `I scanned my pantry/fridge with Taylor Vision. Here's what you found:\n${lines.join("\n")}${more}\n\nWhat can I cook or should I stock up on?`;
 }
 
+function getMessageAnimationDelay(index: number, total: number) {
+  // New chat rows must be visible immediately. The previous cumulative delay
+  // made long conversations hide freshly-sent messages for several seconds.
+  if (index >= Math.max(0, total - 2)) return 0;
+  return Math.min(index * 40, 160);
+}
+
 function MessageRow({
   role,
   parts,
@@ -830,6 +832,8 @@ function MessageRow({
   const isUser = role === "user";
   const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
   const hasFile = parts.some((p) => p.type === "file");
+  const hasRenderableContent = hasFile || text.trim().length > 0;
+  const showAssistantPending = !isUser && !hasRenderableContent;
   const [speaking, setSpeaking] = useState(false);
 
   async function toggleSpeak() {
@@ -889,6 +893,11 @@ function MessageRow({
           >
             {isUser ? <p>{text}</p> : <ReactMarkdown>{text}</ReactMarkdown>}
           </div>
+        )}
+        {showAssistantPending && (
+          <span className="animate-shimmer text-sm leading-relaxed text-muted">
+            Taylor is thinking...
+          </span>
         )}
       </div>
       <div className="mt-2 flex items-center gap-2">
