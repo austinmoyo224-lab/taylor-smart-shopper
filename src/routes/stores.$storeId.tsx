@@ -10,6 +10,11 @@ import {
   unsubscribeFromStore,
 } from "@/lib/subscriptions.functions";
 import {
+  listMyShoppingLists,
+  createShoppingList,
+  addListItem,
+} from "@/lib/lists.functions";
+import {
   ArrowLeft,
   MapPin,
   Phone,
@@ -20,6 +25,8 @@ import {
   Clock,
   X,
   ImageIcon,
+  Plus,
+  ShoppingBasket,
 } from "lucide-react";
 
 export const Route = createFileRoute("/stores/$storeId")({
@@ -86,7 +93,7 @@ function StoreDetail() {
     );
   }
 
-  const { store, promotions } = q.data;
+  const { store, promotions, products } = q.data;
   const openPromo = promotions.find((p) => p.id === openPromoId) ?? null;
   const location = [store.address_line1, store.city, store.region, store.country_code]
     .filter(Boolean)
