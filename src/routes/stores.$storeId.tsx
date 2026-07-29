@@ -509,10 +509,6 @@ function PromotionModal({
 }
 */
 
-const DAY_ORDER: { key: string; label: string }[] = [
-  // (moved below; kept for JSX order)
-];
-
 type ProductRow = {
   id: string;
   name: string;
@@ -698,7 +694,7 @@ function ProductsSection({
   );
 }
 
-const DAY_ORDER_UNUSED_MARKER: { key: string; label: string }[] = [
+const DAY_ORDER: { key: string; label: string }[] = [
   { key: "mon", label: "Mon" },
   { key: "tue", label: "Tue" },
   { key: "wed", label: "Wed" },
