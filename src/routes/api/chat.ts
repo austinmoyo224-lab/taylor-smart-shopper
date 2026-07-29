@@ -83,6 +83,7 @@ export const Route = createFileRoute("/api/chat")({
         const tools = userId
           ? {
               ...buildTaylorTools(userId),
+              search_followed_store_products: followedStoreProductsTool(userId),
               lookup_live_prices: livePricesTool(userId),
               lookup_weather: weatherTool(),
             }
