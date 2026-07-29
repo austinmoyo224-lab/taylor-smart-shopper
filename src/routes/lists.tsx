@@ -14,7 +14,7 @@ import {
   toggleListItem,
   updateListItem,
 } from "@/lib/lists.functions";
-import { Camera, Plus, Trash2, ChevronLeft, Scale, X, Pencil, Check, AlertTriangle } from "lucide-react";
+import { Camera, Plus, Trash2, ChevronLeft, Scale, X, Pencil, Check, AlertTriangle, ShoppingBasket } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/lists")({
@@ -48,6 +48,7 @@ function ListsScreen() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [openCompareId, setOpenCompareId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
 
   useEffect(() => {
@@ -76,7 +77,17 @@ function ListsScreen() {
 
   const pager = usePaged(lists.data ?? undefined);
 
-  if (openId) return <ListDetail id={openId} onBack={() => setOpenId(null)} />;
+  if (openId)
+    return (
+      <ListDetail
+        id={openId}
+        onBack={() => {
+          setOpenId(null);
+          setOpenCompareId(null);
+        }}
+        initialCompareOpen={openCompareId === openId}
+      />
+    );
 
   return (
     <AppShell>
@@ -91,12 +102,28 @@ function ListsScreen() {
               Shopping lists
             </h1>
           </div>
-          <Link
-            to="/vision"
-            className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
-          >
-            <Camera className="size-3" /> Scan
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const first = lists.data?.[0];
+                if (first) {
+                  setOpenCompareId(first.id);
+                  setOpenId(first.id);
+                }
+              }}
+              disabled={(lists.data?.length ?? 0) === 0}
+              className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary disabled:opacity-40"
+              aria-label="Open basket"
+            >
+              <ShoppingBasket className="size-3" /> Basket
+            </button>
+            <Link
+              to="/vision"
+              className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary"
+            >
+              <Camera className="size-3" /> Scan
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -144,6 +171,16 @@ function ListsScreen() {
                 </p>
               </button>
               <button
+                onClick={() => {
+                  setOpenCompareId(l.id);
+                  setOpenId(l.id);
+                }}
+                aria-label="Open basket"
+                className="flex size-8 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary"
+              >
+                <ShoppingBasket className="size-3.5" />
+              </button>
+              <button
                 onClick={() => remove.mutate(l.id)}
                 aria-label="Delete list"
                 className="flex size-8 items-center justify-center rounded-full border border-border text-muted hover:text-destructive"
@@ -166,10 +203,18 @@ function ListsScreen() {
   );
 }
 
-function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
+function ListDetail({
+  id,
+  onBack,
+  initialCompareOpen = false,
+}: {
+  id: string;
+  onBack: () => void;
+  initialCompareOpen?: boolean;
+}) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
-  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(initialCompareOpen);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editQuantity, setEditQuantity] = useState("");
