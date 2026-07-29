@@ -417,3 +417,249 @@ function F({ label, children }: { label: string; children: React.ReactNode }) {
     </label>
   );
 }
+
+type CsvRow = {
+  name: string;
+  slug: string;
+  sku?: string | null;
+  unit?: string | null;
+  unit_amount?: number | null;
+  base_price?: number | null;
+  description?: string | null;
+  image_url?: string | null;
+};
+
+function slugify(v: string) {
+  return v
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 120);
+}
+
+function parseCsv(text: string): { headers: string[]; rows: string[][] } {
+  const out: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += c;
+      }
+    } else if (c === '"') {
+      inQuotes = true;
+    } else if (c === ",") {
+      row.push(field);
+      field = "";
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field);
+      field = "";
+      if (row.length > 1 || row[0] !== "") out.push(row);
+      row = [];
+    } else {
+      field += c;
+    }
+  }
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    if (row.length > 1 || row[0] !== "") out.push(row);
+  }
+  const headers = (out.shift() ?? []).map((h) => h.trim().toLowerCase());
+  return { headers, rows: out };
+}
+
+function CsvImport({
+  orgId,
+  currency,
+  onDone,
+}: {
+  orgId: string;
+  currency: string;
+  onDone: () => void;
+}) {
+  const [rows, setRows] = useState<CsvRow[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const mut = useMutation({
+    mutationFn: () =>
+      bulkImportProducts({
+        data: { organisation_id: orgId, rows, currency_code: currency },
+      }),
+    onSuccess: (res: { imported: number }) => {
+      alert(`Imported ${res.imported} product(s).`);
+      onDone();
+    },
+    onError: (e: Error) => setSubmitError(e.message),
+  });
+
+  const onFile = async (file: File) => {
+    setFileName(file.name);
+    setErrors([]);
+    setSubmitError(null);
+    const text = await file.text();
+    const { headers, rows: raw } = parseCsv(text);
+    if (!headers.includes("name")) {
+      setErrors(['CSV must include a "name" column.']);
+      setRows([]);
+      return;
+    }
+    const idx = (h: string) => headers.indexOf(h);
+    const parsed: CsvRow[] = [];
+    const errs: string[] = [];
+    const seenSlugs = new Set<string>();
+    raw.forEach((r, i) => {
+      const name = (r[idx("name")] ?? "").trim();
+      if (!name) {
+        errs.push(`Row ${i + 2}: missing name`);
+        return;
+      }
+      let slug = idx("slug") >= 0 ? (r[idx("slug")] ?? "").trim().toLowerCase() : "";
+      if (!slug) slug = slugify(name);
+      if (!/^[a-z0-9-]+$/.test(slug) || slug.length < 2) {
+        errs.push(`Row ${i + 2}: invalid slug "${slug}"`);
+        return;
+      }
+      if (seenSlugs.has(slug)) {
+        errs.push(`Row ${i + 2}: duplicate slug "${slug}"`);
+        return;
+      }
+      seenSlugs.add(slug);
+      const num = (col: string): number | null => {
+        if (idx(col) < 0) return null;
+        const v = (r[idx(col)] ?? "").trim().replace(/,/g, "");
+        if (!v) return null;
+        const n = Number(v);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      };
+      const str = (col: string): string | null => {
+        if (idx(col) < 0) return null;
+        const v = (r[idx(col)] ?? "").trim();
+        return v || null;
+      };
+      parsed.push({
+        name,
+        slug,
+        sku: str("sku"),
+        unit: str("unit"),
+        unit_amount: num("unit_amount"),
+        base_price: num("base_price") ?? num("price"),
+        description: str("description"),
+        image_url: str("image_url") ?? str("image"),
+      });
+    });
+    setErrors(errs);
+    setRows(parsed);
+  };
+
+  const template =
+    "name,slug,sku,unit,unit_amount,base_price,description,image_url\n" +
+    "Sample Rice 2kg,sample-rice-2kg,SR-2KG,kg,2,49.99,Long grain white rice,\n";
+  const templateHref = `data:text/csv;charset=utf-8,${encodeURIComponent(template)}`;
+
+  return (
+    <div className="mb-8 rounded-2xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-medium">Import products from CSV</h2>
+          <p className="mt-1 text-xs text-muted">
+            Columns: <code>name</code> (required), <code>slug</code>, <code>sku</code>,{" "}
+            <code>unit</code>, <code>unit_amount</code>, <code>base_price</code>,{" "}
+            <code>description</code>, <code>image_url</code>. Rows sharing an existing slug
+            are updated; new ones are created.
+          </p>
+        </div>
+        <a
+          href={templateHref}
+          download="products-template.csv"
+          className="text-xs underline text-muted hover:text-foreground"
+        >
+          Download template
+        </a>
+      </div>
+
+      <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-background/60 px-4 py-3 text-sm hover:bg-accent">
+        <Upload className="size-4" />
+        <span>{fileName ?? "Choose CSV file"}</span>
+        <input
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onFile(f);
+          }}
+        />
+      </label>
+
+      {errors.length > 0 && (
+        <ul className="mt-3 space-y-1 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive">
+          {errors.slice(0, 10).map((e, i) => (
+            <li key={i}>{e}</li>
+          ))}
+          {errors.length > 10 && <li>…and {errors.length - 10} more</li>}
+        </ul>
+      )}
+
+      {rows.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-2 text-xs text-muted">
+            {rows.length} valid row{rows.length === 1 ? "" : "s"} — preview:
+          </p>
+          <div className="max-h-64 overflow-auto rounded-lg border border-border">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-background/60 text-[10px] uppercase tracking-widest text-muted">
+                <tr>
+                  <th className="px-3 py-2">Name</th>
+                  <th className="px-3 py-2">Slug</th>
+                  <th className="px-3 py-2">SKU</th>
+                  <th className="px-3 py-2">Unit</th>
+                  <th className="px-3 py-2">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, 20).map((r, i) => (
+                  <tr key={i} className="border-t border-border">
+                    <td className="px-3 py-1.5">{r.name}</td>
+                    <td className="px-3 py-1.5 font-mono text-[11px] text-muted">{r.slug}</td>
+                    <td className="px-3 py-1.5">{r.sku ?? "—"}</td>
+                    <td className="px-3 py-1.5">
+                      {r.unit_amount && r.unit
+                        ? `${r.unit_amount} ${r.unit}`
+                        : (r.unit ?? "—")}
+                    </td>
+                    <td className="px-3 py-1.5">
+                      {r.base_price != null ? r.base_price.toFixed(2) : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={() => mut.mutate()}
+              disabled={mut.isPending}
+              className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+            >
+              {mut.isPending ? "Importing…" : `Import ${rows.length} product(s)`}
+            </button>
+            {submitError && <p className="text-xs text-destructive">{submitError}</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
