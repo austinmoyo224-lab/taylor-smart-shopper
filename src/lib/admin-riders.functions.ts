@@ -25,7 +25,7 @@ async function writeAudit(
     table_name: "delivery_riders",
     record_id: recordId,
     action,
-    changed_data: changed,
+    changed_data: changed as never,
   });
 }
 
