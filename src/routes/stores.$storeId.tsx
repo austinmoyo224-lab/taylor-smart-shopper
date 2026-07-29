@@ -315,6 +315,8 @@ function StoreDetail() {
             </ul>
           )}
         </section>
+
+        <ProductsSection storeName={store.name} products={products} isSignedIn={!!user} />
       </main>
 
       {openPromo && (
