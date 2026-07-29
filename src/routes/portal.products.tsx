@@ -6,9 +6,10 @@ import {
   deleteProduct,
   listProducts,
   updateProduct,
+  bulkImportProducts,
 } from "@/lib/portal.functions";
 import { usePortal } from "@/lib/portal-context";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { StoreImageUploader } from "@/components/StoreImageUploader";
 import { Paginator, usePaged } from "@/components/Paginator";
 
