@@ -331,6 +331,7 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   >
                     {it.name}
                     {it.quantity ? ` · ${it.quantity}${it.unit ?? ""}` : ""}
+                    {!it.quantity && it.notes ? ` · ${it.notes}` : ""}
                   </span>
                 )}
                 {isEditing ? (
