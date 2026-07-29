@@ -298,7 +298,18 @@ export const getStorePublicProfile = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(40);
 
-    return { store, promotions: promotions ?? [] };
+    const { data: products } = await supabaseAdmin
+      .from("products")
+      .select(
+        "id, name, slug, sku, unit, unit_amount, base_price, currency_code, images, description",
+      )
+      .eq("organisation_id", store.organisation_id)
+      .eq("is_available", true)
+      .is("deleted_at", null)
+      .order("name", { ascending: true })
+      .limit(200);
+
+    return { store, promotions: promotions ?? [], products: products ?? [] };
   });
 
 /** Shopper: promotions from every store the caller currently follows. */
