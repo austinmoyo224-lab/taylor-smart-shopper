@@ -44,6 +44,7 @@ function ProductsPage() {
   const qc = useQueryClient();
   const [show, setShow] = useState(false);
   const [editing, setEditing] = useState<ProductRow | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const org = organisations.find((o) => o.id === activeOrgId);
 
   const { data, isLoading } = useQuery({
@@ -81,6 +82,14 @@ function ProductsPage() {
             Products
           </h1>
         </div>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => setImportOpen((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm hover:bg-accent"
+        >
+          <Upload className="size-4" />
+          {importOpen ? "Close import" : "Import CSV"}
+        </button>
         <button
           onClick={() => {
             setEditing(null);
@@ -91,7 +100,19 @@ function ProductsPage() {
           <Plus className="size-4" />
           {show ? "Close" : "New product"}
         </button>
+        </div>
       </div>
+
+      {importOpen && activeOrgId && (
+        <CsvImport
+          orgId={activeOrgId}
+          currency={org?.default_currency ?? "ZAR"}
+          onDone={() => {
+            setImportOpen(false);
+            void qc.invalidateQueries({ queryKey: ["portal", "products", activeOrgId] });
+          }}
+        />
+      )}
 
       {(show || editing) && activeOrgId && (
         <ProductForm
