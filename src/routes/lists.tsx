@@ -203,11 +203,24 @@ function ListDetail({ id, onBack }: { id: string; onBack: () => void }) {
     },
   });
 
-  const startEdit = (item: { id: string; name: string; quantity: number | null; unit: string | null }) => {
+  const startEdit = (item: { id: string; name: string; quantity: number | null; unit: string | null; notes?: string | null }) => {
     setEditingId(item.id);
     setEditName(item.name);
-    setEditQuantity(item.quantity == null ? "" : String(item.quantity));
-    setEditUnit(item.unit ?? "");
+    if (item.quantity == null && item.notes) {
+      // Notes may hold a measurement like "500g", "2 cups", "1.5 kg · extra".
+      const first = item.notes.split("·")[0].trim();
+      const match = first.match(/^(\d+(?:[.,]\d+)?)\s*([a-zA-Z]+)?/);
+      if (match) {
+        setEditQuantity(match[1].replace(",", "."));
+        setEditUnit(match[2] ?? "");
+      } else {
+        setEditQuantity("");
+        setEditUnit(item.unit ?? "");
+      }
+    } else {
+      setEditQuantity(item.quantity == null ? "" : String(item.quantity));
+      setEditUnit(item.unit ?? "");
+    }
   };
 
   const saveEdit = (itemId: string) => {
