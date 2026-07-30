@@ -14,6 +14,7 @@ import { logAiUsage } from "@/lib/ai-usage.server";
 import { routeChatModel } from "@/lib/model-router.server";
 import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
 import { firecrawlSearch, firecrawlScrape } from "@/lib/firecrawl.server";
+import { buildTravelTools } from "@/lib/travel-tools.server";
 import { prepareShoppingListItemForStorage } from "@/lib/shopping-list-utils";
 
 type ChatRequestBody = { messages?: unknown };
@@ -83,11 +84,16 @@ export const Route = createFileRoute("/api/chat")({
         const tools = userId
           ? {
               ...buildTaylorTools(userId),
+              ...buildTravelTools(),
               search_followed_store_products: followedStoreProductsTool(userId),
               lookup_live_prices: livePricesTool(userId),
               lookup_weather: weatherTool(),
             }
-          : { lookup_live_prices: livePricesTool(null), lookup_weather: weatherTool() };
+          : {
+              ...buildTravelTools(),
+              lookup_live_prices: livePricesTool(null),
+              lookup_weather: weatherTool(),
+            };
         const result = streamText({
           model,
           system: systemPrompt,
