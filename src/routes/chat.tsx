@@ -134,10 +134,12 @@ function ChatScreen() {
           .from("messages")
           .select("id, role, parts")
           .eq("conversation_id", convo.id)
-          .order("created_at", { ascending: true })
-          .limit(200);
+          // Newest-first so a long-running conversation keeps its most recent
+          // turns; reversed below so Taylor picks up exactly where they left off.
+          .order("created_at", { ascending: false })
+          .limit(300);
         if (!cancelled && msgs?.length) {
-          const restored = msgs.map((m) => {
+          const restored = [...msgs].reverse().map((m) => {
             persistedIdsRef.current.add(m.id);
             return {
               id: m.id,
