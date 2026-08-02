@@ -69,9 +69,10 @@ export const Route = createFileRoute("/api/chat")({
           );
         }
 
-        const systemPrompt = userId
+        const basePrompt = userId
           ? await buildTaylorSystemPrompt(userId).catch(() => TAYLOR_SYSTEM_PROMPT)
           : TAYLOR_SYSTEM_PROMPT;
+        const systemPrompt = `${basePrompt}\n\n${currentTimeBlock()}`;
 
         const initialRunId = getLovableAiGatewayRunId(request);
         const gateway = createLovableAiGatewayProvider(key, initialRunId);
@@ -88,11 +89,13 @@ export const Route = createFileRoute("/api/chat")({
               search_followed_store_products: followedStoreProductsTool(userId),
               lookup_live_prices: livePricesTool(userId),
               lookup_weather: weatherTool(),
+              get_current_datetime: datetimeTool(),
             }
           : {
               ...buildTravelTools(),
               lookup_live_prices: livePricesTool(null),
               lookup_weather: weatherTool(),
+              get_current_datetime: datetimeTool(),
             };
         const result = streamText({
           model,
@@ -167,6 +170,62 @@ function livePricesTool(userId: string | null) {
 }
 
 function weatherTool() {
+  return _weatherTool();
+}
+
+function currentTimeBlock() {
+  const now = new Date();
+  const fmt = (opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-ZA", { timeZone: "Africa/Johannesburg", ...opts }).format(now);
+  return [
+    "---",
+    "REAL-TIME CLOCK (authoritative — always trust this over your training data)",
+    `Current date: ${fmt({ weekday: "long", day: "numeric", month: "long", year: "numeric" })}`,
+    `Current time: ${fmt({ hour: "2-digit", minute: "2-digit", hour12: false })} SAST (Africa/Johannesburg, UTC+2)`,
+    `ISO timestamp: ${now.toISOString()}`,
+    "Use this whenever the subscriber asks the time, the date, the day of the week, how long until an event, or when you set reminders or judge whether a promotion is still running. For any other timezone or city, CALL get_current_datetime.",
+  ].join("\n");
+}
+
+function datetimeTool() {
+  return tool({
+    description:
+      "Get the CURRENT real-world date and time. Use for 'what time is it', 'what's today's date', day-of-week questions, countdowns to events, and times in other cities/timezones. Defaults to South Africa (SAST).",
+    inputSchema: z.object({
+      timezone: z
+        .string()
+        .optional()
+        .describe("IANA timezone, e.g. 'Africa/Johannesburg', 'Europe/London', 'America/New_York'"),
+    }),
+    execute: async ({ timezone }) => {
+      const tz = timezone?.trim() || "Africa/Johannesburg";
+      const now = new Date();
+      try {
+        const parts = new Intl.DateTimeFormat("en-ZA", {
+          timeZone: tz,
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).format(now);
+        return {
+          timezone: tz,
+          formatted: parts,
+          iso_utc: now.toISOString(),
+          note: "This is the real current time. State it plainly and naturally.",
+        };
+      } catch {
+        return { error: `Unknown timezone '${tz}'. Try an IANA name like 'Africa/Johannesburg'.` };
+      }
+    },
+  });
+}
+
+function _weatherTool() {
   return tool({
     description:
       "Look up the CURRENT weather and today's forecast for a South African city or suburb using Open-Meteo (no API key). Call this whenever the subscriber asks for meal/dinner/lunch/recipe ideas so you can tailor comfort food to the weather (soups & stews when cold, salads & braai when hot).",
