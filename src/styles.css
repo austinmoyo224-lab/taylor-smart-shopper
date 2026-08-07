@@ -54,6 +54,11 @@
   --chart-3: 142 60% 35%;
   --chart-4: 222 40% 55%;
   --chart-5: 142 40% 60%;
+
+  /* Marketing brand surfaces */
+  --navy: 222 55% 14%;
+  --navy-deep: 222 58% 9%;
+  --mint: 142 45% 96%;
 }
 
 @theme inline {
@@ -97,6 +102,9 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+  --color-navy: hsl(var(--navy));
+  --color-navy-deep: hsl(var(--navy-deep));
+  --color-mint: hsl(var(--mint));
 
   --font-display:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",

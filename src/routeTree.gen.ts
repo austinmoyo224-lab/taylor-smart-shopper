@@ -16,6 +16,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RiderRouteImport } from './routes/rider'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PantryRouteImport } from './routes/pantry'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -24,16 +25,22 @@ import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HouseholdRouteImport } from './routes/household'
+import { Route as ForStoresRouteImport } from './routes/for-stores'
+import { Route as ForShoppersRouteImport } from './routes/for-shoppers'
+import { Route as ForRidersRouteImport } from './routes/for-riders'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoresIndexRouteImport } from './routes/stores.index'
 import { Route as RiderIndexRouteImport } from './routes/rider.index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
+import { Route as FeaturesIndexRouteImport } from './routes/features.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StoresStoreIdRouteImport } from './routes/stores.$storeId'
 import { Route as RiderStoresRouteImport } from './routes/rider.stores'
@@ -51,6 +58,12 @@ import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as InboxStoreIdRouteImport } from './routes/inbox.$storeId'
+import { Route as FeaturesVisionRouteImport } from './routes/features.vision'
+import { Route as FeaturesTravelRouteImport } from './routes/features.travel'
+import { Route as FeaturesRecipesRouteImport } from './routes/features.recipes'
+import { Route as FeaturesListsRouteImport } from './routes/features.lists'
+import { Route as FeaturesDealsRouteImport } from './routes/features.deals'
+import { Route as FeaturesChatRouteImport } from './routes/features.chat'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminVaultRouteImport } from './routes/admin.vault'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -105,6 +118,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -145,6 +163,26 @@ const HouseholdRoute = HouseholdRouteImport.update({
   path: '/household',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForStoresRoute = ForStoresRouteImport.update({
+  id: '/for-stores',
+  path: '/for-stores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForShoppersRoute = ForShoppersRouteImport.update({
+  id: '/for-shoppers',
+  path: '/for-shoppers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForRidersRoute = ForRidersRouteImport.update({
+  id: '/for-riders',
+  path: '/for-riders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DealsRoute = DealsRouteImport.update({
   id: '/deals',
   path: '/deals',
@@ -168,6 +206,11 @@ const AuthRoute = AuthRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -194,6 +237,11 @@ const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PortalRoute,
+} as any)
+const FeaturesIndexRoute = FeaturesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FeaturesRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -279,6 +327,36 @@ const InboxStoreIdRoute = InboxStoreIdRouteImport.update({
   id: '/$storeId',
   path: '/$storeId',
   getParentRoute: () => InboxRoute,
+} as any)
+const FeaturesVisionRoute = FeaturesVisionRouteImport.update({
+  id: '/vision',
+  path: '/vision',
+  getParentRoute: () => FeaturesRoute,
+} as any)
+const FeaturesTravelRoute = FeaturesTravelRouteImport.update({
+  id: '/travel',
+  path: '/travel',
+  getParentRoute: () => FeaturesRoute,
+} as any)
+const FeaturesRecipesRoute = FeaturesRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
+  getParentRoute: () => FeaturesRoute,
+} as any)
+const FeaturesListsRoute = FeaturesListsRouteImport.update({
+  id: '/lists',
+  path: '/lists',
+  getParentRoute: () => FeaturesRoute,
+} as any)
+const FeaturesDealsRoute = FeaturesDealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
+  getParentRoute: () => FeaturesRoute,
+} as any)
+const FeaturesChatRoute = FeaturesChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => FeaturesRoute,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
@@ -374,11 +452,16 @@ const ApiPublicHooksFireRemindersRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/features': typeof FeaturesRouteWithChildren
+  '/for-riders': typeof ForRidersRoute
+  '/for-shoppers': typeof ForShoppersRoute
+  '/for-stores': typeof ForStoresRoute
   '/household': typeof HouseholdRoute
   '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
@@ -387,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/rider': typeof RiderRouteWithChildren
@@ -405,6 +489,12 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/features/chat': typeof FeaturesChatRoute
+  '/features/deals': typeof FeaturesDealsRoute
+  '/features/lists': typeof FeaturesListsRoute
+  '/features/recipes': typeof FeaturesRecipesRoute
+  '/features/travel': typeof FeaturesTravelRoute
+  '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -422,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/features/': typeof FeaturesIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/rider/': typeof RiderIndexRoute
@@ -436,10 +527,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/for-riders': typeof ForRidersRoute
+  '/for-shoppers': typeof ForShoppersRoute
+  '/for-stores': typeof ForStoresRoute
   '/household': typeof HouseholdRoute
   '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
@@ -447,6 +542,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
@@ -462,6 +558,12 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/features/chat': typeof FeaturesChatRoute
+  '/features/deals': typeof FeaturesDealsRoute
+  '/features/lists': typeof FeaturesListsRoute
+  '/features/recipes': typeof FeaturesRecipesRoute
+  '/features/travel': typeof FeaturesTravelRoute
+  '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -478,6 +580,7 @@ export interface FileRoutesByTo {
   '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
   '/admin': typeof AdminIndexRoute
+  '/features': typeof FeaturesIndexRoute
   '/portal': typeof PortalIndexRoute
   '/recipes': typeof RecipesIndexRoute
   '/rider': typeof RiderIndexRoute
@@ -493,11 +596,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/features': typeof FeaturesRouteWithChildren
+  '/for-riders': typeof ForRidersRoute
+  '/for-shoppers': typeof ForShoppersRoute
+  '/for-stores': typeof ForStoresRoute
   '/household': typeof HouseholdRoute
   '/inbox': typeof InboxRouteWithChildren
   '/lists': typeof ListsRoute
@@ -506,6 +614,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/pantry': typeof PantryRoute
   '/portal': typeof PortalRouteWithChildren
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/rider': typeof RiderRouteWithChildren
@@ -524,6 +633,12 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vault': typeof AdminVaultRoute
   '/api/chat': typeof ApiChatRoute
+  '/features/chat': typeof FeaturesChatRoute
+  '/features/deals': typeof FeaturesDealsRoute
+  '/features/lists': typeof FeaturesListsRoute
+  '/features/recipes': typeof FeaturesRecipesRoute
+  '/features/travel': typeof FeaturesTravelRoute
+  '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -541,6 +656,7 @@ export interface FileRoutesById {
   '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/features/': typeof FeaturesIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/rider/': typeof RiderIndexRoute
@@ -557,11 +673,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
     | '/auth'
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/features'
+    | '/for-riders'
+    | '/for-shoppers'
+    | '/for-stores'
     | '/household'
     | '/inbox'
     | '/lists'
@@ -570,6 +691,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pantry'
     | '/portal'
+    | '/pricing'
     | '/profile'
     | '/recipes'
     | '/rider'
@@ -588,6 +710,12 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/features/chat'
+    | '/features/deals'
+    | '/features/lists'
+    | '/features/recipes'
+    | '/features/travel'
+    | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
@@ -605,6 +733,7 @@ export interface FileRouteTypes {
     | '/rider/stores'
     | '/stores/$storeId'
     | '/admin/'
+    | '/features/'
     | '/portal/'
     | '/recipes/'
     | '/rider/'
@@ -619,10 +748,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/for-riders'
+    | '/for-shoppers'
+    | '/for-stores'
     | '/household'
     | '/inbox'
     | '/lists'
@@ -630,6 +763,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/pantry'
+    | '/pricing'
     | '/profile'
     | '/settings'
     | '/store-onboarding'
@@ -645,6 +779,12 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/features/chat'
+    | '/features/deals'
+    | '/features/lists'
+    | '/features/recipes'
+    | '/features/travel'
+    | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
@@ -661,6 +801,7 @@ export interface FileRouteTypes {
     | '/rider/stores'
     | '/stores/$storeId'
     | '/admin'
+    | '/features'
     | '/portal'
     | '/recipes'
     | '/rider'
@@ -675,11 +816,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/admin'
     | '/auth'
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/features'
+    | '/for-riders'
+    | '/for-shoppers'
+    | '/for-stores'
     | '/household'
     | '/inbox'
     | '/lists'
@@ -688,6 +834,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pantry'
     | '/portal'
+    | '/pricing'
     | '/profile'
     | '/recipes'
     | '/rider'
@@ -706,6 +853,12 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vault'
     | '/api/chat'
+    | '/features/chat'
+    | '/features/deals'
+    | '/features/lists'
+    | '/features/recipes'
+    | '/features/travel'
+    | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
     | '/portal/analytics'
@@ -723,6 +876,7 @@ export interface FileRouteTypes {
     | '/rider/stores'
     | '/stores/$storeId'
     | '/admin/'
+    | '/features/'
     | '/portal/'
     | '/recipes/'
     | '/rider/'
@@ -738,11 +892,16 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
+  FeaturesRoute: typeof FeaturesRouteWithChildren
+  ForRidersRoute: typeof ForRidersRoute
+  ForShoppersRoute: typeof ForShoppersRoute
+  ForStoresRoute: typeof ForStoresRoute
   HouseholdRoute: typeof HouseholdRoute
   InboxRoute: typeof InboxRouteWithChildren
   ListsRoute: typeof ListsRoute
@@ -751,6 +910,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PantryRoute: typeof PantryRoute
   PortalRoute: typeof PortalRouteWithChildren
+  PricingRoute: typeof PricingRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRouteWithChildren
   RiderRoute: typeof RiderRouteWithChildren
@@ -818,6 +978,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portal': {
       id: '/portal'
       path: '/portal'
@@ -874,6 +1041,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HouseholdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/for-stores': {
+      id: '/for-stores'
+      path: '/for-stores'
+      fullPath: '/for-stores'
+      preLoaderRoute: typeof ForStoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-shoppers': {
+      id: '/for-shoppers'
+      path: '/for-shoppers'
+      fullPath: '/for-shoppers'
+      preLoaderRoute: typeof ForShoppersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-riders': {
+      id: '/for-riders'
+      path: '/for-riders'
+      fullPath: '/for-riders'
+      preLoaderRoute: typeof ForRidersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/deals': {
       id: '/deals'
       path: '/deals'
@@ -907,6 +1102,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -943,6 +1145,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/'
       preLoaderRoute: typeof PortalIndexRouteImport
       parentRoute: typeof PortalRoute
+    }
+    '/features/': {
+      id: '/features/'
+      path: '/'
+      fullPath: '/features/'
+      preLoaderRoute: typeof FeaturesIndexRouteImport
+      parentRoute: typeof FeaturesRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -1062,6 +1271,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/inbox/$storeId'
       preLoaderRoute: typeof InboxStoreIdRouteImport
       parentRoute: typeof InboxRoute
+    }
+    '/features/vision': {
+      id: '/features/vision'
+      path: '/vision'
+      fullPath: '/features/vision'
+      preLoaderRoute: typeof FeaturesVisionRouteImport
+      parentRoute: typeof FeaturesRoute
+    }
+    '/features/travel': {
+      id: '/features/travel'
+      path: '/travel'
+      fullPath: '/features/travel'
+      preLoaderRoute: typeof FeaturesTravelRouteImport
+      parentRoute: typeof FeaturesRoute
+    }
+    '/features/recipes': {
+      id: '/features/recipes'
+      path: '/recipes'
+      fullPath: '/features/recipes'
+      preLoaderRoute: typeof FeaturesRecipesRouteImport
+      parentRoute: typeof FeaturesRoute
+    }
+    '/features/lists': {
+      id: '/features/lists'
+      path: '/lists'
+      fullPath: '/features/lists'
+      preLoaderRoute: typeof FeaturesListsRouteImport
+      parentRoute: typeof FeaturesRoute
+    }
+    '/features/deals': {
+      id: '/features/deals'
+      path: '/deals'
+      fullPath: '/features/deals'
+      preLoaderRoute: typeof FeaturesDealsRouteImport
+      parentRoute: typeof FeaturesRoute
+    }
+    '/features/chat': {
+      id: '/features/chat'
+      path: '/chat'
+      fullPath: '/features/chat'
+      preLoaderRoute: typeof FeaturesChatRouteImport
+      parentRoute: typeof FeaturesRoute
     }
     '/api/chat': {
       id: '/api/chat'
@@ -1222,6 +1473,30 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface FeaturesRouteChildren {
+  FeaturesChatRoute: typeof FeaturesChatRoute
+  FeaturesDealsRoute: typeof FeaturesDealsRoute
+  FeaturesListsRoute: typeof FeaturesListsRoute
+  FeaturesRecipesRoute: typeof FeaturesRecipesRoute
+  FeaturesTravelRoute: typeof FeaturesTravelRoute
+  FeaturesVisionRoute: typeof FeaturesVisionRoute
+  FeaturesIndexRoute: typeof FeaturesIndexRoute
+}
+
+const FeaturesRouteChildren: FeaturesRouteChildren = {
+  FeaturesChatRoute: FeaturesChatRoute,
+  FeaturesDealsRoute: FeaturesDealsRoute,
+  FeaturesListsRoute: FeaturesListsRoute,
+  FeaturesRecipesRoute: FeaturesRecipesRoute,
+  FeaturesTravelRoute: FeaturesTravelRoute,
+  FeaturesVisionRoute: FeaturesVisionRoute,
+  FeaturesIndexRoute: FeaturesIndexRoute,
+}
+
+const FeaturesRouteWithChildren = FeaturesRoute._addFileChildren(
+  FeaturesRouteChildren,
+)
+
 interface InboxRouteChildren {
   InboxStoreIdRoute: typeof InboxStoreIdRoute
 }
@@ -1319,11 +1594,16 @@ const StoresRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
+  FeaturesRoute: FeaturesRouteWithChildren,
+  ForRidersRoute: ForRidersRoute,
+  ForShoppersRoute: ForShoppersRoute,
+  ForStoresRoute: ForStoresRoute,
   HouseholdRoute: HouseholdRoute,
   InboxRoute: InboxRouteWithChildren,
   ListsRoute: ListsRoute,
@@ -1332,6 +1612,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PantryRoute: PantryRoute,
   PortalRoute: PortalRouteWithChildren,
+  PricingRoute: PricingRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRouteWithChildren,
   RiderRoute: RiderRouteWithChildren,
@@ -1350,13 +1631,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
