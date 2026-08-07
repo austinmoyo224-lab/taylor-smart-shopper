@@ -58,6 +58,7 @@ import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalCouponsRouteImport } from './routes/portal.coupons'
 import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as InboxStoreIdRouteImport } from './routes/inbox.$storeId'
 import { Route as FeaturesVisionRouteImport } from './routes/features.vision'
@@ -330,6 +331,11 @@ const PortalAnalyticsRoute = PortalAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => PortalRoute,
 } as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinSlugRoute = JoinSlugRouteImport.update({
   id: '/join/$slug',
   path: '/join/$slug',
@@ -511,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
@@ -659,6 +667,7 @@ export interface FileRoutesById {
   '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
   '/portal/campaigns': typeof PortalCampaignsRoute
   '/portal/coupons': typeof PortalCouponsRoute
@@ -738,6 +747,7 @@ export interface FileRouteTypes {
     | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
+    | '/legal/privacy'
     | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
@@ -809,6 +819,7 @@ export interface FileRouteTypes {
     | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
+    | '/legal/privacy'
     | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
@@ -885,6 +896,7 @@ export interface FileRouteTypes {
     | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
+    | '/legal/privacy'
     | '/portal/analytics'
     | '/portal/campaigns'
     | '/portal/coupons'
@@ -946,6 +958,7 @@ export interface RootRouteChildren {
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
   ApiPublicHooksFireRemindersRoute: typeof ApiPublicHooksFireRemindersRoute
@@ -1297,6 +1310,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/analytics'
       preLoaderRoute: typeof PortalAnalyticsRouteImport
       parentRoute: typeof PortalRoute
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/join/$slug': {
       id: '/join/$slug'
@@ -1664,6 +1684,7 @@ const rootRouteChildren: RootRouteChildren = {
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
   ApiPublicHooksFireRemindersRoute: ApiPublicHooksFireRemindersRoute,
