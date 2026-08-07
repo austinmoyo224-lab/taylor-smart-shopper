@@ -255,54 +255,130 @@ function Banner({
   );
 }
 
-function FinalCTA() {
+function ProductGrid() {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28" style={{ backgroundColor: NAVY }}>
-      <div
-        className="pointer-events-none absolute inset-0 opacity-20 blur-3xl"
-        style={{ background: `radial-gradient(circle at 50% 50%, ${GREEN} 0%, transparent 60%)` }}
-        aria-hidden
-      />
-      <div className="relative mx-auto max-w-3xl px-6 text-center text-white">
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.5em] text-white/60">
-          Meet Taylor
-        </p>
-        <h2 className="text-4xl leading-tight sm:text-5xl" style={{ fontFamily: "var(--font-display)" }}>
-          Your shopping companion.{" "}
-          <span className="italic" style={{ color: GREEN }}>
-            Free forever.
-          </span>
-        </h2>
-        <p className="mx-auto mt-5 max-w-xl text-white/70">
-          Join thousands of South African households already shopping smarter with Taylor.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold shadow-xl transition hover:scale-[1.02]"
-            style={{ backgroundColor: GREEN, color: NAVY }}
-          >
-            Get started
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/store-onboarding"
-            className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
-          >
-            List your store
-          </Link>
-        </div>
+    <Section
+      eyebrow="What she does"
+      title="Six capabilities, one conversation"
+      intro="Taylor covers the whole shop — from deciding what to cook to getting it delivered."
+    >
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {productLinks.map(({ label, to, desc, icon: Icon }, i) => (
+          <Reveal key={to} delay={i * 0.05}>
+            <SmartLink
+              to={to}
+              className="group flex h-full flex-col rounded-3xl border border-border bg-card p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+            >
+              <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                <Icon className="h-6 w-6" strokeWidth={1.75} />
+              </span>
+              <h3 className="text-lg font-semibold">{label}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{desc}</p>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                Learn more
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+              </span>
+            </SmartLink>
+          </Reveal>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
-function Footer() {
+function HowItWorks() {
   return (
-    <footer className="bg-white py-10 text-center">
-      <p className="text-xs text-black/50">
-        © {new Date().getFullYear()} Taylor Intelligence · Made for South Africa
-      </p>
-    </footer>
+    <Section
+      tone="mint"
+      eyebrow="How it works"
+      title="Four steps to a cheaper, calmer shop"
+      intro="Most households settle into this rhythm within a fortnight."
+    >
+      <Steps
+        steps={[
+          { title: "Tell her about home", desc: "Household size, dietary needs, the stores you use." },
+          { title: "Scan the kitchen", desc: "A few photos and Taylor knows what you already have." },
+          { title: "Plan and price", desc: "Meals, a list, and live prices from real SA retailers." },
+          { title: "Shop or order", desc: "Take the list in-store, or order with delivery." },
+        ]}
+      />
+    </Section>
+  );
+}
+
+function Audiences() {
+  const cards = [
+    {
+      icon: ShoppingBag,
+      title: "For shoppers",
+      desc: "Free forever. Meal plans, lists, live prices, deals and loyalty in one place.",
+      to: "/for-shoppers",
+      cta: "Explore shopper features",
+    },
+    {
+      icon: Store,
+      title: "For stores",
+      desc: "Catalogue, promotions, coupons, direct messaging, orders and analytics.",
+      to: "/for-stores",
+      cta: "See the store portal",
+    },
+    {
+      icon: Bike,
+      title: "For riders",
+      desc: "Get verified, choose your stores, and deliver paid orders nearby.",
+      to: "/for-riders",
+      cta: "Deliver with Taylor",
+    },
+  ];
+  return (
+    <Section eyebrow="Who it's for" title="One platform, three sides of the shop">
+      <div className="grid gap-5 lg:grid-cols-3">
+        {cards.map(({ icon: Icon, title, desc, to, cta }, i) => (
+          <Reveal key={title} delay={i * 0.06}>
+            <SmartLink
+              to={to}
+              className="group flex h-full flex-col rounded-3xl border border-border bg-navy p-8 text-white transition hover:-translate-y-1 hover:shadow-2xl"
+            >
+              <Icon className="mb-5 h-7 w-7 text-primary" strokeWidth={1.5} />
+              <h3 className="text-xl" style={{ fontFamily: "var(--font-display)" }}>
+                {title}
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-white/65">{desc}</p>
+              <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                {cta}
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+              </span>
+            </SmartLink>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function HomeFaq() {
+  return (
+    <Section tone="mint" eyebrow="Questions" title="The things people ask first">
+      <FaqList
+        items={[
+          {
+            q: "Is Taylor really free for shoppers?",
+            a: "Yes — every shopper feature is free forever. Stores pay to be listed on the platform; households never do.",
+          },
+          {
+            q: "Do I need to download an app?",
+            a: "No. Taylor runs in your browser and installs to your home screen on iPhone and Android.",
+          },
+          {
+            q: "Where do the prices come from?",
+            a: "Taylor checks the official websites of major South African retailers when you ask, and tells you when a price can't be confirmed.",
+          },
+          {
+            q: "How do I list my store?",
+            a: "Apply through the store onboarding wizard. Our team reviews every application and activates your portal on approval.",
+          },
+        ]}
+      />
+    </Section>
   );
 }
