@@ -46,7 +46,7 @@ function Dropdown({
             {links.map(({ label: l, to, desc, icon: Icon }) => (
               <Link
                 key={to}
-                to={to}
+                to={to as never}
                 onClick={() => setOpen(false)}
                 className="group flex items-start gap-3 rounded-2xl p-3 transition hover:bg-mint"
               >
@@ -83,7 +83,7 @@ function MobileSection({ title, links, onNavigate }: { title: string; links: Nav
           {links.map(({ label, to, desc, icon: Icon }) => (
             <Link
               key={to}
-              to={to}
+              to={to as never}
               onClick={onNavigate}
               className="flex items-start gap-3 rounded-2xl px-2 py-3 transition active:bg-white/10"
             >
@@ -120,7 +120,7 @@ export function SiteHeader() {
           {flatLinks.map(({ label, to }) => (
             <Link
               key={to}
-              to={to}
+              to={to as never}
               className="rounded-full px-3 py-2 text-sm text-white/75 transition hover:text-white"
               activeProps={{ className: "text-white" }}
             >
@@ -175,7 +175,7 @@ export function SiteHeader() {
             {flatLinks.map(({ label, to }) => (
               <Link
                 key={to}
-                to={to}
+                to={to as never}
                 onClick={close}
                 className="block border-b border-white/10 py-4 text-base font-medium text-white"
               >
