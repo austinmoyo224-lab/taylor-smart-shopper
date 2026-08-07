@@ -1,10 +1,29 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Brain, Heart, Sparkles, ShieldCheck, ArrowRight, Store, ShoppingBag } from "lucide-react";
+import {
+  ArrowRight,
+  Bike,
+  Brain,
+  Heart,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Store,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import heroAsset from "@/assets/taylor-hero-banner.png.asset.json";
-import taylorMark from "@/assets/taylor-mark.png";
+import { SiteHeader } from "@/components/marketing/SiteHeader";
+import { SiteFooter } from "@/components/marketing/SiteFooter";
+import {
+  Section,
+  Steps,
+  FaqList,
+  CtaBand,
+  Reveal,
+  SmartLink,
+} from "@/components/marketing/blocks";
+import { productLinks } from "@/components/marketing/nav";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,43 +60,27 @@ function Landing() {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-white text-[color:var(--color-foreground)]">
-      <TopBar />
+    <div className="min-h-screen w-full overflow-x-hidden bg-background text-foreground">
+      <SiteHeader />
       <Hero />
       <FeatureStrip />
+      <ProductGrid />
+      <HowItWorks />
+      <Audiences />
       <BannerSections />
-      <FinalCTA />
-      <Footer />
+      <HomeFaq />
+      <CtaBand
+        title={
+          <>
+            Your shopping companion.{" "}
+            <span className="italic text-primary">Free forever.</span>
+          </>
+        }
+        desc="Join South African households already shopping smarter with Taylor."
+        secondary={{ label: "List your store", to: "/store-onboarding" }}
+      />
+      <SiteFooter />
     </div>
-  );
-}
-
-function TopBar() {
-  return (
-    <header className="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-      <Link to="/" className="flex items-center gap-2 text-white">
-        <img src={taylorMark} alt="" className="h-9 w-9 rounded-xl shadow-lg" />
-        <span className="text-xl italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-          Taylor
-        </span>
-      </Link>
-      <nav className="flex items-center gap-2 sm:gap-3">
-        <Link
-          to="/auth"
-          className="hidden rounded-full px-4 py-2 text-sm text-white/80 transition hover:text-white sm:inline-flex"
-        >
-          Sign in
-        </Link>
-        <Link
-          to="/auth"
-          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium shadow-lg transition hover:opacity-95"
-          style={{ backgroundColor: GREEN, color: NAVY }}
-        >
-          Get started
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </nav>
-    </header>
   );
 }
 
@@ -88,7 +91,7 @@ function Hero() {
       style={{ backgroundColor: NAVY }}
     >
       {/* Full-bleed header banner (branding baked in) */}
-      <div className="relative w-full pt-20">
+      <div className="relative w-full">
         <motion.img
           initial={{ opacity: 0, scale: 1.02 }}
           animate={{ opacity: 1, scale: 1 }}
