@@ -29,6 +29,7 @@ import { Route as ForStoresRouteImport } from './routes/for-stores'
 import { Route as ForShoppersRouteImport } from './routes/for-shoppers'
 import { Route as ForRidersRouteImport } from './routes/for-riders'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CouponsRouteImport } from './routes/coupons'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -181,6 +182,11 @@ const ForRidersRoute = ForRidersRouteImport.update({
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DealsRoute = DealsRouteImport.update({
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/faq': typeof FaqRoute
   '/features': typeof FeaturesRouteWithChildren
   '/for-riders': typeof ForRidersRoute
   '/for-shoppers': typeof ForShoppersRoute
@@ -532,6 +539,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/faq': typeof FaqRoute
   '/for-riders': typeof ForRidersRoute
   '/for-shoppers': typeof ForShoppersRoute
   '/for-stores': typeof ForStoresRoute
@@ -602,6 +610,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/coupons': typeof CouponsRoute
   '/deals': typeof DealsRoute
+  '/faq': typeof FaqRoute
   '/features': typeof FeaturesRouteWithChildren
   '/for-riders': typeof ForRidersRoute
   '/for-shoppers': typeof ForShoppersRoute
@@ -679,6 +688,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/faq'
     | '/features'
     | '/for-riders'
     | '/for-shoppers'
@@ -753,6 +763,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/faq'
     | '/for-riders'
     | '/for-shoppers'
     | '/for-stores'
@@ -822,6 +833,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/coupons'
     | '/deals'
+    | '/faq'
     | '/features'
     | '/for-riders'
     | '/for-shoppers'
@@ -898,6 +910,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CouponsRoute: typeof CouponsRoute
   DealsRoute: typeof DealsRoute
+  FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRouteWithChildren
   ForRidersRoute: typeof ForRidersRoute
   ForShoppersRoute: typeof ForShoppersRoute
@@ -1067,6 +1080,13 @@ declare module '@tanstack/react-router' {
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deals': {
@@ -1600,6 +1620,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CouponsRoute: CouponsRoute,
   DealsRoute: DealsRoute,
+  FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRouteWithChildren,
   ForRidersRoute: ForRidersRoute,
   ForShoppersRoute: ForShoppersRoute,
@@ -1631,3 +1652,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
