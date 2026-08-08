@@ -48,7 +48,7 @@ function Contact() {
           </>
         }
         subtitle="Whether you're a shopper with a question, a store owner ready to list, or a rider wanting to deliver — we read every message."
-        primary={{ label: "Email us", to: "/contact" }}
+        primary={{ label: "Email us", to: `mailto:${EMAIL}` }}
         secondary={{ label: "Read the FAQ", to: "/faq" }}
       />
 
