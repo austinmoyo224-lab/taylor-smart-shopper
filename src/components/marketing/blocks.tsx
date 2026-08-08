@@ -16,11 +16,15 @@ export function MarketingPage({ children }: { children: ReactNode }) {
   );
 }
 
-/** Link that accepts a plain string path (route data comes from nav.ts). */
+/** Link that accepts a plain string path (route data comes from nav.ts).
+ *  External / mailto / tel / hash targets fall back to a plain anchor. */
 export function SmartLink({
   to,
   ...rest
 }: { to: string } & Omit<ComponentProps<"a">, "href">) {
+  if (/^(mailto:|tel:|https?:|#)/.test(to)) {
+    return <a href={to} {...rest} />;
+  }
   return <Link to={to as never} {...rest} />;
 }
 
