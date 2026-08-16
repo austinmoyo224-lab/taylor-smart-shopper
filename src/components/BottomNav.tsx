@@ -3,7 +3,7 @@ import { Store, ListChecks, ChefHat, Inbox } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyInboxUnread } from "@/lib/store-messages.functions";
 import { useAuth } from "@/hooks/useAuth";
-import taylorCharacter from "@/assets/taylor-character.png.asset.json";
+import taylorCharacter from "@/assets/taylor-face.jpg.asset.json";
 
 
 // Taylor is the centre "hero" action; other tabs flank it two-per-side.
