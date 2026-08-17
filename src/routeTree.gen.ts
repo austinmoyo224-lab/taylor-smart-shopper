@@ -77,6 +77,7 @@ import { Route as AdminRidersRouteImport } from './routes/admin.riders'
 import { Route as AdminOrganisationsRouteImport } from './routes/admin.organisations'
 import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
+import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiUsageRouteImport } from './routes/admin.ai-usage'
 import { Route as PortalStoresIndexRouteImport } from './routes/portal.stores.index'
@@ -427,6 +428,11 @@ const AdminKnowledgeRoute = AdminKnowledgeRouteImport.update({
   path: '/knowledge',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -506,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
@@ -579,6 +586,7 @@ export interface FileRoutesByTo {
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
@@ -658,6 +666,7 @@ export interface FileRoutesById {
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/knowledge': typeof AdminKnowledgeRoute
   '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/organisations': typeof AdminOrganisationsRoute
@@ -739,6 +748,7 @@ export interface FileRouteTypes {
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
+    | '/admin/integrations'
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
@@ -812,6 +822,7 @@ export interface FileRouteTypes {
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
+    | '/admin/integrations'
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
@@ -890,6 +901,7 @@ export interface FileRouteTypes {
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
+    | '/admin/integrations'
     | '/admin/knowledge'
     | '/admin/onboarding'
     | '/admin/organisations'
@@ -1457,6 +1469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKnowledgeRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/integrations': {
+      id: '/admin/integrations'
+      path: '/integrations'
+      fullPath: '/admin/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/audit'
@@ -1526,6 +1545,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAiUsageRoute: typeof AdminAiUsageRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   AdminKnowledgeRoute: typeof AdminKnowledgeRoute
   AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminOrganisationsRoute: typeof AdminOrganisationsRoute
@@ -1540,6 +1560,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiUsageRoute: AdminAiUsageRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminIntegrationsRoute: AdminIntegrationsRoute,
   AdminKnowledgeRoute: AdminKnowledgeRoute,
   AdminOnboardingRoute: AdminOnboardingRoute,
   AdminOrganisationsRoute: AdminOrganisationsRoute,

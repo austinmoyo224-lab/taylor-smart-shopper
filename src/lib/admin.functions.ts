@@ -664,3 +664,65 @@ export const deleteVaultFile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/* ---------------------------------------------------------------- *
+ * Integrations: operator-owned Google Maps API key
+ * ---------------------------------------------------------------- */
+
+function maskKey(key: string) {
+  if (key.length <= 8) return "••••";
+  return `${key.slice(0, 4)}••••${key.slice(-4)}`;
+}
+
+export const getMapsKeySettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { getSetting, GOOGLE_MAPS_KEY_SETTING } = await import(
+      "@/lib/platform-settings.server"
+    );
+    const key = await getSetting(GOOGLE_MAPS_KEY_SETTING);
+    return {
+      usingCustomKey: !!key,
+      maskedKey: key ? maskKey(key) : null,
+      managedKeyAvailable: !!process.env.GOOGLE_MAPS_API_KEY,
+    };
+  });
+
+export const saveMapsKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ apiKey: z.string().trim().min(20).max(200) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.userId);
+    const { setSetting, GOOGLE_MAPS_KEY_SETTING } = await import(
+      "@/lib/platform-settings.server"
+    );
+    await setSetting(GOOGLE_MAPS_KEY_SETTING, data.apiKey, context.userId);
+    return { ok: true };
+  });
+
+export const clearMapsKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { setSetting, GOOGLE_MAPS_KEY_SETTING } = await import(
+      "@/lib/platform-settings.server"
+    );
+    await setSetting(GOOGLE_MAPS_KEY_SETTING, null, context.userId);
+    return { ok: true };
+  });
+
+export const testMapsKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.userId);
+    const { verifyMapsKey } = await import("@/lib/maps.server");
+    try {
+      const r = await verifyMapsKey();
+      return { ok: true as const, message: `Working — found "${r.sample}".` };
+    } catch (e) {
+      return { ok: false as const, message: (e as Error).message };
+    }
+  });
