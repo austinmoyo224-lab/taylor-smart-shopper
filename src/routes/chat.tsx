@@ -475,7 +475,7 @@ function ChatScreen() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-8 overflow-y-auto overflow-x-hidden px-5 py-6 scroll-smooth">
         {showIntro && <IntroMessages />}
 
         {messages.map((message, i) => (
@@ -860,11 +860,11 @@ function MessageRow({
       className={"animate-message flex w-full " + (isUser ? "justify-end" : "justify-start")}
       style={{ animationDelay: `${delay}ms` }}
     >
-      {!isUser && <Avatar src={taylorAvatar} label="T" className="mr-2 mt-1" />}
-      <div className={"flex max-w-[85%] flex-col " + (isUser ? "items-end" : "items-start")}>
+      {!isUser && <Avatar src={taylorAvatar} label="T" className="mr-2 mt-1 shrink-0" />}
+      <div className={"flex min-w-0 max-w-[85%] flex-col " + (isUser ? "items-end" : "items-start")}>
       <div
         className={
-          "max-w-[85%] space-y-2 px-4 py-3 " +
+          "w-full min-w-0 space-y-2 overflow-hidden px-4 py-3 " +
           (isUser
             ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
             : "rounded-2xl rounded-tl-none border border-black/5 bg-surface")
@@ -889,8 +889,8 @@ function MessageRow({
           <div
             className={
               isUser
-                ? "whitespace-pre-wrap text-sm leading-relaxed"
-                : "prose prose-sm max-w-none text-sm leading-relaxed text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold"
+                ? "whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]"
+                : "prose prose-sm max-w-none break-words text-sm leading-relaxed text-foreground [overflow-wrap:anywhere] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:[overflow-wrap:anywhere] [&_code]:whitespace-pre-wrap [&_code]:[overflow-wrap:anywhere] [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_strong]:font-semibold [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto"
             }
           >
             {isUser ? <p>{text}</p> : <ReactMarkdown>{text}</ReactMarkdown>}
@@ -918,7 +918,7 @@ function MessageRow({
         )}
       </div>
       </div>
-      {isUser && <Avatar src={userAvatar ?? undefined} label="You" className="ml-2 mt-1" />}
+      {isUser && <Avatar src={userAvatar ?? undefined} label="You" className="ml-2 mt-1 shrink-0" />}
     </div>
   );
 }
