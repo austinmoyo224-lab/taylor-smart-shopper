@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminStatus } from "@/lib/admin.functions";
 import { LayoutDashboard, Building2, Store, Users, ScrollText, ArrowLeft, Sparkles, Inbox, Activity, Bike } from "lucide-react";
-import { FolderOpen, BookOpen } from "lucide-react";
+import { FolderOpen, BookOpen, Plug } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -63,6 +63,7 @@ const nav: {
     | "/admin/taylor"
     | "/admin/knowledge"
     | "/admin/ai-usage"
+    | "/admin/integrations"
     | "/admin/vault";
   label: string;
   icon: typeof LayoutDashboard;
@@ -75,6 +76,7 @@ const nav: {
   { to: "/admin/knowledge", label: "Knowledge base", icon: BookOpen },
   { to: "/admin/ai-usage", label: "AI usage", icon: Activity },
   { to: "/admin/vault", label: "Document vault", icon: FolderOpen },
+  { to: "/admin/integrations", label: "Integrations", icon: Plug },
   { to: "/admin/organisations", label: "Organisations", icon: Building2 },
   { to: "/admin/stores", label: "Stores", icon: Store },
   { to: "/admin/users", label: "Users & roles", icon: Users },
