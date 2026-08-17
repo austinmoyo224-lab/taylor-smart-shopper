@@ -10,8 +10,6 @@ import {
   X,
   Download,
   Sparkles,
-  ScanLine,
-  Tag,
   Camera,
   Image as ImageIcon,
   ScanSearch,
@@ -23,8 +21,6 @@ import {
 import ReactMarkdown from "react-markdown";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/BottomNav";
-import sourdoughImg from "@/assets/sample-sourdough.jpg";
-import heroImg from "@/assets/chat-hero.jpg";
 import taylorAvatarAsset from "@/assets/taylor-character.png.asset.json";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -952,8 +948,6 @@ function Avatar({
 function IntroMessages() {
   return (
     <>
-      <HeroBanner />
-
       <div
         className="animate-message flex max-w-[85%] flex-col items-start"
         style={{ animationDelay: "80ms" }}
@@ -969,117 +963,8 @@ function IntroMessages() {
         </span>
       </div>
 
-      <div
-        className="animate-message flex w-full flex-col items-start"
-        style={{ animationDelay: "220ms" }}
-      >
-        <div className="mb-4 max-w-[85%] rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
-          <p className="text-pretty text-sm leading-relaxed">
-            Once you follow a store, I'll only share deals that match what you actually buy. Here's
-            an example of how a personalised pick looks:
-          </p>
-        </div>
-
-        <article className="w-full max-w-[92%] overflow-hidden rounded-3xl border border-border bg-card shadow-sm ring-1 ring-black/5">
-          <img
-            src={sourdoughImg}
-            alt="Artisanal sourdough loaf on a wooden kitchen counter"
-            width={1024}
-            height={768}
-            loading="lazy"
-            className="aspect-[3/2] w-full object-cover"
-          />
-          <div className="p-4">
-            <div className="mb-2 flex items-start justify-between">
-              <div>
-                <h3
-                  className="text-lg italic tracking-tight"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Sample: Artisanal Sourdough
-                </h3>
-                <p className="text-xs text-muted">Example only — 800g</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-primary">R45.00</p>
-                <p className="text-[10px] text-muted line-through">R58.00</p>
-              </div>
-            </div>
-
-            <div className="mt-4 border-t border-dashed border-border pt-4">
-              <div className="flex items-start gap-3">
-                <div className="animate-shimmer mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <span className="text-[8px] font-bold text-primary">!</span>
-                </div>
-                <div>
-                  <p className="mb-1 font-mono text-[10px] font-medium uppercase tracking-tighter text-primary">
-                    Why Taylor would pick this
-                  </p>
-                  <p className="text-[11px] leading-snug text-muted">
-                    Once stores are connected, Taylor only shows deals that match your preferences.
-                    This card is illustrative — real deals arrive once you follow a store.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <span className="mt-2 font-mono text-[10px] uppercase tracking-tighter text-muted">
-          Taylor
-        </span>
-      </div>
-
       <InstallCta />
     </>
-  );
-}
-
-function HeroBanner() {
-  return (
-    <section
-      className="animate-message relative -mx-1 overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
-      style={{ animationDelay: "20ms" }}
-    >
-      <div className="relative">
-        <img
-          src={heroImg}
-          alt="Fresh market table with produce, bread and a phone showing a chat with Taylor"
-          width={1024}
-          height={1024}
-          className="h-56 w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest opacity-80">
-            Meet Taylor
-          </p>
-          <h2
-            className="text-balance text-2xl italic tracking-tight"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Your shopping companion.
-          </h2>
-          <p className="mt-1 max-w-md text-[13px] leading-snug opacity-90">
-            Personal deals. Recipes from what's on special. All in one calm chat — never spam.
-          </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-3 divide-x divide-border border-t border-border text-center">
-        <Perk icon={Tag} label="Real specials" />
-        <Perk icon={Sparkles} label="Recipe ideas" />
-        <Perk icon={ScanLine} label="Scan & save" />
-      </div>
-    </section>
-  );
-}
-
-function Perk({ icon: Icon, label }: { icon: typeof Tag; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1 px-2 py-3">
-      <Icon className="size-4 text-primary" strokeWidth={2} />
-      <span className="text-[11px] font-medium text-foreground">{label}</span>
-    </div>
   );
 }
 
