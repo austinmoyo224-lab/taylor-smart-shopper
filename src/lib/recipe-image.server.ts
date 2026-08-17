@@ -27,8 +27,8 @@ export async function generateAndAttachRecipeHero(input: {
       "Restaurant-quality plating, natural daylight, shallow depth of field, " +
       "styled on a rustic wooden or linen surface, soft shadows, appetising and inviting. " +
       "No text or logos anywhere in the scene, except one small, subtle, clean " +
-      "lowercase sans-serif watermark reading exactly 'heytaylor.co.za' in the " +
-      "bottom right corner, semi-transparent white, correctly spelled.";
+      "watermark reading exactly 'Hey Taylor!' in the bottom right corner, " +
+      "semi-transparent white, correctly spelled."
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",
