@@ -475,7 +475,7 @@ function ChatScreen() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 space-y-8 overflow-y-auto px-5 py-6 scroll-smooth">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-8 overflow-y-auto overflow-x-hidden px-5 py-6 scroll-smooth">
         {showIntro && <IntroMessages />}
 
         {messages.map((message, i) => (
