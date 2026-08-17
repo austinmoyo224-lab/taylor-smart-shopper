@@ -16,12 +16,34 @@ function mapsHeaders(fieldMask?: string): Record<string, string> {
   return h;
 }
 
+/** Map a gateway path onto the direct Google endpoint for operator-owned keys. */
+function directUrl(path: string): string {
+  if (path.startsWith("/places/")) {
+    return `https://places.googleapis.com${path.replace("/places", "")}`;
+  }
+  if (path.startsWith("/routes/")) {
+    return `https://routes.googleapis.com${path.replace("/routes", "")}`;
+  }
+  return `https://maps.googleapis.com${path}`;
+}
+
 async function mapsFetch(path: string, init: RequestInit & { fieldMask?: string }) {
   const { fieldMask, ...rest } = init;
-  const res = await fetch(`${GATEWAY}${path}`, {
-    ...rest,
-    headers: mapsHeaders(fieldMask),
-  });
+  const { getCustomGoogleMapsKey } = await import("./platform-settings.server");
+  const customKey = await getCustomGoogleMapsKey();
+
+  let url: string;
+  let headers: Record<string, string>;
+  if (customKey) {
+    url = directUrl(path);
+    headers = { "Content-Type": "application/json", "X-Goog-Api-Key": customKey };
+    if (fieldMask) headers["X-Goog-FieldMask"] = fieldMask;
+  } else {
+    url = `${GATEWAY}${path}`;
+    headers = mapsHeaders(fieldMask);
+  }
+
+  const res = await fetch(url, { ...rest, headers });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     if (res.status === 403) {
@@ -32,6 +54,21 @@ async function mapsFetch(path: string, init: RequestInit & { fieldMask?: string 
     throw new Error(`Google Maps request failed [${res.status}]: ${body.slice(0, 300)}`);
   }
   return res.json();
+}
+
+/** Lightweight connectivity check used by the admin console. */
+export async function verifyMapsKey(): Promise<{ ok: true; sample: string }> {
+  const json = (await mapsFetch("/places/v1/places:searchText", {
+    method: "POST",
+    body: JSON.stringify({
+      textQuery: "restaurant in Johannesburg",
+      maxResultCount: 1,
+      regionCode: "ZA",
+      languageCode: "en",
+    }),
+    fieldMask: "places.displayName",
+  })) as { places?: Array<{ displayName?: { text?: string } }> };
+  return { ok: true, sample: json.places?.[0]?.displayName?.text ?? "no results" };
 }
 
 export interface PlaceSummary {
