@@ -132,12 +132,17 @@ function RecipeGrid() {
         <li key={r.id} className="overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/40">
           <Link to="/recipes/$slug" params={{ slug: r.slug }} className="block">
           {r.hero_image_url && (
-            <img
-              src={r.hero_image_url}
-              alt={r.title}
-              className="h-36 w-full object-cover"
-              loading="lazy"
-            />
+            <div className="relative">
+              <img
+                src={r.hero_image_url}
+                alt={r.title}
+                className="h-36 w-full object-cover"
+                loading="lazy"
+              />
+              <span className="pointer-events-none absolute bottom-1.5 right-2 rounded bg-background/50 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-foreground/80 backdrop-blur-sm">
+                heytaylor.co.za
+              </span>
+            </div>
           )}
           <div className="p-4">
             <div className="mb-1 flex items-center gap-2">
