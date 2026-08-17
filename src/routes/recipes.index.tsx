@@ -140,7 +140,7 @@ function RecipeGrid() {
                 loading="lazy"
               />
               <span className="pointer-events-none absolute bottom-1.5 right-2 rounded bg-background/50 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-foreground/80 backdrop-blur-sm">
-                heytaylor.co.za
+                Hey Taylor!
               </span>
             </div>
           )}
