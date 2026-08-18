@@ -122,7 +122,7 @@ function StoreDetail() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pb-8">
-        <div className="relative z-30 -mt-16 flex items-end gap-4">
+        <div className="relative z-30 -mt-4 flex items-end gap-4">
           {store.logo_url ? (
             <img
               src={store.logo_url}
@@ -141,12 +141,6 @@ function StoreDetail() {
             >
               {store.name}
             </h1>
-            {location && (
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
-                <MapPin className="size-3" />
-                {location}
-              </p>
-            )}
           </div>
         </div>
 
