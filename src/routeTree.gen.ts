@@ -60,6 +60,9 @@ import { Route as PortalCampaignsRouteImport } from './routes/portal.campaigns'
 import { Route as PortalAnalyticsRouteImport } from './routes/portal.analytics'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalPopiRouteImport } from './routes/legal.popi'
+import { Route as LegalPaiaRouteImport } from './routes/legal.paia'
+import { Route as LegalEmailDisclaimerRouteImport } from './routes/legal.email-disclaimer'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as InboxStoreIdRouteImport } from './routes/inbox.$storeId'
 import { Route as FeaturesVisionRouteImport } from './routes/features.vision'
@@ -343,6 +346,21 @@ const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   path: '/legal/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalPopiRoute = LegalPopiRouteImport.update({
+  id: '/legal/popi',
+  path: '/legal/popi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPaiaRoute = LegalPaiaRouteImport.update({
+  id: '/legal/paia',
+  path: '/legal/paia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalEmailDisclaimerRoute = LegalEmailDisclaimerRouteImport.update({
+  id: '/legal/email-disclaimer',
+  path: '/legal/email-disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinSlugRoute = JoinSlugRouteImport.update({
   id: '/join/$slug',
   path: '/join/$slug',
@@ -530,6 +548,9 @@ export interface FileRoutesByFullPath {
   '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/legal/email-disclaimer': typeof LegalEmailDisclaimerRoute
+  '/legal/paia': typeof LegalPaiaRoute
+  '/legal/popi': typeof LegalPopiRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -604,6 +625,9 @@ export interface FileRoutesByTo {
   '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/legal/email-disclaimer': typeof LegalEmailDisclaimerRoute
+  '/legal/paia': typeof LegalPaiaRoute
+  '/legal/popi': typeof LegalPopiRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -684,6 +708,9 @@ export interface FileRoutesById {
   '/features/vision': typeof FeaturesVisionRoute
   '/inbox/$storeId': typeof InboxStoreIdRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/legal/email-disclaimer': typeof LegalEmailDisclaimerRoute
+  '/legal/paia': typeof LegalPaiaRoute
+  '/legal/popi': typeof LegalPopiRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/portal/analytics': typeof PortalAnalyticsRoute
@@ -766,6 +793,9 @@ export interface FileRouteTypes {
     | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
+    | '/legal/email-disclaimer'
+    | '/legal/paia'
+    | '/legal/popi'
     | '/legal/privacy'
     | '/legal/terms'
     | '/portal/analytics'
@@ -840,6 +870,9 @@ export interface FileRouteTypes {
     | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
+    | '/legal/email-disclaimer'
+    | '/legal/paia'
+    | '/legal/popi'
     | '/legal/privacy'
     | '/legal/terms'
     | '/portal/analytics'
@@ -919,6 +952,9 @@ export interface FileRouteTypes {
     | '/features/vision'
     | '/inbox/$storeId'
     | '/join/$slug'
+    | '/legal/email-disclaimer'
+    | '/legal/paia'
+    | '/legal/popi'
     | '/legal/privacy'
     | '/legal/terms'
     | '/portal/analytics'
@@ -982,6 +1018,9 @@ export interface RootRouteChildren {
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
+  LegalEmailDisclaimerRoute: typeof LegalEmailDisclaimerRoute
+  LegalPaiaRoute: typeof LegalPaiaRoute
+  LegalPopiRoute: typeof LegalPopiRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
@@ -1348,6 +1387,27 @@ declare module '@tanstack/react-router' {
       path: '/legal/privacy'
       fullPath: '/legal/privacy'
       preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/popi': {
+      id: '/legal/popi'
+      path: '/legal/popi'
+      fullPath: '/legal/popi'
+      preLoaderRoute: typeof LegalPopiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/paia': {
+      id: '/legal/paia'
+      path: '/legal/paia'
+      fullPath: '/legal/paia'
+      preLoaderRoute: typeof LegalPaiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/email-disclaimer': {
+      id: '/legal/email-disclaimer'
+      path: '/legal/email-disclaimer'
+      fullPath: '/legal/email-disclaimer'
+      preLoaderRoute: typeof LegalEmailDisclaimerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$slug': {
@@ -1725,6 +1785,9 @@ const rootRouteChildren: RootRouteChildren = {
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
+  LegalEmailDisclaimerRoute: LegalEmailDisclaimerRoute,
+  LegalPaiaRoute: LegalPaiaRoute,
+  LegalPopiRoute: LegalPopiRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
