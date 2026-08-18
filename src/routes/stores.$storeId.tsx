@@ -122,7 +122,7 @@ function StoreDetail() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pb-8">
-        <div className="relative z-30 -mt-10 flex items-end gap-4">
+        <div className="relative z-30 -mt-4 flex items-end gap-4">
           {store.logo_url ? (
             <img
               src={store.logo_url}
