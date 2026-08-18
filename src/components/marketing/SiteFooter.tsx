@@ -99,12 +99,27 @@ export function SiteFooter() {
             </li>
             <li>
               <Link to="/legal/privacy" className="hover:text-white">
-                Privacy policy
+                Privacy & POPI policy
               </Link>
             </li>
             <li>
               <Link to="/legal/terms" className="hover:text-white">
                 Terms of service
+              </Link>
+            </li>
+            <li>
+              <Link to="/legal/popi" className="hover:text-white">
+                POPI policy & breach protocol
+              </Link>
+            </li>
+            <li>
+              <Link to="/legal/paia" className="hover:text-white">
+                PAIA manual
+              </Link>
+            </li>
+            <li>
+              <Link to="/legal/email-disclaimer" className="hover:text-white">
+                Email disclaimer
               </Link>
             </li>
           </ul>
