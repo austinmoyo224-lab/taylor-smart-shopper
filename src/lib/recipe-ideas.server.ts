@@ -147,7 +147,7 @@ export async function generateRecipeIdea(input: {
     name: cleanRecipeIngredientName(ing.name),
     quantity: ing.quantity,
     unit: ing.unit,
-    notes: buildMeasurementNote(ing.quantity, ing.unit, ing.name),
+    notes: buildMeasurementNote(ing.quantity, ing.unit, null),
     sort_order: i,
     is_sponsored: false,
   }));
