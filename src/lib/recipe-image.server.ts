@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { watermarkPng } from "@/lib/png-watermark.server";
 
 const BUCKET = "recipe-images";
 const SIGNED_URL_TTL = 60 * 60 * 24 * 365 * 5; // ~5 years
@@ -26,9 +27,8 @@ export async function generateAndAttachRecipeHero(input: {
       (input.description ? `${input.description}. ` : "") +
       "Restaurant-quality plating, natural daylight, shallow depth of field, " +
       "styled on a rustic wooden or linen surface, soft shadows, appetising and inviting. " +
-      "No text or logos anywhere in the scene, except one small, subtle, clean " +
-      "watermark reading exactly 'Hey Taylor!' in the bottom right corner, " +
-      "semi-transparent white, correctly spelled."
+      "No text, logos or watermarks anywhere in the scene. Keep the bottom right " +
+      "corner visually simple and uncluttered."
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",
@@ -50,7 +50,14 @@ export async function generateAndAttachRecipeHero(input: {
       return null;
     }
 
-    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const original = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    // Burn the watermark into the pixels so it survives download/share/re-upload.
+    let bytes = original;
+    try {
+      bytes = watermarkPng(original, "Hey Taylor!");
+    } catch (e) {
+      console.error("[recipe-image] watermark failed, storing original", e);
+    }
     const admin = createClient<Database>(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
