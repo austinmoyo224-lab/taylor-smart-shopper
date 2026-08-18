@@ -55,7 +55,7 @@ function paeth(a: number, b: number, c: number) {
   return c;
 }
 
-export function watermarkPng(png: Uint8Array, text = "Hey Taylor!"): Uint8Array {
+export function watermarkPng(png: Uint8Array, text = "Hey Taylor!"): Uint8Array<ArrayBuffer> {
   // ---- parse chunks ----
   const dv = new DataView(png.buffer, png.byteOffset, png.byteLength);
   let pos = 8;
@@ -197,7 +197,7 @@ export function watermarkPng(png: Uint8Array, text = "Hey Taylor!"): Uint8Array 
   parts.push(chunk("IDAT", compressed));
   parts.push(chunk("IEND", new Uint8Array(0)));
   const size = parts.reduce((n, p) => n + p.length, 0);
-  const final = new Uint8Array(size);
+  const final = new Uint8Array(new ArrayBuffer(size));
   let o = 0;
   for (const p of parts) {
     final.set(p, o);
