@@ -5,27 +5,6 @@ import type { Database } from "@/integrations/supabase/types";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildMeasurementNote, cleanRecipeIngredientName } from "@/lib/shopping-list-utils";
 
-export const RECIPE_STYLES = [
-  "Surprise me",
-  "Traditional South African",
-  "Heritage Day braai",
-  "English classic",
-  "Indian / Durban curry",
-  "Cape Malay",
-  "Portuguese / Peri-peri",
-  "Italian comfort",
-  "Asian stir-fry",
-  "Mexican",
-  "Vegetarian",
-  "Vegan",
-  "Halaal-friendly",
-  "Budget weeknight",
-  "Healthy & light",
-  "Baking & dessert",
-  "Kids' favourite",
-  "Slow cooker / potjie",
-] as const;
-
 const IdeaSchema = z.object({
   title: z.string(),
   description: z.string(),
