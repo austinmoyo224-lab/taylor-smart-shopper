@@ -137,15 +137,28 @@ function IdeaGenerator() {
 
       <div className="mb-3 grid grid-cols-2 gap-2">
         <label className="flex items-center justify-between gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs text-muted">
-          Serves
-          <input
-            type="number"
-            min={1}
-            max={20}
-            value={servings}
-            onChange={(e) => setServings(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-            className="w-12 bg-transparent text-right text-sm text-foreground outline-none"
-          />
+          <span>Serves</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setServings((s) => Math.max(1, s - 1))}
+              disabled={servings <= 1}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-muted/60 text-foreground disabled:opacity-40"
+              aria-label="Decrease servings"
+            >
+              −
+            </button>
+            <span className="min-w-6 text-center text-sm text-foreground">{servings}</span>
+            <button
+              type="button"
+              onClick={() => setServings((s) => Math.min(20, s + 1))}
+              disabled={servings >= 20}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-muted/60 text-foreground disabled:opacity-40"
+              aria-label="Increase servings"
+            >
+              +
+            </button>
+          </div>
         </label>
         <label className="flex items-center justify-between gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs text-muted">
           Max mins
