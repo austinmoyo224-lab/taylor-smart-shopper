@@ -112,7 +112,7 @@ export async function generateRecipeIdea(input: {
   }
 
   void (await import("@/lib/ai-usage.server")).logAiUsage({
-    operation: "recipe_idea",
+    operation: "chat",
     model: "google/gemini-2.5-flash",
     userId: input.userId,
     route: "recipes.generateIdea",
