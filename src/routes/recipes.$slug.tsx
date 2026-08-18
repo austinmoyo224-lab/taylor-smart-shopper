@@ -267,9 +267,6 @@ function RecipeBody() {
               alt={recipe.title}
               className="h-56 w-full object-cover"
             />
-            <span className="pointer-events-none absolute bottom-2 right-3 rounded bg-background/50 px-2 py-0.5 text-[10px] font-medium tracking-wide text-foreground/80 backdrop-blur-sm">
-              Hey Taylor!
-            </span>
           </div>
         ) : isOwner ? (
           <div className="flex h-56 w-full items-center justify-center bg-muted/30">
