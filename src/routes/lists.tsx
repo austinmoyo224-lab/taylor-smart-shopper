@@ -521,9 +521,9 @@ function BasketCompareTable({
               {s.matched}/{data.totalItems} matched
               {i === 0 && data.storeTotals.length > 1 && winner ? " · best" : ""}
             </p>
-                    {s.unverified > 0 ? (
+                    {s.estimated > 0 ? (
                       <p className="mt-0.5 text-[10px] uppercase tracking-widest text-muted">
-                        {s.unverified} unverified excluded
+                        {s.estimated} estimated
                       </p>
                     ) : null}
           </div>
@@ -574,10 +574,12 @@ function BasketCompareTable({
                               "inline-flex w-fit rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-widest " +
                               (v.verified
                                 ? "bg-primary/10 text-primary"
-                                : "bg-muted/20 text-muted")
+                                : v.estimated
+                                  ? "bg-amber-500/10 text-amber-600"
+                                  : "bg-muted/20 text-muted")
                             }
                           >
-                            {v.verified ? "Verified" : "Not verified"}
+                            {v.verified ? "Verified" : v.estimated ? "Estimate" : "Not verified"}
                           </span>
                         </div>
                       )}
@@ -608,10 +610,11 @@ function BasketCompareTable({
         </table>
       </div>
       <p className="px-4 py-3 text-[11px] text-muted">
-        Only <span className="font-semibold text-foreground">Verified</span> prices — sourced from
-        official retailer product pages or a store's own catalogue — are added to the totals.
-        Prices marked <span className="font-semibold text-foreground">Not verified</span> are shown
-        for reference only and are excluded.
+        <span className="font-semibold text-foreground">Verified</span> prices come straight from a
+        store's own catalogue on Taylor.{" "}
+        <span className="font-semibold text-foreground">Estimate</span> prices are Taylor's best
+        read of typical current shelf pricing at that retailer — a guide for comparison, not an
+        advertised price. Always check in-store or in the retailer's app before you buy.
       </p>
     </div>
   );

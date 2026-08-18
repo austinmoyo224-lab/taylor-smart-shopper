@@ -266,7 +266,10 @@ export const compareBasket = createServerFn({ method: "POST" })
     const itemsOut = resolved.map((it) => {
       const input = buildShoppingPriceInput(it.name ?? "", it.quantity, it.unit);
       const qty = input.priceMultiplier;
-      const perStore: Record<string, { price: number; verified: boolean } | null> = {};
+      const perStore: Record<
+        string,
+        { price: number; verified: boolean; estimated?: boolean } | null
+      > = {};
       let cheapest: { storeId: string; price: number } | null = null;
       for (const s of stores) {
         const unit = it.resolvedProductId
@@ -288,8 +291,8 @@ export const compareBasket = createServerFn({ method: "POST" })
       };
     });
 
-    // Live price fallback: for every item, query Firecrawl across major SA retailers
-    // and merge results as virtual "stores" so shoppers always see a comparison.
+    // Live price fallback: model-estimated shelf prices across the major SA
+    // retailers, merged as virtual "stores" so shoppers always see a comparison.
     const liveStores = await fetchLivePricesForBasket(
       resolved.map((r) => {
         const input = buildShoppingPriceInput(r.name ?? "", r.quantity, r.unit);
@@ -297,9 +300,8 @@ export const compareBasket = createServerFn({ method: "POST" })
       }),
     );
 
-    // Merge live per-item prices into itemsOut. Live prices only come back when
-    // they were extracted from an official retailer product page, so we mark
-    // them as verified. Any other source would be flagged unverified.
+    // Merge live per-item prices into itemsOut. These are estimates, never
+    // verified retailer data, and are labelled as such in the UI.
     for (const item of itemsOut) {
       const live = liveStores.perItem.get(item.id);
       if (!live) continue;
@@ -312,7 +314,11 @@ export const compareBasket = createServerFn({ method: "POST" })
           : null;
       for (const [storeId, match] of live.entries()) {
         const unit = match.price;
-        item.perStore[storeId] = { price: unit * item.quantity, verified: true };
+        item.perStore[storeId] = {
+          price: unit * item.quantity,
+          verified: false,
+          estimated: true,
+        };
         if (cheapestUnit == null || unit < cheapestUnit.price) {
           cheapestUnit = { storeId, price: unit };
         }
@@ -326,17 +332,22 @@ export const compareBasket = createServerFn({ method: "POST" })
     for (const ls of liveStores.stores) {
       if (!allStores.find((s) => s.id === ls.id)) allStores.push({ ...ls, live: true });
     }
-    // Totals sum ONLY verified cells so unverified estimates never mislead.
+    // Totals sum verified store-catalogue prices plus labelled estimates.
     const mergedTotals = allStores.map((s) => {
       let total = 0;
       let matched = 0;
       let unverified = 0;
+      let estimated = 0;
       for (const row of itemsOut) {
         const v = row.perStore[s.id];
         if (v == null) continue;
         if (v.verified) {
           total += v.price;
           matched += 1;
+        } else if (v.estimated) {
+          total += v.price;
+          matched += 1;
+          estimated += 1;
         } else {
           unverified += 1;
         }
@@ -348,6 +359,7 @@ export const compareBasket = createServerFn({ method: "POST" })
         total,
         matched,
         unverified,
+        estimated,
         live: !!(s as { live?: boolean }).live,
       };
     });
