@@ -88,6 +88,39 @@ export const deleteMyRecipe = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const generateRecipeIdeaFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        style: z.string().min(1).max(60),
+        brief: z.string().max(600).optional(),
+        servings: z.number().int().min(1).max(20).optional(),
+        max_minutes: z.number().int().min(5).max(240).optional(),
+        use_pantry: z.boolean().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { rateLimit } = await import("@/lib/rate-limit.server");
+    const rl = rateLimit(`recipe-idea:u:${context.userId}`, 20, 60 * 60 * 1000);
+    if (!rl.ok) {
+      throw new Error(
+        `You've generated a lot of recipes — try again in ${Math.ceil(rl.retryAfterSec / 60)} minutes.`,
+      );
+    }
+    const { generateRecipeIdea } = await import("@/lib/recipe-ideas.server");
+    return generateRecipeIdea({
+      supabase: context.supabase,
+      userId: context.userId,
+      style: data.style,
+      brief: data.brief ?? null,
+      servings: data.servings ?? null,
+      maxMinutes: data.max_minutes ?? null,
+      usePantry: data.use_pantry ?? false,
+    });
+  });
+
 export const generateRecipePhoto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ recipe_id: z.string().uuid() }).parse(d))

@@ -1,10 +1,21 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { Suspense, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { listMyRecipes, listPublishedRecipes } from "@/lib/recipes.functions";
+import {
+  generateRecipeIdeaFn,
+  listMyRecipes,
+  listPublishedRecipes,
+} from "@/lib/recipes.functions";
+import { RECIPE_STYLES } from "@/lib/recipe-styles";
 import { useAuth } from "@/hooks/useAuth";
-import { Clock, Sparkles, Users } from "lucide-react";
+import { ChefHat, Clock, Loader2, Sparkles, Users, Wand2 } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 const recipesQO = queryOptions({
@@ -48,12 +59,148 @@ function RecipesScreen() {
         </h1>
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4">
+        <IdeaGenerator />
         <Suspense fallback={<p className="px-2 py-6 text-sm text-muted">Loading…</p>}>
           <MyRecipes />
           <RecipeGrid />
         </Suspense>
       </main>
     </AppShell>
+  );
+}
+
+function IdeaGenerator() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [style, setStyle] = useState<string>(RECIPE_STYLES[0]);
+  const [brief, setBrief] = useState("");
+  const [servings, setServings] = useState(4);
+  const [maxMinutes, setMaxMinutes] = useState<number | "">("");
+  const [usePantry, setUsePantry] = useState(false);
+
+  const gen = useMutation({
+    mutationFn: () =>
+      generateRecipeIdeaFn({
+        data: {
+          style,
+          brief: brief.trim() ? brief.trim().slice(0, 600) : undefined,
+          servings,
+          max_minutes: typeof maxMinutes === "number" ? maxMinutes : undefined,
+          use_pantry: usePantry,
+        },
+      }),
+    onSuccess: async (r) => {
+      await qc.invalidateQueries({ queryKey: ["recipes", "mine"] });
+      navigate({ to: "/recipes/$slug", params: { slug: r.slug } });
+    },
+  });
+
+  return (
+    <section className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+      <div className="mb-1 flex items-center gap-2">
+        <ChefHat className="size-4 text-primary" />
+        <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+          Create a recipe with Taylor
+        </p>
+      </div>
+      <p className="mb-3 text-xs text-muted">
+        Pick a style and describe what you feel like — or leave it blank and let Taylor invent
+        something.
+      </p>
+
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {RECIPE_STYLES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStyle(s)}
+            className={`rounded-full border px-3 py-1 text-[11px] transition ${
+              style === s
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-background text-muted hover:border-primary/50"
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={brief}
+        onChange={(e) => setBrief(e.target.value)}
+        maxLength={600}
+        rows={2}
+        placeholder="e.g. something warm with mince and pap for a cold night"
+        className="mb-3 w-full resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary/60"
+      />
+
+      <div className="mb-3 grid grid-cols-2 gap-2">
+        <label className="flex items-center justify-between gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs text-muted">
+          Serves
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={servings}
+            onChange={(e) => setServings(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+            className="w-12 bg-transparent text-right text-sm text-foreground outline-none"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs text-muted">
+          Max mins
+          <input
+            type="number"
+            min={5}
+            max={240}
+            value={maxMinutes}
+            placeholder="any"
+            onChange={(e) =>
+              setMaxMinutes(e.target.value === "" ? "" : Math.max(5, Math.min(240, Number(e.target.value) || 5)))
+            }
+            className="w-14 bg-transparent text-right text-sm text-foreground outline-none"
+          />
+        </label>
+      </div>
+
+      <label className="mb-3 flex items-center gap-2 text-xs text-muted">
+        <input
+          type="checkbox"
+          checked={usePantry}
+          onChange={(e) => setUsePantry(e.target.checked)}
+          className="size-4 accent-primary"
+        />
+        Use what's already in my pantry
+      </label>
+
+      {user ? (
+        <button
+          onClick={() => gen.mutate()}
+          disabled={gen.isPending}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm text-primary-foreground disabled:opacity-60"
+        >
+          {gen.isPending ? (
+            <>
+              <Loader2 className="size-4 animate-spin" /> Taylor is cooking up an idea…
+            </>
+          ) : (
+            <>
+              <Wand2 className="size-4" /> Generate a recipe
+            </>
+          )}
+        </button>
+      ) : (
+        <Link
+          to="/auth"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm text-primary-foreground"
+        >
+          <Sparkles className="size-4" /> Sign in to generate recipes
+        </Link>
+      )}
+      {gen.error && (
+        <p className="mt-2 text-xs text-destructive">{(gen.error as Error).message}</p>
+      )}
+    </section>
   );
 }
 
