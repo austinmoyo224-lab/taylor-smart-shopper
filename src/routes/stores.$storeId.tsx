@@ -106,15 +106,15 @@ function StoreDetail() {
           <img
             src={store.hero_image_url}
             alt={store.name}
-            className="h-48 w-full object-cover"
+            className="h-52 w-full object-cover"
           />
         ) : (
-          <div className="h-48 w-full bg-gradient-to-br from-primary/30 via-primary/10 to-background" />
+          <div className="h-52 w-full bg-gradient-to-br from-primary/30 via-primary/10 to-background" />
         )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/90 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent" />
         <button
           onClick={() => navigate({ to: "/stores" })}
-          className="absolute left-4 top-4 flex size-9 items-center justify-center rounded-full bg-background/90 backdrop-blur"
+          className="absolute left-4 top-4 z-30 flex size-9 items-center justify-center rounded-full bg-background/90 backdrop-blur"
           aria-label="Back"
         >
           <ArrowLeft className="size-4" />
@@ -122,31 +122,33 @@ function StoreDetail() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pb-8">
-        <div className="relative z-10 -mt-12 flex items-end gap-3">
+        <div className="relative z-30 -mt-16 flex items-end gap-4">
           {store.logo_url ? (
             <img
               src={store.logo_url}
               alt={store.name}
-              className="size-20 rounded-2xl border-4 border-background bg-background object-cover shadow-lg"
+              className="size-24 rounded-2xl border-4 border-background bg-background object-cover shadow-2xl"
             />
           ) : (
-            <div className="flex size-20 items-center justify-center rounded-2xl border-4 border-background bg-primary/10 text-2xl font-bold text-primary shadow-lg">
+            <div className="flex size-24 items-center justify-center rounded-2xl border-4 border-background bg-primary/10 text-3xl font-bold text-primary shadow-2xl">
               {store.name.charAt(0)}
             </div>
           )}
+          <div className="pb-2">
+            <h1
+              className="text-2xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {store.name}
+            </h1>
+            {location && (
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                <MapPin className="size-3" />
+                {location}
+              </p>
+            )}
+          </div>
         </div>
-        <h1
-          className="mt-3 text-2xl italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {store.name}
-        </h1>
-        {location && (
-          <p className="mt-1 flex items-center gap-1 text-xs text-muted">
-            <MapPin className="size-3" />
-            {location}
-          </p>
-        )}
 
         {isFollowing ? (
           <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary">
