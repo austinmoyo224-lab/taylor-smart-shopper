@@ -16,7 +16,8 @@
     "cap:android": "npx cap open android",
     "mobile:ios": "bun run build:mobile && npx cap sync ios && npx cap open ios",
     "mobile:android": "bun run build:mobile && npx cap sync android && npx cap open android",
-    "mobile:sync": "bun run build:mobile && npx cap sync"
+    "mobile:sync": "bun run build:mobile && npx cap sync",
+    "release:android": "bash scripts/release-android.sh"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.11",
