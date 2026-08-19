@@ -123,7 +123,7 @@ export function SiteHeader() {
         <Link to="/" className="flex shrink-0 items-center gap-2 text-white">
           <img src={taylorMark} alt="" className="h-8 w-8 rounded-lg" />
           <span className="text-lg italic tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-            Taylor
+            Hey Taylor
           </span>
         </Link>
 
@@ -171,7 +171,7 @@ export function SiteHeader() {
         <div className="fixed inset-0 z-[60] flex flex-col bg-navy-deep lg:hidden">
           <div className="flex h-16 shrink-0 items-center justify-between px-5 pt-[env(safe-area-inset-top)]">
             <span className="text-lg italic text-white" style={{ fontFamily: "var(--font-display)" }}>
-              Taylor
+              Hey Taylor
             </span>
             <button
               type="button"
