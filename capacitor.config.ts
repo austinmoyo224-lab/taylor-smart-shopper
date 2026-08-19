@@ -7,10 +7,10 @@ const config: CapacitorConfig = {
   backgroundColor: '#0F1B3D',
   loggingBehavior: 'production',
   server: {
-    // Allow Capacitor to load from the local dev server during development.
-    // In production builds this is ignored and the bundled dist/ assets are used.
-    url: process.env.CAPACITOR_SERVER_URL,
-    cleartext: true,
+    // Production app loads the live web app; set CAPACITOR_SERVER_URL for local dev testing.
+    url: process.env.CAPACITOR_SERVER_URL || "https://heytaylor.co.za",
+    cleartext: !!process.env.CAPACITOR_SERVER_URL,
+    allowNavigation: ["heytaylor.co.za", "www.heytaylor.co.za", "*.lovable.app"],
   },
   ios: {
     contentInset: 'always',
