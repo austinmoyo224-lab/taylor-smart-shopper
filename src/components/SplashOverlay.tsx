@@ -69,7 +69,7 @@ export function SplashOverlay() {
               className="text-4xl italic tracking-tight text-white"
               style={{ fontFamily: "var(--font-display, 'SF Pro Display', serif)" }}
             >
-              Taylor
+              Hey Taylor
             </p>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.35em] text-white/60">
               Intelligence
