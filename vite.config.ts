@@ -28,6 +28,8 @@ export default defineConfig({
         registerType: "autoUpdate",
         injectRegister: null,
         devOptions: { enabled: false },
+        strategies: "generateSW",
+        filename: "sw.js",
         workbox: {
           navigateFallback: "/index.html",
           navigateFallbackDenylist: [/^\/api/, /^\/_serverFn/, /^\/~oauth/],
