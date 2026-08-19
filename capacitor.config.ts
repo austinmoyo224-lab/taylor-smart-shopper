@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.heytaylor.app',
   appName: 'Hey Taylor',
-  webDir: 'dist',
+  webDir: 'dist/client',
   backgroundColor: '#0F1B3D',
   loggingBehavior: 'production',
   server: {
