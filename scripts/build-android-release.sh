@@ -10,6 +10,19 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$PROJECT_ROOT"
 
+# Validate signing config exists before starting a long build
+if [[ ! -f "android/app/signing.properties" ]]; then
+    echo "ERROR: android/app/signing.properties not found."
+    echo "Copy android/app/signing.properties.example to android/app/signing.properties and fill in your keystore credentials."
+    exit 1
+fi
+
+if [[ ! -f "android/app/heytaylor-release.keystore.jks" ]]; then
+    echo "ERROR: android/app/heytaylor-release.keystore.jks not found."
+    echo "Generate your release keystore using the command in docs/android-submission/build-instructions.md."
+    exit 1
+fi
+
 echo "==> Building mobile web bundle..."
 bun run build:mobile
 
@@ -29,6 +42,6 @@ ls -lh "$AAB_PATH"
 
 echo ""
 echo "Next steps:"
-echo "1. Upload the AAB to Google Play Console."
-echo "2. Run the keytool command in docs/android-submission/build-instructions.md to get your SHA256 fingerprint."
-echo "3. Update public/.well-known/assetlinks.json and deploy it."
+echo "1. Run the keytool command in docs/android-submission/build-instructions.md to get your SHA256 fingerprint."
+echo "2. Update public/.well-known/assetlinks.json and deploy it."
+echo "3. Upload the AAB to Google Play Console."

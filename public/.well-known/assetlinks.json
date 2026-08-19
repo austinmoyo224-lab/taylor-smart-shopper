@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.heytaylor.app",
-      "sha256_cert_fingerprints": ["<RELEASE_SHA256_FINGERPRINT>"]
+      "sha256_cert_fingerprints": [
+        "<RELEASE_SHA256_FINGERPRINT>",
+        "<GOOGLE_PLAY_APP_SIGNING_SHA256_FINGERPRINT>"
+      ]
     }
   }
 ]
