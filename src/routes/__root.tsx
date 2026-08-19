@@ -148,6 +148,12 @@ function RootComponent() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Register the offline-capable app-shell worker in production/published contexts.
+    void import("@/lib/sw-register").then(({ registerAppShellSW }) => registerAppShellSW());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     // Initialize Capacitor native chrome on first render.
     void (async () => {
       const [{ isNativeApp }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
