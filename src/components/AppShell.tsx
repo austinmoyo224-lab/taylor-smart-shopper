@@ -3,6 +3,10 @@ import { useEffect } from "react";
 import { InstallPrompt } from "./InstallPrompt";
 import { BottomNav } from "./BottomNav";
 
+interface ScreenOrientationWithLock {
+  lock?: (orientation: string) => Promise<void>;
+}
+
 /**
  * Mobile-first PWA frame: warm background, max-w-md, sticky bottom nav.
  * All consumer screens should render inside this. Pass `hideNav` on
@@ -14,8 +18,9 @@ export function AppShell({ children, hideNav = false }: { children: ReactNode; h
     if (typeof window === "undefined") return;
     const mql = window.matchMedia("(orientation: landscape)");
     const lockPortrait = () => {
-      if (mql.matches && (window.screen?.orientation as ScreenOrientation | undefined)?.lock) {
-        void (window.screen.orientation as ScreenOrientation).lock("portrait").catch(() => {
+      const orientation = window.screen?.orientation as ScreenOrientationWithLock | undefined;
+      if (mql.matches && orientation?.lock) {
+        void orientation.lock("portrait").catch(() => {
           /* ignore unsupported */
         });
       }
