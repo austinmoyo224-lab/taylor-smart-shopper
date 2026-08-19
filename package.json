@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "build:mobile": "vite build --mode mobile",
+    "build:mobile": "vite build --mode mobile && node scripts/generate-mobile-index.js",
     "cap:sync": "npx cap sync",
     "cap:ios": "npx cap open ios",
     "cap:android": "npx cap open android",
