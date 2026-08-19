@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingPage, PageHero, Section } from "@/components/marketing/blocks";
-import { COMPANY, LegalDoc, type LegalSection } from "@/components/marketing/legal-doc";
+import { COMPANY, LegalDoc, LegalLinks, type LegalSection } from "@/components/marketing/legal-doc";
+
 
 export const Route = createFileRoute("/legal/paia")({
   head: () => ({
@@ -169,7 +170,9 @@ function Paia() {
         subtitle="Our manual in terms of section 51 of the Promotion of Access to Information Act 2 of 2000 — how to request records, what we hold, and how your information is protected."
         primary={{ label: "Contact us", to: "/contact" }}
         secondary={{ label: "POPI policy", to: "/legal/popi" }}
-      />
+      >
+        <LegalLinks />
+      </PageHero>
       <Section>
         <LegalDoc sections={sections} />
       </Section>

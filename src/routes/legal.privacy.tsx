@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingPage, PageHero, Section } from "@/components/marketing/blocks";
-import { LegalDoc, type LegalSection } from "@/components/marketing/legal-doc";
+import { LegalDoc, LegalLinks, type LegalSection } from "@/components/marketing/legal-doc";
+
 
 export const Route = createFileRoute("/legal/privacy")({
   head: () => ({
@@ -189,7 +190,9 @@ function Privacy() {
         subtitle="What Taylor Intelligence collects, why we need it, how it is protected and what control you have under the Protection of Personal Information Act."
         primary={{ label: "Contact us", to: "/contact" }}
         secondary={{ label: "POPI policy", to: "/legal/popi" }}
-      />
+      >
+        <LegalLinks />
+      </PageHero>
 
       <Section>
         <LegalDoc sections={sections} />

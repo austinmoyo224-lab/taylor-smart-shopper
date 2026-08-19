@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingPage, PageHero, Section } from "@/components/marketing/blocks";
-import { LegalDoc, type LegalSection } from "@/components/marketing/legal-doc";
+import { LegalDoc, LegalLinks, type LegalSection } from "@/components/marketing/legal-doc";
+
 
 export const Route = createFileRoute("/legal/terms")({
   head: () => ({
@@ -174,7 +175,9 @@ function Terms() {
         subtitle="Website terms and conditions governing the use of Taylor Intelligence as a shopper, a store or a delivery rider."
         primary={{ label: "Contact us", to: "/contact" }}
         secondary={{ label: "Privacy policy", to: "/legal/privacy" }}
-      />
+      >
+        <LegalLinks />
+      </PageHero>
 
       <Section>
         <LegalDoc
