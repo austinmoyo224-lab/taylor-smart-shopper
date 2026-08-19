@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
+import { isNativeApp } from "@/lib/capacitor";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -15,6 +16,8 @@ export function InstallPrompt() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Don't show inside the native Capacitor app — it has its own store listing / icon.
+    if (isNativeApp()) return;
     // Already installed → nothing to do.
     const standalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||

@@ -78,28 +78,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Taylor Intelligence - Your shopping companion" },
+      { title: "Hey Taylor - Your shopping companion" },
       {
         name: "description",
         content:
-          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Hey Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { name: "author", content: "Taylor Intelligence" },
-      { name: "theme-color", content: "#22c55e" },
-      { property: "og:title", content: "Taylor Intelligence - Your shopping companion" },
+      { name: "theme-color", content: "#0F1B3D" },
+      { property: "og:title", content: "Hey Taylor - Your shopping companion" },
       {
         property: "og:description",
         content:
-          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Hey Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Taylor Intelligence" },
+      { property: "og:site_name", content: "Hey Taylor" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Taylor Intelligence - Your shopping companion" },
+      { name: "twitter:title", content: "Hey Taylor - Your shopping companion" },
       {
         name: "twitter:description",
         content:
-          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Hey Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       {
         property: "og:image",
@@ -144,6 +144,92 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Register the offline-capable app-shell worker in production/published contexts.
+    void import("@/lib/sw-register").then(({ registerAppShellSW }) => registerAppShellSW());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Initialize Capacitor native chrome on first render.
+    void (async () => {
+      const [{ isNativeApp }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
+        import("@/lib/capacitor"),
+        import("@capacitor/status-bar"),
+        import("@capacitor/splash-screen"),
+      ]);
+      if (!isNativeApp()) return;
+      try {
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: "#0F1B3D" });
+      } catch {
+        /* ignore */
+      }
+      try {
+        await SplashScreen.hide();
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
+
+  // Handle native deep links (iOS Universal Links / Android App Links + custom scheme).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let removeListener: (() => void) | undefined;
+    void (async () => {
+      const [{ isNativeApp }, { App }] = await Promise.all([
+        import("@/lib/capacitor"),
+        import("@capacitor/app"),
+      ]);
+      if (!isNativeApp()) return;
+      const listener = await App.addListener("appUrlOpen", ({ url }) => {
+        try {
+          const parsed = new URL(url);
+          // Custom scheme: heytaylor://app/<path>
+          // HTTPS universal link: https://heytaylor.co.za/<path>
+          const path = parsed.pathname || "/";
+          const search = parsed.search || "";
+          if (path !== "/") {
+            router.navigate({ to: `${path}${search}`, replace: true });
+          }
+        } catch {
+          /* ignore malformed URLs */
+        }
+      });
+      removeListener = listener?.remove;
+    })();
+    return () => removeListener?.();
+  }, [router]);
+
+  // Native network listener: flush offline mutation queue when connectivity returns.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let removeListener: (() => void) | undefined;
+    void (async () => {
+      const [{ isNativeApp }, { Network }] = await Promise.all([
+        import("@/lib/capacitor"),
+        import("@capacitor/network"),
+      ]);
+      if (!isNativeApp()) return;
+      const listener = await Network.addListener("networkStatusChange", async (status: { connected: boolean }) => {
+        if (!status.connected) return;
+        const { flushOfflineQueue } = await import("@/lib/offline-queue");
+        await flushOfflineQueue();
+      });
+      removeListener = listener?.remove;
+      // Also flush on startup if already online.
+      const { connected } = await Network.getStatus();
+      if (connected) {
+        const { flushOfflineQueue } = await import("@/lib/offline-queue");
+        await flushOfflineQueue();
+      }
+    })();
+    return () => removeListener?.();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

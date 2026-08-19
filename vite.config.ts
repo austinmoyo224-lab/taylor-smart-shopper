@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEnv } from "vite";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { VitePWA } from "vite-plugin-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,6 +23,39 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    plugins: [
+      VitePWA({
+        registerType: "autoUpdate",
+        injectRegister: null,
+        devOptions: { enabled: false },
+        strategies: "generateSW",
+        filename: "sw.js",
+        workbox: {
+          navigateFallback: "/index.html",
+          navigateFallbackDenylist: [/^\/api/, /^\/_serverFn/, /^\/~oauth/],
+          runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === "navigate",
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "taylor-pages",
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
+              },
+            },
+            {
+              urlPattern: ({ url }) => url.origin === self.location.origin && /\.[a-f0-9]{8}\./.test(url.pathname),
+              handler: "CacheFirst",
+              options: {
+                cacheName: "taylor-assets",
+                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+          ],
+        },
+        manifest: false,
+        includeAssets: ["/favicon.png", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"],
+      }),
+    ],
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
