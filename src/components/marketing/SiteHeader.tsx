@@ -39,7 +39,7 @@ function Dropdown({
         >
           <div
             className={cn(
-              "grid gap-1 rounded-3xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur-xl",
+              "grid gap-1 rounded-3xl border border-white/15 bg-navy-deep/95 p-3 shadow-2xl backdrop-blur-xl",
               columns === 2 ? "grid-cols-2" : "grid-cols-1",
             )}
           >
