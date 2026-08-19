@@ -1,11 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.heytaylor.app",
       "sha256_cert_fingerprints": [
-        "<RELEASE_SHA256_FINGERPRINT>",
+        "2A:DC:EE:25:64:C5:9B:D4:25:59:3D:20:48:A5:21:5D:DB:C6:C6:EF:D6:E1:2F:B1:E1:F8:11:FA:08:23:F6:FB",
         "<GOOGLE_PLAY_APP_SIGNING_SHA256_FINGERPRINT>"
       ]
     }
