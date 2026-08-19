@@ -9,7 +9,14 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build:mobile": "vite build --mode mobile",
+    "cap:sync": "npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android",
+    "mobile:ios": "bun run build:mobile && npx cap sync ios && npx cap open ios",
+    "mobile:android": "bun run build:mobile && npx cap sync android && npx cap open android",
+    "mobile:sync": "bun run build:mobile && npx cap sync"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.11",
