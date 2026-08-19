@@ -35,7 +35,7 @@ export async function getPushPermission(): Promise<NotificationPermission | 'uns
 }
 
 async function registerSW(): Promise<ServiceWorkerRegistration> {
-  const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+  const reg = await navigator.serviceWorker.register('/push-sw.js', { scope: '/' });
   await navigator.serviceWorker.ready;
   return reg;
 }
