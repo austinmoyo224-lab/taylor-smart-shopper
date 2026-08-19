@@ -78,28 +78,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Taylor Intelligence - Your shopping companion" },
+      { title: "Hey Taylor - Your shopping companion" },
       {
         name: "description",
         content:
-          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Hey Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { name: "author", content: "Taylor Intelligence" },
       { name: "theme-color", content: "#0F1B3D" },
-      { property: "og:title", content: "Taylor Intelligence - Your shopping companion" },
+      { property: "og:title", content: "Hey Taylor - Your shopping companion" },
       {
         property: "og:description",
         content:
-          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Hey Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Taylor Intelligence" },
+      { property: "og:site_name", content: "Hey Taylor" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Taylor Intelligence - Your shopping companion" },
+      { name: "twitter:title", content: "Hey Taylor - Your shopping companion" },
       {
         name: "twitter:description",
         content:
-          "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
+          "Hey Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       {
         property: "og:image",
