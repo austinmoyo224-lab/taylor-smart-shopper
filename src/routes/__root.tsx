@@ -144,6 +144,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -167,6 +168,61 @@ function RootComponent() {
         /* ignore */
       }
     })();
+  }, []);
+
+  // Handle native deep links (iOS Universal Links / Android App Links + custom scheme).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let removeListener: (() => void) | undefined;
+    void (async () => {
+      const [{ isNativeApp }, { App }] = await Promise.all([
+        import("@/lib/capacitor"),
+        import("@capacitor/app"),
+      ]);
+      if (!isNativeApp()) return;
+      const listener = await App.addListener("appUrlOpen", ({ url }) => {
+        try {
+          const parsed = new URL(url);
+          // Custom scheme: heytaylor://app/<path>
+          // HTTPS universal link: https://heytaylor.co.za/<path>
+          const path = parsed.pathname || "/";
+          const search = parsed.search || "";
+          if (path !== "/") {
+            router.navigate({ to: `${path}${search}`, replace: true });
+          }
+        } catch {
+          /* ignore malformed URLs */
+        }
+      });
+      removeListener = listener?.remove;
+    })();
+    return () => removeListener?.();
+  }, [router]);
+
+  // Native network listener: flush offline mutation queue when connectivity returns.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let removeListener: (() => void) | undefined;
+    void (async () => {
+      const [{ isNativeApp }, { Network }] = await Promise.all([
+        import("@/lib/capacitor"),
+        import("@capacitor/network"),
+      ]);
+      if (!isNativeApp()) return;
+      const listener = await Network.addListener("networkStatusChange", async (status) => {
+        if (!status.connected) return;
+        const { flushOfflineQueue } = await import("@/lib/offline-queue");
+        await flushOfflineQueue();
+      });
+      removeListener = listener?.remove;
+      // Also flush on startup if already online.
+      const { connected } = await Network.getStatus();
+      if (connected) {
+        const { flushOfflineQueue } = await import("@/lib/offline-queue");
+        await flushOfflineQueue();
+      }
+    })();
+    return () => removeListener?.();
   }, []);
 
   return (
