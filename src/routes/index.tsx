@@ -60,7 +60,7 @@ function Landing() {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-background text-foreground">
+    <div className="min-h-screen w-full bg-background text-foreground">
       <SiteHeader />
       <Hero />
       <FeatureStrip />
