@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Taylor is the shopping companion that turns weekly specials, coupons and recipes from the stores you love into a personal shopping plan.",
       },
       { name: "author", content: "Taylor Intelligence" },
-      { name: "theme-color", content: "#22c55e" },
+      { name: "theme-color", content: "#0F1B3D" },
       { property: "og:title", content: "Taylor Intelligence - Your shopping companion" },
       {
         property: "og:description",
