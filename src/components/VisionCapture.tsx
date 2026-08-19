@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Camera, ImagePlus, X, RefreshCw, ScanLine } from "lucide-react";
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { supabase } from "@/integrations/supabase/client";
+import { isNativeApp } from "@/lib/capacitor";
 
 const STORAGE_BUCKET = "vision-uploads";
 const MAX_IMAGE_WIDTH = 1024;
@@ -80,6 +82,34 @@ export function VisionCapture({
     setError(null);
     setState("requesting");
     setHasLiveFrame(false);
+
+    // In the Capacitor native app, use the native camera plugin directly.
+    if (isNativeApp()) {
+      try {
+        const photo = await CapacitorCamera.getPhoto({
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Camera,
+          quality: 80,
+          allowEditing: false,
+          saveToGallery: false,
+        });
+        if (photo.webPath) {
+          setState("uploading");
+          const blob = await fetch(photo.webPath).then((r) => r.blob());
+          const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          const { path, url } = await resizeAndUpload(file);
+          setPreviewUrl(url);
+          onCapture(path, url);
+          return;
+        }
+      } catch (err) {
+        console.warn("[vision] native camera failed", err);
+        setError(err instanceof Error ? err.message : "Camera was cancelled");
+        setState("idle");
+        return;
+      }
+    }
+
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("Camera API not available in this context");
