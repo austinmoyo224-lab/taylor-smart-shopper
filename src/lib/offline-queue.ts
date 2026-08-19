@@ -92,3 +92,6 @@ export async function clearQueue(): Promise<void> {
   if (!isNativeApp()) return;
   await Preferences.remove({ key: OFFLINE_QUEUE_KEY });
 }
+
+/** Alias used by native connectivity listeners. */
+export const flushOfflineQueue = processQueue;
