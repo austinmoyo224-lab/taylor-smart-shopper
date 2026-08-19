@@ -48,6 +48,7 @@ export function PageHero({
   primary = { label: "Get started free", to: "/auth" },
   secondary,
   note,
+  children,
 }: {
   eyebrow: string;
   title: ReactNode;
@@ -55,6 +56,7 @@ export function PageHero({
   primary?: { label: string; to: string };
   secondary?: { label: string; to: string };
   note?: string;
+  children?: ReactNode;
 }) {
   return (
     <section className="relative overflow-hidden bg-navy">
@@ -94,6 +96,7 @@ export function PageHero({
               </SmartLink>
             )}
           </div>
+          {children && <div className="mt-5">{children}</div>}
           {note && <p className="mt-5 text-xs text-white/45">{note}</p>}
         </Reveal>
       </div>

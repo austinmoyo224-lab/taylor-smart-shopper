@@ -39,7 +39,7 @@ function Dropdown({
         >
           <div
             className={cn(
-              "grid gap-1 rounded-3xl border border-border bg-background p-3 shadow-2xl",
+              "grid gap-1 rounded-3xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur-xl",
               columns === 2 ? "grid-cols-2" : "grid-cols-1",
             )}
           >
@@ -48,14 +48,14 @@ function Dropdown({
                 key={to}
                 to={to as never}
                 onClick={() => setOpen(false)}
-                className="group flex items-start gap-3 rounded-2xl p-3 transition hover:bg-mint"
+                className="group flex items-start gap-3 rounded-2xl p-3 transition hover:bg-white/10"
               >
                 <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-mint text-primary group-hover:bg-primary group-hover:text-primary-foreground">
                   <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-foreground">{l}</span>
-                  <span className="mt-0.5 block text-xs leading-snug text-muted">{desc}</span>
+                  <span className="block text-sm font-semibold text-white">{l}</span>
+                  <span className="mt-0.5 block text-xs leading-snug text-white/60">{desc}</span>
                 </span>
               </Link>
             ))}
