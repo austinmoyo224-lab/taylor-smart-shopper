@@ -145,6 +145,30 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Initialize Capacitor native chrome on first render.
+    void (async () => {
+      const [{ isNativeApp }, { StatusBar }, { SplashScreen }] = await Promise.all([
+        import("@/lib/capacitor"),
+        import("@capacitor/status-bar"),
+        import("@capacitor/splash-screen"),
+      ]);
+      if (!isNativeApp()) return;
+      try {
+        await StatusBar.setStyle({ style: "Dark" });
+        await StatusBar.setBackgroundColor({ color: "#0F1B3D" });
+      } catch {
+        /* ignore */
+      }
+      try {
+        await SplashScreen.hide();
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
