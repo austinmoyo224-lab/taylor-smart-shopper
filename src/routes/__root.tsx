@@ -209,7 +209,7 @@ function RootComponent() {
         import("@capacitor/network"),
       ]);
       if (!isNativeApp()) return;
-      const listener = await Network.addListener("networkStatusChange", async (status) => {
+      const listener = await Network.addListener("networkStatusChange", async (status: { connected: boolean }) => {
         if (!status.connected) return;
         const { flushOfflineQueue } = await import("@/lib/offline-queue");
         await flushOfflineQueue();
