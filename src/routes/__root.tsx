@@ -149,14 +149,14 @@ function RootComponent() {
     if (typeof window === "undefined") return;
     // Initialize Capacitor native chrome on first render.
     void (async () => {
-      const [{ isNativeApp }, { StatusBar }, { SplashScreen }] = await Promise.all([
+      const [{ isNativeApp }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
         import("@/lib/capacitor"),
         import("@capacitor/status-bar"),
         import("@capacitor/splash-screen"),
       ]);
       if (!isNativeApp()) return;
       try {
-        await StatusBar.setStyle({ style: "Dark" });
+        await StatusBar.setStyle({ style: Style.Dark });
         await StatusBar.setBackgroundColor({ color: "#0F1B3D" });
       } catch {
         /* ignore */
