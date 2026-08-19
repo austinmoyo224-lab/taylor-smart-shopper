@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
+
 
 export type LegalSection = {
   h: string;
@@ -87,5 +90,38 @@ export function LegalDoc({
         </ul>
       </section>
     </article>
+  );
+}
+
+const legalDocs = [
+  { label: "Privacy", to: "/legal/privacy" },
+  { label: "Terms", to: "/legal/terms" },
+  { label: "POPI", to: "/legal/popi" },
+  { label: "PAIA", to: "/legal/paia" },
+  { label: "Email disclaimer", to: "/legal/email-disclaimer" },
+];
+
+export function LegalLinks() {
+  const { pathname } = useLocation();
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      {legalDocs.map(({ label, to }) => {
+        const active = pathname === to;
+        return (
+          <Link
+            key={to}
+            to={to as never}
+            className={cn(
+              "inline-flex items-center rounded-full border px-4 py-2 text-xs font-medium transition",
+              active
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-white/20 bg-white/5 text-white/80 backdrop-blur hover:bg-white/10 hover:text-white",
+            )}
+          >
+            {label}
+          </Link>
+        );
+      })}
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingPage, PageHero, Section } from "@/components/marketing/blocks";
-import { LegalDoc, type LegalSection } from "@/components/marketing/legal-doc";
+import { LegalDoc, LegalLinks, type LegalSection } from "@/components/marketing/legal-doc";
+
 
 export const Route = createFileRoute("/legal/email-disclaimer")({
   head: () => ({
@@ -61,7 +62,9 @@ function EmailDisclaimer() {
         subtitle="You, as receiver of an electronic mail or data message from Taylor Intelligence, bear the onus to read this disclaimer."
         primary={{ label: "Contact us", to: "/contact" }}
         secondary={{ label: "Privacy policy", to: "/legal/privacy" }}
-      />
+      >
+        <LegalLinks />
+      </PageHero>
       <Section>
         <LegalDoc sections={sections} />
       </Section>

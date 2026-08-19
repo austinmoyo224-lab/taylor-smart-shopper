@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MarketingPage, PageHero, Section } from "@/components/marketing/blocks";
-import { LegalDoc, type LegalSection } from "@/components/marketing/legal-doc";
+import { LegalDoc, LegalLinks, type LegalSection } from "@/components/marketing/legal-doc";
+
 
 export const Route = createFileRoute("/legal/popi")({
   head: () => ({
@@ -284,7 +285,9 @@ function Popi() {
         subtitle="Our Protection of Personal Information Act policy: guiding principles, data subject rights, duties of the Information Officer, the complaints procedure and our personal data breach protocol."
         primary={{ label: "Contact us", to: "/contact" }}
         secondary={{ label: "PAIA manual", to: "/legal/paia" }}
-      />
+      >
+        <LegalLinks />
+      </PageHero>
       <Section>
         <LegalDoc sections={sections} />
       </Section>
