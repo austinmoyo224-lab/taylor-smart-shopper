@@ -1,0 +1,6 @@
+# Copy this file to signing.properties and fill in your real keystore credentials.
+# Never commit signing.properties to git.
+STORE_FILE=heytaylor-release.keystore.jks
+STORE_PASSWORD=YOUR_STORE_PASSWORD
+KEY_ALIAS=heytaylor
+KEY_PASSWORD=YOUR_KEY_PASSWORD
