@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0">
 <plist version="1.0">
 <dict>
   <key>CAPACITOR_DEBUG</key>
@@ -24,6 +24,41 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+
+  <!-- Associated Domains for Universal Links -->
+  <key>com.apple.developer.associated-domains</key>
+  <array>
+    <string>applinks:heytaylor.co.za</string>
+    <string>applinks:www.heytaylor.co.za</string>
+  </array>
+
+  <!-- Custom URL scheme -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>co.za.heytaylor</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>heytaylor</string>
+      </array>
+    </dict>
+  </array>
+
+  <!-- Usage descriptions -->
+  <key>NSCameraUsageDescription</key>
+  <string>Taylor uses your camera to scan pantry items, recipes, receipts, and QR codes.</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Taylor uses your location to find nearby stores, deals, and restaurants.</string>
+  <key>NSLocationAlwaysUsageDescription</key>
+  <string>Taylor uses your location to find nearby stores, deals, and restaurants.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Taylor uses your microphone for voice chat.</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>Taylor can save recipe photos and scanned images to your library.</string>
+  <key>NSPhotoLibraryAddUsageDescription</key>
+  <string>Taylor can save recipe photos and scanned images to your library.</string>
+
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -54,15 +89,11 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
