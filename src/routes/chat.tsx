@@ -75,7 +75,7 @@ function ChatScreen() {
   const canVoice = voiceSupported();
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  const taylorAvatarUrl = taylorAvatarAsset.url;
+  
   const [visionOpen, setVisionOpen] = useState(false);
   const [visionQueue, setVisionQueue] = useState<{ path: string; url: string }[]>([]);
   const [visionShowCapture, setVisionShowCapture] = useState(true);
