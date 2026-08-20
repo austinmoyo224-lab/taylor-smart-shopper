@@ -481,8 +481,8 @@ function ChatScreen() {
             parts={message.parts}
             delay={getMessageAnimationDelay(i, messages.length)}
             canVoice={canVoice}
-            taylorAvatar={taylorAvatarUrl}
             userAvatar={userAvatar}
+            live={isLoading && message.role !== "user" && i === messages.length - 1}
           />
         ))}
 
