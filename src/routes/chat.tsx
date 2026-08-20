@@ -856,7 +856,7 @@ function MessageRow({
       className={"animate-message flex w-full " + (isUser ? "justify-end" : "justify-start")}
       style={{ animationDelay: `${delay}ms` }}
     >
-      {!isUser && <Avatar src={taylorAvatar} label="T" className="mr-2 mt-1 shrink-0" />}
+      {!isUser && <TaylorAvatar speaking={speaking || !!live} className="mr-2 mt-1" />}
       <div className={"flex min-w-0 max-w-[85%] flex-col " + (isUser ? "items-end" : "items-start")}>
       <div
         className={
