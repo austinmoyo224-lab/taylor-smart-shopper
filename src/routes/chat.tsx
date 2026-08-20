@@ -492,7 +492,7 @@ function ChatScreen() {
           if (!showThinking) return null;
           return (
           <div className="animate-message flex items-start gap-2">
-            <Avatar src={taylorAvatarUrl} label="T" />
+            <TaylorAvatar speaking />
             <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
               <span className="animate-shimmer text-sm leading-relaxed">Taylor is thinking...</span>
             </div>
