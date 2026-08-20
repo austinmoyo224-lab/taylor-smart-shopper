@@ -21,7 +21,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/BottomNav";
-import taylorAvatarAsset from "@/assets/taylor-face.jpg.asset.json";
+import { TaylorAvatar } from "@/components/TaylorAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
