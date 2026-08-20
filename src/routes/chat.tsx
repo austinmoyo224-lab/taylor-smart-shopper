@@ -21,7 +21,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/BottomNav";
-import taylorAvatarAsset from "@/assets/taylor-face.jpg.asset.json";
+import { TaylorAvatar } from "@/components/TaylorAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -75,7 +75,7 @@ function ChatScreen() {
   const canVoice = voiceSupported();
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  const taylorAvatarUrl = taylorAvatarAsset.url;
+  
   const [visionOpen, setVisionOpen] = useState(false);
   const [visionQueue, setVisionQueue] = useState<{ path: string; url: string }[]>([]);
   const [visionShowCapture, setVisionShowCapture] = useState(true);
@@ -481,8 +481,8 @@ function ChatScreen() {
             parts={message.parts}
             delay={getMessageAnimationDelay(i, messages.length)}
             canVoice={canVoice}
-            taylorAvatar={taylorAvatarUrl}
             userAvatar={userAvatar}
+            live={isLoading && message.role !== "user" && i === messages.length - 1}
           />
         ))}
 
@@ -492,7 +492,7 @@ function ChatScreen() {
           if (!showThinking) return null;
           return (
           <div className="animate-message flex items-start gap-2">
-            <Avatar src={taylorAvatarUrl} label="T" />
+            <TaylorAvatar speaking />
             <div className="rounded-2xl rounded-tl-none border border-black/5 bg-surface px-4 py-3">
               <span className="animate-shimmer text-sm leading-relaxed">Taylor is thinking...</span>
             </div>
@@ -817,15 +817,15 @@ function MessageRow({
   parts,
   delay,
   canVoice,
-  taylorAvatar,
   userAvatar,
+  live,
 }: {
   role: string;
   parts: UIMessage["parts"];
   delay: number;
   canVoice?: boolean;
-  taylorAvatar?: string;
   userAvatar?: string | null;
+  live?: boolean;
 }) {
   const isUser = role === "user";
   const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
@@ -856,7 +856,7 @@ function MessageRow({
       className={"animate-message flex w-full " + (isUser ? "justify-end" : "justify-start")}
       style={{ animationDelay: `${delay}ms` }}
     >
-      {!isUser && <Avatar src={taylorAvatar} label="T" className="mr-2 mt-1 shrink-0" />}
+      {!isUser && <TaylorAvatar speaking={speaking || !!live} className="mr-2 mt-1" />}
       <div className={"flex min-w-0 max-w-[85%] flex-col " + (isUser ? "items-end" : "items-start")}>
       <div
         className={
