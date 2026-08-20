@@ -817,15 +817,15 @@ function MessageRow({
   parts,
   delay,
   canVoice,
-  taylorAvatar,
   userAvatar,
+  live,
 }: {
   role: string;
   parts: UIMessage["parts"];
   delay: number;
   canVoice?: boolean;
-  taylorAvatar?: string;
   userAvatar?: string | null;
+  live?: boolean;
 }) {
   const isUser = role === "user";
   const text = parts.map((p) => (p.type === "text" ? p.text : "")).join("");
