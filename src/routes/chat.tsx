@@ -794,7 +794,9 @@ function ChatScreen() {
       )}
       </div>
     </div>
+    </TaylorAvatarPausedContext.Provider>
   );
+
 }
 
 function formatVisionSummary(items: MatchedItem[]): string {
