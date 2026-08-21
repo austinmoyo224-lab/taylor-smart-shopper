@@ -405,8 +405,12 @@ function ChatScreen() {
   const showIntro = messages.length === 0;
 
   return (
+    <TaylorAvatarPausedContext.Provider
+      value={recording || transcribing || (input.trim().length > 0 && !isLoading)}
+    >
     <div className="flex w-full justify-center bg-background">
       <div className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
+
       <header className="relative isolate shrink-0 overflow-hidden border-b border-border bg-background/85 px-4 pb-3 pt-6 backdrop-blur-md sm:px-6 sm:pb-4 sm:pt-8">
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
