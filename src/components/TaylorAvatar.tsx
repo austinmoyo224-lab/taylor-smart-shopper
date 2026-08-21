@@ -1,33 +1,38 @@
-import { useEffect, useRef } from "react";
-import taylorClip from "@/assets/taylor-talking.mp4.asset.json";
-import taylorPoster from "@/assets/taylor-talking-poster.jpg.asset.json";
+import { createContext, useContext, useEffect, useRef } from "react";
+import taylorClip from "@/assets/taylor-avatar-loop.mp4.asset.json";
+import taylorPoster from "@/assets/taylor-avatar-loop-poster.jpg.asset.json";
+
+/** Pauses every Taylor avatar while the user is typing or recording. */
+export const TaylorAvatarPausedContext = createContext(false);
 
 /**
- * Taylor's live avatar. Plays a short looping clip of Taylor while she is
- * responding, so it feels like she is talking back. Otherwise she rests on a
- * still frame.
+ * Taylor's live avatar. Loops continuously so she feels present, and only
+ * freezes while the user is typing or recording a voice note.
  */
 export function TaylorAvatar({
   speaking = false,
+  paused,
   className = "",
   size = "size-8",
 }: {
   speaking?: boolean;
+  paused?: boolean;
   className?: string;
   size?: string;
 }) {
+  const contextPaused = useContext(TaylorAvatarPausedContext);
+  const isPaused = paused ?? contextPaused;
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    if (speaking) {
-      void el.play().catch(() => {});
-    } else {
+    if (isPaused) {
       el.pause();
-      el.currentTime = 0;
+    } else {
+      void el.play().catch(() => {});
     }
-  }, [speaking]);
+  }, [isPaused]);
 
   return (
     <div
@@ -39,13 +44,14 @@ export function TaylorAvatar({
         poster={taylorPoster.url}
         muted
         loop
+        autoPlay
         playsInline
-        preload="metadata"
+        preload="auto"
         disablePictureInPicture
         aria-hidden="true"
         className="size-full object-cover"
       />
-      {speaking && (
+      {speaking && !isPaused && (
         <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-primary/40" />
       )}
     </div>
