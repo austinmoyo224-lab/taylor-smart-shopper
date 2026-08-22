@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
+import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
+import { deleteMyAccount } from "@/lib/account.functions";
+
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
@@ -73,6 +75,11 @@ function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const fileRef = useRef<HTMLInputElement | null>(null);
   const isWelcome =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("welcome");
@@ -419,6 +426,73 @@ function ProfileScreen() {
           <LogOut className="size-3.5" />
           Sign out
         </button>
+
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-destructive">
+            Danger zone
+          </h2>
+          <p className="mt-2 text-xs text-muted">
+            Deleting your account permanently removes your profile, chats, lists, recipes, scans,
+            pantry, rewards and everything Taylor remembers about you. This cannot be undone.
+          </p>
+          {!showDelete ? (
+            <button
+              onClick={() => setShowDelete(true)}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-destructive/50 px-4 py-3 text-xs text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="size-3.5" />
+              Delete my account
+            </button>
+          ) : (
+            <div className="mt-3 space-y-3">
+              <label className="block">
+                <span className="mb-1 block text-[10px] uppercase tracking-widest text-muted">
+                  Type DELETE to confirm
+                </span>
+                <input
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  placeholder="DELETE"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                />
+              </label>
+              {deleteError && <p className="text-xs text-destructive">{deleteError}</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowDelete(false);
+                    setDeleteConfirm("");
+                    setDeleteError(null);
+                  }}
+                  className="flex-1 rounded-full border border-border px-4 py-3 text-xs text-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={deleteConfirm.trim().toUpperCase() !== "DELETE" || deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    setDeleteError(null);
+                    try {
+                      await deleteMyAccount({ data: { confirm: "DELETE" } });
+                      await supabase.auth.signOut();
+                      window.location.replace("https://www.heytaylor.co.za");
+                    } catch (err) {
+                      setDeleteError(
+                        err instanceof Error ? err.message : "Could not delete your account.",
+                      );
+                      setDeleting(false);
+                    }
+                  }}
+                  className="flex-1 rounded-full bg-destructive px-4 py-3 text-xs text-destructive-foreground disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Permanently delete"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
       </main>
     </AppShell>
   );
