@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
+import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
+import { deleteMyAccount } from "@/lib/account.functions";
+
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
