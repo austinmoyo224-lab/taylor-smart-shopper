@@ -73,6 +73,11 @@ function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const fileRef = useRef<HTMLInputElement | null>(null);
   const isWelcome =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("welcome");
