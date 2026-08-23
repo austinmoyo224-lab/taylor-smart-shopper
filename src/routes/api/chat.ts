@@ -106,7 +106,7 @@ export const Route = createFileRoute("/api/chat")({
           system: systemPrompt,
           tools,
           stopWhen: stepCountIs(8),
-          messages: await convertToModelMessages(messages as UIMessage[]),
+          messages: await convertToModelMessages(recentMessages),
           providerOptions: routed.fast
             ? { lovable: { service_tier: "priority" } }
             : undefined,
