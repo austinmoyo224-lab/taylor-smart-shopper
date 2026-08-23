@@ -16,6 +16,20 @@ function run(cmd, cwd = ROOT) {
   execSync(cmd, { cwd, stdio: "inherit", shell: true });
 }
 
+// `npx cap` breaks on some Windows/npm setups ("could not determine executable
+// to run"). Call the installed Capacitor CLI entry file with node instead.
+function capCli() {
+  const candidates = [
+    path.join(ROOT, "node_modules", "@capacitor", "cli", "bin", "capacitor"),
+    path.join(ROOT, "node_modules", "@capacitor", "cli", "bin", "capacitor.js"),
+  ];
+  const found = candidates.find((p) => existsSync(p));
+  if (!found) {
+    fail("@capacitor/cli is not installed. Run `npm install` in this folder first.");
+  }
+  return `node "${found}"`;
+}
+
 function fail(msg) {
   console.error(`ERROR: ${msg}`);
   process.exit(1);
