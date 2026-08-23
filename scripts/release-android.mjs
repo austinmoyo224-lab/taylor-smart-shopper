@@ -2,7 +2,7 @@
 // Cross-platform (Windows / macOS / Linux) release build for Hey Taylor Android.
 // Usage: bun run release:android
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -78,7 +78,65 @@ console.log("==> 2/5 Syncing Capacitor (android)");
 run(`${capCli()} sync android`);
 
 console.log("==> 3/5 Building signed release AAB");
-run(isWin ? "gradlew.bat --no-daemon bundleRelease" : "./gradlew --no-daemon bundleRelease", path.join(ROOT, "android"));
+
+// Gradle 8.14 supports JDK 17-24 only. Newer JDKs (25 = class file major 69)
+// crash with "Unsupported class file major version". Find a usable JDK.
+function javaMajor(javaHome) {
+  try {
+    const out = execSync(`"${path.join(javaHome, "bin", "java")}" -version 2>&1`, {
+      encoding: "utf8",
+      shell: true,
+    });
+    const m = out.match(/version "(\d+)/);
+    return m ? Number(m[1]) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function findJdk() {
+  const candidates = [];
+  if (process.env.JAVA_HOME) candidates.push(process.env.JAVA_HOME);
+  if (isWin) {
+    const roots = [
+      "C:\\Program Files\\Eclipse Adoptium",
+      "C:\\Program Files\\Java",
+      "C:\\Program Files\\Microsoft",
+      "C:\\Program Files\\Amazon Corretto",
+      "C:\\Program Files\\Zulu",
+    ];
+    for (const root of roots) {
+      if (!existsSync(root)) continue;
+      for (const dir of readdirSync(root)) candidates.push(path.join(root, dir));
+    }
+    candidates.push("C:\\Program Files\\Android\\Android Studio\\jbr");
+  } else {
+    candidates.push("/usr/lib/jvm");
+  }
+  for (const c of candidates) {
+    if (!existsSync(path.join(c, "bin"))) continue;
+    const major = javaMajor(c);
+    if (major >= 17 && major <= 24) return { home: c, major };
+  }
+  return null;
+}
+
+const currentMajor = process.env.JAVA_HOME ? javaMajor(process.env.JAVA_HOME) : javaMajor("");
+const jdk = findJdk();
+if (!jdk) {
+  fail(
+    `no Gradle-compatible Java found (needs JDK 17-21; detected ${currentMajor || "unknown"}).\n` +
+      `  Install Temurin JDK 21: https://adoptium.net/temurin/releases/?version=21\n` +
+      `  Pick the Windows x64 .msi, then re-run: npm run release:android`
+  );
+}
+console.log(`    using JDK ${jdk.major} at ${jdk.home}`);
+
+const gradleCmd = isWin ? "gradlew.bat" : "./gradlew";
+run(
+  `${gradleCmd} --no-daemon -Dorg.gradle.java.home="${jdk.home}" bundleRelease`,
+  path.join(ROOT, "android")
+);
 
 const aab = path.join(ROOT, "android", "app", "build", "outputs", "bundle", "release", "app-release.aab");
 if (!existsSync(aab)) fail("AAB not produced");
