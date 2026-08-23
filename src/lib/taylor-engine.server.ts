@@ -185,7 +185,7 @@ async function buildTaylorSystemPromptUncached(userId: string | null): Promise<s
   }[];
 
   // Global catalogue — Taylor can see ALL stores & published promotions, not just followed.
-  const [allStoresRes, allPromosRes] = await Promise.all([
+  const [allStoresRes, allPromosRes, campaignsRes] = await Promise.all([
     supabaseAdmin
       .from("stores")
       .select("id, organisation_id, name, city, country_code")
