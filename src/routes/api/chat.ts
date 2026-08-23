@@ -161,6 +161,15 @@ export const Route = createFileRoute("/api/chat")({
   },
 });
 
+/** Keep only the most recent turns so the prompt stays small and fast. */
+function trimHistory(messages: UIMessage[], maxTurns: number): UIMessage[] {
+  if (messages.length <= maxTurns) return messages;
+  const tail = messages.slice(-maxTurns);
+  // Never start the window on an assistant/tool reply without its user turn.
+  const firstUser = tail.findIndex((m) => m.role === "user");
+  return firstUser > 0 ? tail.slice(firstUser) : tail;
+}
+
 function slugify(s: string) {
   return s
     .toLowerCase()
