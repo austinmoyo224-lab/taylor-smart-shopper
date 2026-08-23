@@ -46,17 +46,19 @@ if (!existsSync(path.join(ROOT, "node_modules", "vite"))) {
 }
 // Run the two steps separately so a build failure is reported clearly.
 run("npx vite build --mode mobile");
+// generate-mobile-index locates the emitted browser bundle (dist/client,
+// .output/public or dist/public) and normalises it into dist/client.
+run("node scripts/generate-mobile-index.js");
 const ASSETS = path.join(ROOT, "dist", "client", "assets");
 if (!existsSync(ASSETS)) {
   fail(
     `the web build did not produce ${ASSETS}.\n` +
-      `  Delete the dist folder and re-run, e.g.:\n` +
-      `    rmdir /s /q dist   (Command Prompt)  or  Remove-Item -Recurse -Force dist  (PowerShell)\n` +
+      `  Delete the dist and .output folders and re-run, e.g.:\n` +
+      `    Remove-Item -Recurse -Force dist, .output  (PowerShell)\n` +
       `    npm install\n` +
       `    npm run release:android`
   );
 }
-run("node scripts/generate-mobile-index.js");
 
 console.log("==> 2/5 Syncing Capacitor (android)");
 run("npx cap sync android");
