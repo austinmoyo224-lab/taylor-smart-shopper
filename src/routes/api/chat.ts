@@ -73,9 +73,14 @@ export const Route = createFileRoute("/api/chat")({
           : TAYLOR_SYSTEM_PROMPT;
         const systemPrompt = `${basePrompt}\n\n${currentTimeBlock()}`;
 
+        // Only the recent turns are sent to the model. Long threads (the client
+        // restores up to 300 stored messages) otherwise balloon the prompt and
+        // make Taylor feel slow or appear to freeze before her first token.
+        const recentMessages = trimHistory(messages as UIMessage[], 20);
+
         const initialRunId = getLovableAiGatewayRunId(request);
         const gateway = createLovableAiGatewayProvider(key, initialRunId);
-        const routed = routeChatModel(messages as UIMessage[]);
+        const routed = routeChatModel(recentMessages);
         const model = gateway(routed.model);
         console.log(
           `[taylor chat] routed -> ${routed.tier} (${routed.model}) — ${routed.reason}`,
