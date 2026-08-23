@@ -41,7 +41,22 @@ if (!props.STORE_FILE || !existsSync(keystore)) {
 }
 
 console.log("==> 1/5 Building mobile web bundle");
-run(`${isWin ? "npm" : "bun"} run build:mobile`);
+if (!existsSync(path.join(ROOT, "node_modules", "vite"))) {
+  fail("dependencies not installed. Run `npm install` (or `bun install`) in this folder first.");
+}
+// Run the two steps separately so a build failure is reported clearly.
+run("npx vite build --mode mobile");
+const ASSETS = path.join(ROOT, "dist", "client", "assets");
+if (!existsSync(ASSETS)) {
+  fail(
+    `the web build did not produce ${ASSETS}.\n` +
+      `  Delete the dist folder and re-run, e.g.:\n` +
+      `    rmdir /s /q dist   (Command Prompt)  or  Remove-Item -Recurse -Force dist  (PowerShell)\n` +
+      `    npm install\n` +
+      `    npm run release:android`
+  );
+}
+run("node scripts/generate-mobile-index.js");
 
 console.log("==> 2/5 Syncing Capacitor (android)");
 run("npx cap sync android");
