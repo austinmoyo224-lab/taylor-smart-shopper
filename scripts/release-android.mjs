@@ -81,22 +81,47 @@ console.log("==> 3/5 Building signed release AAB");
 
 // Gradle 8.14 supports JDK 17-24 only. Newer JDKs (25 = class file major 69)
 // crash with "Unsupported class file major version". Find a usable JDK.
+function javaExe(javaHome) {
+  return path.join(javaHome, "bin", isWin ? "java.exe" : "java");
+}
+
 function javaMajor(javaHome) {
+  const exe = javaExe(javaHome);
+  if (!existsSync(exe)) return 0;
   try {
-    const out = execSync(`"${path.join(javaHome, "bin", "java")}" -version 2>&1`, {
-      encoding: "utf8",
-      shell: true,
-    });
-    const m = out.match(/version "(\d+)/);
-    return m ? Number(m[1]) : 0;
+    // `java -version` prints to stderr; capture both streams.
+    const res = spawnSync(exe, ["-version"], { encoding: "utf8" });
+    const out = `${res.stdout || ""}${res.stderr || ""}`;
+    // Matches: version "21.0.5"  |  version "1.8.0_402"  |  version 21
+    const m = out.match(/version "?(\d+)(?:\.(\d+))?/);
+    if (!m) return 0;
+    const major = Number(m[1]);
+    return major === 1 ? Number(m[2] || 0) : major;
   } catch {
     return 0;
   }
 }
 
+function listDirs(root) {
+  try {
+    return readdirSync(root).map((d) => path.join(root, d));
+  } catch {
+    return [];
+  }
+}
+
 function findJdk() {
   const candidates = [];
-  if (process.env.JAVA_HOME) candidates.push(process.env.JAVA_HOME);
+  const push = (p) => {
+    if (p && !candidates.includes(p)) candidates.push(p);
+  };
+
+  push(process.env.HEYTAYLOR_JAVA_HOME);
+  push(process.env.JAVA_HOME);
+  for (const [k, v] of Object.entries(process.env)) {
+    if (/^JAVA_HOME_\d+/.test(k)) push(v);
+  }
+
   if (isWin) {
     const roots = [
       "C:\\Program Files\\Eclipse Adoptium",
@@ -104,33 +129,62 @@ function findJdk() {
       "C:\\Program Files\\Microsoft",
       "C:\\Program Files\\Amazon Corretto",
       "C:\\Program Files\\Zulu",
+      "C:\\Program Files\\BellSoft",
+      "C:\\Program Files\\JetBrains",
+      "C:\\Program Files\\Android",
+      "C:\\Program Files (x86)\\Java",
+      path.join(process.env.LOCALAPPDATA || "", "Programs", "Eclipse Adoptium"),
+      path.join(process.env.LOCALAPPDATA || "", "Programs", "Java"),
+      path.join(process.env.USERPROFILE || "", ".jdks"),
+      path.join(process.env.USERPROFILE || "", "scoop", "apps"),
     ];
     for (const root of roots) {
-      if (!existsSync(root)) continue;
-      for (const dir of readdirSync(root)) candidates.push(path.join(root, dir));
+      if (!root || !existsSync(root)) continue;
+      for (const dir of listDirs(root)) {
+        push(dir);
+        // one extra level, e.g. ...\JetBrains\<ide>\jbr or scoop\apps\<pkg>\current
+        push(path.join(dir, "jbr"));
+        push(path.join(dir, "current"));
+        for (const sub of listDirs(dir)) push(sub);
+      }
     }
-    candidates.push("C:\\Program Files\\Android\\Android Studio\\jbr");
+    push("C:\\Program Files\\Android\\Android Studio\\jbr");
   } else {
-    candidates.push("/usr/lib/jvm");
+    for (const dir of listDirs("/usr/lib/jvm")) push(dir);
+    for (const dir of listDirs("/Library/Java/JavaVirtualMachines")) {
+      push(path.join(dir, "Contents", "Home"));
+    }
+    push("/opt/homebrew/opt/openjdk@21");
+    push("/usr/local/opt/openjdk@21");
   }
+
+  const found = [];
   for (const c of candidates) {
-    if (!existsSync(path.join(c, "bin"))) continue;
     const major = javaMajor(c);
-    if (major >= 17 && major <= 24) return { home: c, major };
+    if (major) found.push({ home: c, major });
   }
-  return null;
+  const usable = found.filter((j) => j.major >= 17 && j.major <= 24);
+  // Prefer 21, then the highest usable version.
+  usable.sort((a, b) => (b.major === 21) - (a.major === 21) || b.major - a.major);
+  return { pick: usable[0] || null, found };
 }
 
-const currentMajor = process.env.JAVA_HOME ? javaMajor(process.env.JAVA_HOME) : javaMajor("");
-const jdk = findJdk();
+const { pick: jdk, found: allJdks } = findJdk();
 if (!jdk) {
+  const seen = allJdks.length
+    ? allJdks.map((j) => `    - JDK ${j.major}: ${j.home}`).join("\n")
+    : "    (none)";
   fail(
-    `no Gradle-compatible Java found (needs JDK 17-21; detected ${currentMajor || "unknown"}).\n` +
+    `no Gradle-compatible Java found (needs JDK 17-24).\n` +
+      `  Java installations detected:\n${seen}\n` +
       `  Install Temurin JDK 21: https://adoptium.net/temurin/releases/?version=21\n` +
-      `  Pick the Windows x64 .msi, then re-run: npm run release:android`
+      `  Pick the Windows x64 .msi, then re-run: npm run release:android\n` +
+      `  Already installed somewhere unusual? Point the build at it, e.g.:\n` +
+      `    $env:HEYTAYLOR_JAVA_HOME="C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.5.11-hotspot"`
   );
 }
 console.log(`    using JDK ${jdk.major} at ${jdk.home}`);
+
 
 const gradleCmd = isWin ? "gradlew.bat" : "./gradlew";
 run(
