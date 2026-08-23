@@ -25,14 +25,11 @@ allprojects {
     }
 }
 
-// Release builds don't need lint/annotation extraction for library modules.
-// These tasks pull huge extra jars (lint-checks, kotlin-compiler) from
-// dl.google.com and routinely fail on slow/unstable connections.
+// Skip lint during local release packaging. Capacitor library annotation
+// extraction must remain enabled because syncReleaseLibJars consumes the
+// generated typedefs.txt file.
 subprojects {
     tasks.configureEach { task ->
-        if (task.name.startsWith("extract") && task.name.endsWith("Annotations")) {
-            task.enabled = false
-        }
         if (task.name.startsWith("lint")) {
             task.enabled = false
         }
