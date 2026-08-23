@@ -3,5 +3,5 @@
     <string name="app_name">Hey Taylor</string>
     <string name="title_activity_main">Hey Taylor</string>
     <string name="package_name">heytaylor.co.za</string>
-    <string name="custom_url_scheme">heytaylor.co.za</string>
+    <string name="custom_url_scheme">heytaylor</string>
 </resources>
