@@ -73,9 +73,14 @@ export const Route = createFileRoute("/api/chat")({
           : TAYLOR_SYSTEM_PROMPT;
         const systemPrompt = `${basePrompt}\n\n${currentTimeBlock()}`;
 
+        // Only the recent turns are sent to the model. Long threads (the client
+        // restores up to 300 stored messages) otherwise balloon the prompt and
+        // make Taylor feel slow or appear to freeze before her first token.
+        const recentMessages = trimHistory(messages as UIMessage[], 20);
+
         const initialRunId = getLovableAiGatewayRunId(request);
         const gateway = createLovableAiGatewayProvider(key, initialRunId);
-        const routed = routeChatModel(messages as UIMessage[]);
+        const routed = routeChatModel(recentMessages);
         const model = gateway(routed.model);
         console.log(
           `[taylor chat] routed -> ${routed.tier} (${routed.model}) — ${routed.reason}`,
@@ -101,7 +106,7 @@ export const Route = createFileRoute("/api/chat")({
           system: systemPrompt,
           tools,
           stopWhen: stepCountIs(8),
-          messages: await convertToModelMessages(messages as UIMessage[]),
+          messages: await convertToModelMessages(recentMessages),
           providerOptions: routed.fast
             ? { lovable: { service_tier: "priority" } }
             : undefined,
@@ -155,6 +160,15 @@ export const Route = createFileRoute("/api/chat")({
     },
   },
 });
+
+/** Keep only the most recent turns so the prompt stays small and fast. */
+function trimHistory(messages: UIMessage[], maxTurns: number): UIMessage[] {
+  if (messages.length <= maxTurns) return messages;
+  const tail = messages.slice(-maxTurns);
+  // Never start the window on an assistant/tool reply without its user turn.
+  const firstUser = tail.findIndex((m) => m.role === "user");
+  return firstUser > 0 ? tail.slice(firstUser) : tail;
+}
 
 function slugify(s: string) {
   return s

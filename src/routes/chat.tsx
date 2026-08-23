@@ -133,7 +133,9 @@ function ChatScreen() {
           // Newest-first so a long-running conversation keeps its most recent
           // turns; reversed below so Taylor picks up exactly where they left off.
           .order("created_at", { ascending: false })
-          .limit(300);
+          // Rendering hundreds of markdown bubbles on open made the chat hang
+          // on mobile; the recent thread is enough context to carry on.
+          .limit(60);
         if (!cancelled && msgs?.length) {
           const restored = [...msgs].reverse().map((m) => {
             persistedIdsRef.current.add(m.id);
@@ -263,12 +265,19 @@ function ChatScreen() {
     if (!next) stopSpeaking();
   }
 
+  // Keep the thread pinned to the newest message. During streaming this fires
+  // on every token, so batch into one frame and skip smooth scrolling — smooth
+  // scrolling per token is what made the chat stutter/freeze on phones.
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
+    let frame = 0;
+    frame = requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      if (isLoading) el.scrollTop = el.scrollHeight;
+      else el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     });
-  }, [messages, status]);
+    return () => cancelAnimationFrame(frame);
+  }, [messages, status, isLoading]);
 
   // On mount / after history restore, jump straight to the latest message.
   useEffect(() => {

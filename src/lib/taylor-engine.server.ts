@@ -14,7 +14,25 @@
 
 import { TAYLOR_SYSTEM_PROMPT } from "./ai-gateway.server";
 
+// Building the prompt costs ~10 database round trips. Chat messages arrive in
+// bursts from the same subscriber, so cache the assembled prompt briefly —
+// this removes most of the delay before Taylor's first token.
+const PROMPT_TTL_MS = 60_000;
+const promptCache = new Map<string, { value: string; expires: number }>();
+
 export async function buildTaylorSystemPrompt(userId: string | null): Promise<string> {
+  const cacheKey = userId ?? "anon";
+  const now = Date.now();
+  const hit = promptCache.get(cacheKey);
+  if (hit && hit.expires > now) return hit.value;
+
+  const value = await buildTaylorSystemPromptUncached(userId);
+  if (promptCache.size > 500) promptCache.clear();
+  promptCache.set(cacheKey, { value, expires: now + PROMPT_TTL_MS });
+  return value;
+}
+
+async function buildTaylorSystemPromptUncached(userId: string | null): Promise<string> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   // Admin-configured Taylor profile & training (always loaded).
@@ -139,8 +157,8 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
 
   const stores = storesRes.data ?? [];
   const orgIds = Array.from(new Set(stores.map((s) => s.organisation_id).filter(Boolean)));
-  const campaignsRes = orgIds.length
-    ? await supabaseAdmin
+  const campaignsPromise = orgIds.length
+    ? supabaseAdmin
         .from("campaigns")
         .select("id, name, organisation_id, store_id, schedule, starts_at, ends_at, is_active")
         .in("organisation_id", orgIds)
@@ -148,7 +166,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(30)
-    : { data: [] as never[] };
+    : Promise.resolve({ data: [] as never[] });
   const promos = (promosRes.data ?? []) as {
     id: string;
     title: string;
@@ -167,7 +185,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
   }[];
 
   // Global catalogue — Taylor can see ALL stores & published promotions, not just followed.
-  const [allStoresRes, allPromosRes] = await Promise.all([
+  const [allStoresRes, allPromosRes, campaignsRes] = await Promise.all([
     supabaseAdmin
       .from("stores")
       .select("id, organisation_id, name, city, country_code")
@@ -183,6 +201,7 @@ export async function buildTaylorSystemPrompt(userId: string | null): Promise<st
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(200),
+    campaignsPromise,
   ]);
   const allStores = (allStoresRes.data ?? []) as typeof stores;
   const allPromos = (allPromosRes.data ?? []) as typeof promos;
