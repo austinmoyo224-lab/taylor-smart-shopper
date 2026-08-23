@@ -6,7 +6,7 @@ Both are wired in `android/app/build.gradle` and activate automatically once
 
 ## 1. Firebase project
 1. https://console.firebase.google.com → Add project → link it to the same Google account as Play.
-2. Add Android app, package name **com.heytaylor.app**.
+2. Add Android app, package name **heytaylor.co.za**.
 3. Add SHA-256 fingerprints (upload key + Play App Signing key).
 4. Download `google-services.json` → place at `android/app/google-services.json` (gitignored — keep it local/CI secret).
 
