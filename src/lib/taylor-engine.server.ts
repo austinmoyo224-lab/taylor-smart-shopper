@@ -157,8 +157,8 @@ async function buildTaylorSystemPromptUncached(userId: string | null): Promise<s
 
   const stores = storesRes.data ?? [];
   const orgIds = Array.from(new Set(stores.map((s) => s.organisation_id).filter(Boolean)));
-  const campaignsRes = orgIds.length
-    ? await supabaseAdmin
+  const campaignsPromise = orgIds.length
+    ? supabaseAdmin
         .from("campaigns")
         .select("id, name, organisation_id, store_id, schedule, starts_at, ends_at, is_active")
         .in("organisation_id", orgIds)
