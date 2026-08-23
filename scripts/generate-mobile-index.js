@@ -53,10 +53,18 @@ if (!source) {
   process.exit(1);
 }
 
-if (relative(ROOT, join(ROOT, source)) !== "dist/client") {
+const sourceAbs = join(ROOT, source);
+
+// Never wipe/copy onto itself (path separators differ on Windows).
+if (sourceAbs !== clientDir) {
   console.log(`Copying ${source} -> dist/client`);
   rmSync(clientDir, { recursive: true, force: true });
-  copyDir(join(ROOT, source), clientDir);
+  copyDir(sourceAbs, clientDir);
+}
+
+if (!hasAssets(relative(ROOT, clientDir).split(sep).join("/"))) {
+  console.error(`No JavaScript bundle found in ${clientDir} after copying from ${source}.`);
+  process.exit(1);
 }
 
 const htmlPath = join(clientDir, "index.html");
