@@ -5,10 +5,10 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.heytaylor.app",
+      "package_name": "heytaylor.co.za",
       "sha256_cert_fingerprints": [
         "2A:DC:EE:25:64:C5:9B:D4:25:59:3D:20:48:A5:21:5D:DB:C6:C6:EF:D6:E1:2F:B1:E1:F8:11:FA:08:23:F6:FB",
-        "<GOOGLE_PLAY_APP_SIGNING_SHA256_FINGERPRINT>"
+        "05:86:80:45:28:96:94:2B:31:2B:3C:E1:56:35:AB:F1:6C:B1:59:B6:59:31:7A:60:F2:A4:72:39:93:B2:A7:A0"
       ]
     }
   }
