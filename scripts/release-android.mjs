@@ -2,7 +2,7 @@
 // Cross-platform (Windows / macOS / Linux) release build for Hey Taylor Android.
 // Usage: bun run release:android
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
