@@ -1,4 +1,4 @@
-package com.heytaylor.app;
+package za.co.heytaylor;
 
 import com.getcapacitor.BridgeActivity;
 
