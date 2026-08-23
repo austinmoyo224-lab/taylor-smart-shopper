@@ -57,12 +57,17 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
 
-    // Production monitoring + anti-abuse. Inert until google-services.json exists.
-    implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
-    implementation "com.google.firebase:firebase-crashlytics"
-    implementation "com.google.firebase:firebase-analytics"
-    implementation "com.google.android.play:integrity:$playIntegrityVersion"
+    // Production monitoring + anti-abuse. Only linked when google-services.json
+    // exists: Firebase's auto-init provider crashes the app at launch when the
+    // config file is missing.
+    if (file('google-services.json').exists()) {
+        implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
+        implementation "com.google.firebase:firebase-crashlytics"
+        implementation "com.google.firebase:firebase-analytics"
+        implementation "com.google.android.play:integrity:$playIntegrityVersion"
+    }
 }
+
 
 apply from: 'capacitor.build.gradle'
 
