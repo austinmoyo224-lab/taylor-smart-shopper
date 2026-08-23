@@ -133,7 +133,9 @@ function ChatScreen() {
           // Newest-first so a long-running conversation keeps its most recent
           // turns; reversed below so Taylor picks up exactly where they left off.
           .order("created_at", { ascending: false })
-          .limit(300);
+          // Rendering hundreds of markdown bubbles on open made the chat hang
+          // on mobile; the recent thread is enough context to carry on.
+          .limit(60);
         if (!cancelled && msgs?.length) {
           const restored = [...msgs].reverse().map((m) => {
             persistedIdsRef.current.add(m.id);
