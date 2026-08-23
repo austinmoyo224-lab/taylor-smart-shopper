@@ -201,6 +201,7 @@ async function buildTaylorSystemPromptUncached(userId: string | null): Promise<s
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(200),
+    campaignsPromise,
   ]);
   const allStores = (allStoresRes.data ?? []) as typeof stores;
   const allPromos = (allPromosRes.data ?? []) as typeof promos;
