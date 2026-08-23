@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readdirSync, writeFileSync, copyFileSync, existsSync, mkdirSync, statSync, rmSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 
 const ROOT = process.cwd();
 const clientDir = join(ROOT, "dist/client");
@@ -8,11 +8,27 @@ const distDir = join(ROOT, "dist");
 // Depending on the build target, Vite/Nitro may emit the browser bundle to
 // dist/client, .output/public or dist/public. Find whichever exists and make
 // sure dist/client (the Capacitor webDir) ends up containing it.
-const CANDIDATES = ["dist/client", ".output/public", "dist/public", "dist"];
+const CANDIDATES = ["dist/client", ".output/public", "dist/public", "dist", ".output/client"];
+
+function listFiles(dir, depth = 0) {
+  if (!existsSync(dir) || depth > 5) return [];
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...listFiles(path, depth + 1));
+    else files.push(path);
+  }
+  return files;
+}
+
+function browserFiles(dir) {
+  const absolute = join(ROOT, dir);
+  if (!existsSync(absolute) || !statSync(absolute).isDirectory()) return [];
+  return listFiles(absolute).filter((file) => file.endsWith(".js") || file.endsWith(".css"));
+}
 
 function hasAssets(dir) {
-  const a = join(ROOT, dir, "assets");
-  return existsSync(a) && statSync(a).isDirectory() && readdirSync(a).some((f) => f.endsWith(".js"));
+  return browserFiles(dir).some((file) => file.endsWith(".js"));
 }
 
 function copyDir(src, dest) {
@@ -39,20 +55,23 @@ if (!source) {
 
 if (relative(ROOT, join(ROOT, source)) !== "dist/client") {
   console.log(`Copying ${source} -> dist/client`);
+  rmSync(clientDir, { recursive: true, force: true });
   copyDir(join(ROOT, source), clientDir);
 }
 
-const assetsDir = join(clientDir, "assets");
 const htmlPath = join(clientDir, "index.html");
 
 function findChunk(prefixes, ext) {
-  const files = readdirSync(assetsDir);
+  const files = browserFiles("dist/client");
   for (const prefix of prefixes) {
-    const match = files.find((f) => f.startsWith(`${prefix}-`) && f.endsWith(`.${ext}`));
-    if (match) return `/assets/${match}`;
+    const match = files.find((file) => {
+      const name = file.split(sep).pop() ?? "";
+      return name.startsWith(`${prefix}-`) && name.endsWith(`.${ext}`);
+    });
+    if (match) return `/${relative(clientDir, match).split(sep).join("/")}`;
   }
-  const any = files.find((f) => f.endsWith(`.${ext}`));
-  return any ? `/assets/${any}` : null;
+  const any = files.find((file) => file.endsWith(`.${ext}`));
+  return any ? `/${relative(clientDir, any).split(sep).join("/")}` : null;
 }
 
 // Copy generated service worker files from dist/ into dist/client so Capacitor
@@ -75,7 +94,7 @@ const jsEntry = findChunk(["index", "client", "main", "entry"], "js");
 const cssEntry = findChunk(["styles", "index", "main"], "css");
 
 if (!jsEntry) {
-  console.error("Could not find a main JS entry chunk in dist/client/assets");
+  console.error("Could not find a browser JavaScript entry in dist/client");
   process.exit(1);
 }
 
