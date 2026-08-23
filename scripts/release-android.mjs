@@ -49,10 +49,10 @@ run("npx vite build --mode mobile");
 // generate-mobile-index locates the emitted browser bundle (dist/client,
 // .output/public or dist/public) and normalises it into dist/client.
 run("node scripts/generate-mobile-index.js");
-const ASSETS = path.join(ROOT, "dist", "client", "assets");
-if (!existsSync(ASSETS)) {
+const WEB_INDEX = path.join(ROOT, "dist", "client", "index.html");
+if (!existsSync(WEB_INDEX)) {
   fail(
-    `the web build did not produce ${ASSETS}.\n` +
+    `the mobile web bundle did not produce ${WEB_INDEX}.\n` +
       `  Delete the dist and .output folders and re-run, e.g.:\n` +
       `    Remove-Item -Recurse -Force dist, .output  (PowerShell)\n` +
       `    npm install\n` +
