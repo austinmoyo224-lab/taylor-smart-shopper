@@ -1,7 +1,9 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "heytaylor.co.za"
+    // Native Java namespace. The Play Store application ID is intentionally
+    // kept as the existing listing's exact package name below.
+    namespace = "za.co.heytaylor"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "heytaylor.co.za"

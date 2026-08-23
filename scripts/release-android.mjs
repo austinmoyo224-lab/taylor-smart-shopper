@@ -2,7 +2,7 @@
 // Cross-platform (Windows / macOS / Linux) release build for Hey Taylor Android.
 // Usage: bun run release:android
 import { execSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const isWin = process.platform === "win32";
 const PROPS = path.join(ROOT, "android", "app", "signing.properties");
 const ASSETLINKS = path.join(ROOT, "public", ".well-known", "assetlinks.json");
+const EXPECTED_APPLICATION_ID = "heytaylor.co.za";
+const APP_GRADLE = path.join(ROOT, "android", "app", "build.gradle");
+const AAB = path.join(ROOT, "android", "app", "build", "outputs", "bundle", "release", "app-release.aab");
 
 function run(cmd, cwd = ROOT) {
   console.log(`\n$ ${cmd}`);
@@ -37,6 +40,14 @@ function fail(msg) {
 
 if (!existsSync(PROPS)) {
   fail(`android/app/signing.properties missing. Copy signing.properties.example to signing.properties and fill in your keystore credentials.`);
+}
+
+const appGradle = readFileSync(APP_GRADLE, "utf8");
+const applicationId = appGradle.match(/applicationId\s*[=(]?\s*["']([^"']+)["']/)?.[1];
+if (applicationId !== EXPECTED_APPLICATION_ID) {
+  fail(
+    `Android applicationId must be exactly ${EXPECTED_APPLICATION_ID}, but found ${applicationId || "none"} in android/app/build.gradle.`
+  );
 }
 
 const props = Object.fromEntries(
@@ -78,6 +89,10 @@ console.log("==> 2/5 Syncing Capacitor (android)");
 run(`${capCli()} sync android`);
 
 console.log("==> 3/5 Building signed release AAB");
+
+// Never leave an old bundle at the output path. This prevents a successful
+// command from accidentally pointing the user to a stale AAB with an old ID.
+rmSync(path.join(ROOT, "android", "app", "build"), { recursive: true, force: true });
 
 // Gradle 8.14 supports JDK 17-24 only. Newer JDKs (25 = class file major 69)
 // crash with "Unsupported class file major version". Find a usable JDK.
@@ -195,8 +210,21 @@ run(
   path.join(ROOT, "android")
 );
 
-const aab = path.join(ROOT, "android", "app", "build", "outputs", "bundle", "release", "app-release.aab");
-if (!existsSync(aab)) fail("AAB not produced");
+if (!existsSync(AAB)) fail("AAB not produced");
+
+const metadataCandidates = [
+  path.join(ROOT, "android", "app", "build", "outputs", "bundle", "release", "output-metadata.json"),
+  path.join(ROOT, "android", "app", "build", "intermediates", "merged_manifests", "release", "processReleaseManifest", "output-metadata.json"),
+];
+const metadataFile = metadataCandidates.find((candidate) => existsSync(candidate));
+if (metadataFile) {
+  const metadata = readFileSync(metadataFile, "utf8");
+  if (!metadata.includes(`"applicationId": "${EXPECTED_APPLICATION_ID}"`) &&
+      !metadata.includes(`"applicationId":"${EXPECTED_APPLICATION_ID}"`)) {
+    fail(`built bundle metadata does not contain applicationId ${EXPECTED_APPLICATION_ID}; do not upload this AAB.`);
+  }
+}
+console.log(`    verified Android package: ${EXPECTED_APPLICATION_ID}`);
 
 console.log("==> 4/5 Reading upload key SHA-256");
 let uploadSha = "";
@@ -225,4 +253,4 @@ if (uploadSha && existsSync(ASSETLINKS)) {
   }
 }
 
-console.log(`\nDone: ${aab}`);
+console.log(`\nDone: ${AAB}`);
