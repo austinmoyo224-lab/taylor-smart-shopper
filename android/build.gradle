@@ -25,6 +25,20 @@ allprojects {
     }
 }
 
+// Release builds don't need lint/annotation extraction for library modules.
+// These tasks pull huge extra jars (lint-checks, kotlin-compiler) from
+// dl.google.com and routinely fail on slow/unstable connections.
+subprojects {
+    tasks.configureEach { task ->
+        if (task.name.startsWith("extract") && task.name.endsWith("Annotations")) {
+            task.enabled = false
+        }
+        if (task.name.startsWith("lint")) {
+            task.enabled = false
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
