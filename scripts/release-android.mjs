@@ -187,8 +187,11 @@ console.log(`    using JDK ${jdk.major} at ${jdk.home}`);
 
 
 const gradleCmd = isWin ? "gradlew.bat" : "./gradlew";
+// A trailing backslash inside the quoted Gradle property escapes the closing
+// quote on Windows, so strip any trailing path separators.
+const javaHome = jdk.home.replace(/[\\/]+$/, "");
 run(
-  `${gradleCmd} --no-daemon -Dorg.gradle.java.home="${jdk.home}" bundleRelease`,
+  `${gradleCmd} --no-daemon -Dorg.gradle.java.home="${javaHome}" bundleRelease`,
   path.join(ROOT, "android")
 );
 
