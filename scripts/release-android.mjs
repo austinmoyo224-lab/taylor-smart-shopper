@@ -75,7 +75,7 @@ if (!existsSync(WEB_INDEX)) {
 }
 
 console.log("==> 2/5 Syncing Capacitor (android)");
-run("npx cap sync android");
+run(`${capCli()} sync android`);
 
 console.log("==> 3/5 Building signed release AAB");
 run(isWin ? "gradlew.bat --no-daemon bundleRelease" : "./gradlew --no-daemon bundleRelease", path.join(ROOT, "android"));
