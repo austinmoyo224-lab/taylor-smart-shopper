@@ -14,7 +14,25 @@
 
 import { TAYLOR_SYSTEM_PROMPT } from "./ai-gateway.server";
 
+// Building the prompt costs ~10 database round trips. Chat messages arrive in
+// bursts from the same subscriber, so cache the assembled prompt briefly —
+// this removes most of the delay before Taylor's first token.
+const PROMPT_TTL_MS = 60_000;
+const promptCache = new Map<string, { value: string; expires: number }>();
+
 export async function buildTaylorSystemPrompt(userId: string | null): Promise<string> {
+  const cacheKey = userId ?? "anon";
+  const now = Date.now();
+  const hit = promptCache.get(cacheKey);
+  if (hit && hit.expires > now) return hit.value;
+
+  const value = await buildTaylorSystemPromptUncached(userId);
+  if (promptCache.size > 500) promptCache.clear();
+  promptCache.set(cacheKey, { value, expires: now + PROMPT_TTL_MS });
+  return value;
+}
+
+async function buildTaylorSystemPromptUncached(userId: string | null): Promise<string> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   // Admin-configured Taylor profile & training (always loaded).
