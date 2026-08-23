@@ -6,6 +6,15 @@ const clientDir = join(process.cwd(), "dist/client");
 const distDir = join(process.cwd(), "dist");
 const htmlPath = join(clientDir, "index.html");
 
+if (!existsSync(assetsDir)) {
+  console.error(
+    `ERROR: ${assetsDir} does not exist.\n` +
+      `The web build must run first and finish successfully:\n` +
+      `  npx vite build --mode mobile`
+  );
+  process.exit(1);
+}
+
 function findChunk(prefix, ext) {
   const files = readdirSync(assetsDir);
   const match = files.find((f) => f.startsWith(`${prefix}-`) && f.endsWith(`.${ext}`));
