@@ -166,7 +166,7 @@ async function buildTaylorSystemPromptUncached(userId: string | null): Promise<s
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(30)
-    : { data: [] as never[] };
+    : Promise.resolve({ data: [] as never[] });
   const promos = (promosRes.data ?? []) as {
     id: string;
     title: string;
