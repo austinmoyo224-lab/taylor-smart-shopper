@@ -105,11 +105,17 @@ function ChatScreen() {
   const isLoading = status === "submitted" || status === "streaming";
 
   // Load prior Taylor ↔ user history + user avatar once authenticated.
+  // Keyed on the user *id* (and guarded by a ref) so a token refresh or a
+  // window-focus auth event never re-runs this and wipes the live thread.
+  const userId = user?.id ?? null;
+  const restoredForRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setHistoryLoaded(true);
       return;
     }
+    if (restoredForRef.current === userId) return;
+    restoredForRef.current = userId;
     let cancelled = false;
     void (async () => {
       const [{ data: profile }, { data: convo }] = await Promise.all([
