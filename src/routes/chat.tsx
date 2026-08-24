@@ -119,11 +119,11 @@ function ChatScreen() {
     let cancelled = false;
     void (async () => {
       const [{ data: profile }, { data: convo }] = await Promise.all([
-        supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url").eq("id", userId).maybeSingle(),
         supabase
           .from("conversations")
           .select("id")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .order("last_message_at", { ascending: false, nullsFirst: false })
           .limit(1)
           .maybeSingle(),
@@ -159,7 +159,7 @@ function ChatScreen() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [userId]);
 
   // Auto-speak the latest completed assistant message when enabled.
   useEffect(() => {
