@@ -275,6 +275,7 @@ function MyRecipes() {
                   <span className="uppercase tracking-widest">{r.source}</span>
                 )}
               </div>
+              </div>
             </Link>
           </li>
         ))}
