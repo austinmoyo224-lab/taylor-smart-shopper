@@ -87,6 +87,7 @@ function ChatScreen() {
     return () => stopSpeaking();
   }, []);
 
+  const [chatError, setChatError] = useState<string | null>(null);
   const { messages, sendMessage, setMessages, status } = useChat({
     id: user?.id ?? "anon",
     transport: new DefaultChatTransport({
@@ -100,9 +101,18 @@ function ChatScreen() {
         return fetch(input, { ...init, headers });
       },
     }),
+    // Without this a failed request left the screen silent — it looked like
+    // Taylor simply never answered.
+    onError: (err) =>
+      setChatError(
+        err.message?.trim()
+          ? err.message
+          : "Taylor couldn't reply just now. Please try again.",
+      ),
   });
 
   const isLoading = status === "submitted" || status === "streaming";
+
 
   // Load prior Taylor ↔ user history + user avatar once authenticated.
   // Keyed on the user *id* (and guarded by a ref) so a token refresh or a
