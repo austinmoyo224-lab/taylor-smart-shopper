@@ -240,7 +240,20 @@ function MyRecipes() {
             key={r.id}
             className="overflow-hidden rounded-2xl border border-primary/30 bg-card transition hover:border-primary/60"
           >
-            <Link to="/recipes/$slug" params={{ slug: r.slug }} className="block p-4">
+            <Link to="/recipes/$slug" params={{ slug: r.slug }} className="block">
+              {r.hero_image_url ? (
+                <img
+                  src={r.hero_image_url}
+                  alt={r.title}
+                  className="h-36 w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-36 w-full items-center justify-center bg-primary/5">
+                  <ChefHat className="size-7 text-primary/40" />
+                </div>
+              )}
+              <div className="p-4">
               <p className="text-sm font-medium leading-snug">{r.title}</p>
               {r.description && (
                 <p className="mt-1 line-clamp-2 text-xs text-muted">{r.description}</p>
