@@ -44,6 +44,12 @@ function StoresScreen() {
     enabled: !!user,
   });
 
+  const myRecipes = useQuery({
+    queryKey: ["recipes", "mine"],
+    queryFn: () => listMyRecipes(),
+    enabled: !!user,
+  });
+
   const ads = useQuery({
     queryKey: ["ads", "featured"],
     queryFn: () => listFeaturedAds(),
