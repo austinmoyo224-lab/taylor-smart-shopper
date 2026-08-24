@@ -349,6 +349,8 @@ function ChatScreen() {
     e.preventDefault();
     const trimmed = input.trim();
     if ((!trimmed && !attachedFile) || isLoading) return;
+    setChatError(null);
+
 
     if (attachedFile) {
       const dt = new DataTransfer();
