@@ -9,7 +9,8 @@ import {
   listMySubscriptions,
   unsubscribeFromStore,
 } from "@/lib/subscriptions.functions";
-import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode } from "lucide-react";
+import { listMyRecipes } from "@/lib/recipes.functions";
+import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode, ChefHat, Clock, ArrowRight } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/stores/")({
@@ -40,6 +41,12 @@ function StoresScreen() {
   const subs = useQuery({
     queryKey: ["subs", "mine"],
     queryFn: () => listMySubscriptions(),
+    enabled: !!user,
+  });
+
+  const myRecipes = useQuery({
+    queryKey: ["recipes", "mine"],
+    queryFn: () => listMyRecipes(),
     enabled: !!user,
   });
 
@@ -230,6 +237,116 @@ function StoresScreen() {
             onPageChange={subsPager.setPage}
           />
           </>
+        )}
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5 }}
+          className="mt-10 flex items-baseline justify-between"
+        >
+          <h2
+            className="text-lg italic tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Your recipes from Taylor
+          </h2>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            {(myRecipes.data ?? []).length} recipe{(myRecipes.data ?? []).length === 1 ? "" : "s"}
+          </span>
+        </motion.div>
+
+        {!user || myRecipes.isLoading ? (
+          <p className="mt-3 text-sm text-muted">Loading…</p>
+        ) : (myRecipes.data ?? []).length === 0 ? (
+          <motion.div
+            initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-3 rounded-2xl border border-border bg-card p-6"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ChefHat className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">No recipes yet</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">
+                  Ask Taylor to create a recipe just for you — she'll match your pantry, budget, and taste.
+                </p>
+                <Link
+                  to="/recipes"
+                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+                >
+                  Generate recipe <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {(myRecipes.data ?? []).slice(0, 4).map((r, i) => (
+              <motion.li
+                key={r.id}
+                initial={reduce ? false : { opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
+              >
+                <Link
+                  to="/recipes/$slug"
+                  params={{ slug: r.slug }}
+                  className="group block overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+                    {r.hero_image_url ? (
+                      <img
+                        src={r.hero_image_url}
+                        alt={r.title}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary">
+                        <ChefHat className="size-8" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3
+                      className="line-clamp-1 text-sm font-medium italic"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      {r.title}
+                    </h3>
+                    <div className="mt-2 flex items-center gap-3 text-[11px] text-muted">
+                      {r.cooking_time_minutes != null && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="size-3" />
+                          {r.cooking_time_minutes} min
+                        </span>
+                      )}
+                      {r.difficulty && (
+                        <span className="capitalize">{r.difficulty}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              </motion.li>
+            ))}
+          </ul>
+        )}
+
+        {(myRecipes.data ?? []).length > 4 && (
+          <div className="mt-4 text-center">
+            <Link
+              to="/recipes"
+              className="inline-flex items-center gap-1 rounded-full border border-border px-4 py-2 text-xs hover:bg-accent"
+            >
+              See all recipes <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
         )}
 
         <div className="mt-8 rounded-2xl border border-dashed border-border p-4 text-xs text-muted">
