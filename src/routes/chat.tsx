@@ -87,6 +87,7 @@ function ChatScreen() {
     return () => stopSpeaking();
   }, []);
 
+  const [chatError, setChatError] = useState<string | null>(null);
   const { messages, sendMessage, setMessages, status } = useChat({
     id: user?.id ?? "anon",
     transport: new DefaultChatTransport({
@@ -100,24 +101,39 @@ function ChatScreen() {
         return fetch(input, { ...init, headers });
       },
     }),
+    // Without this a failed request left the screen silent — it looked like
+    // Taylor simply never answered.
+    onError: (err) =>
+      setChatError(
+        err.message?.trim()
+          ? err.message
+          : "Taylor couldn't reply just now. Please try again.",
+      ),
   });
 
   const isLoading = status === "submitted" || status === "streaming";
 
+
   // Load prior Taylor ↔ user history + user avatar once authenticated.
+  // Keyed on the user *id* (and guarded by a ref) so a token refresh or a
+  // window-focus auth event never re-runs this and wipes the live thread.
+  const userId = user?.id ?? null;
+  const restoredForRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setHistoryLoaded(true);
       return;
     }
+    if (restoredForRef.current === userId) return;
+    restoredForRef.current = userId;
     let cancelled = false;
     void (async () => {
       const [{ data: profile }, { data: convo }] = await Promise.all([
-        supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url").eq("id", userId).maybeSingle(),
         supabase
           .from("conversations")
           .select("id")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .order("last_message_at", { ascending: false, nullsFirst: false })
           .limit(1)
           .maybeSingle(),
@@ -153,7 +169,7 @@ function ChatScreen() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [userId]);
 
   // Auto-speak the latest completed assistant message when enabled.
   useEffect(() => {
@@ -333,6 +349,8 @@ function ChatScreen() {
     e.preventDefault();
     const trimmed = input.trim();
     if ((!trimmed && !attachedFile) || isLoading) return;
+    setChatError(null);
+
 
     if (attachedFile) {
       const dt = new DataTransfer();
@@ -515,11 +533,17 @@ function ChatScreen() {
       </div>
 
       <form onSubmit={onSubmit} className="shrink-0 border-t border-border bg-background px-4 py-4">
+        {chatError && (
+          <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
+            {chatError}
+          </div>
+        )}
         {voiceError && (
           <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
             {voiceError}
           </div>
         )}
+
         {recording && (
           <div
             className={
