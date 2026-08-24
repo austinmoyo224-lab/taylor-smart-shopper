@@ -109,22 +109,20 @@ function IdeaGenerator() {
         something.
       </p>
 
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {RECIPE_STYLES.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setStyle(s)}
-            className={`rounded-full border px-3 py-1 text-[11px] transition ${
-              style === s
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-muted hover:border-primary/50"
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+      <label className="mb-3 block">
+        <span className="mb-1.5 block text-xs text-muted">Recipe style</span>
+        <select
+          value={style}
+          onChange={(e) => setStyle(e.target.value)}
+          className="w-full appearance-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary/60"
+        >
+          {RECIPE_STYLES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <textarea
         value={brief}
