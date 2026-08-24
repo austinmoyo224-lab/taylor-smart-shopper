@@ -11,14 +11,20 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
-      setSession(s);
+    // Supabase re-emits auth events on token refresh and window focus. Only
+    // swap state when the identity actually changed, otherwise every screen
+    // re-runs its effects (which used to reset a live Taylor conversation).
+    const apply = (s: Session | null) => {
+      setSession((prev) => {
+        if (prev?.user.id === s?.user.id && prev?.access_token === s?.access_token) {
+          return prev;
+        }
+        return s;
+      });
       setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    };
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => apply(s));
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
     return () => sub.subscription.unsubscribe();
   }, []);
 
