@@ -9,7 +9,8 @@ import {
   listMySubscriptions,
   unsubscribeFromStore,
 } from "@/lib/subscriptions.functions";
-import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode } from "lucide-react";
+import { listMyRecipes } from "@/lib/recipes.functions";
+import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode, ChefHat, Clock, ArrowRight } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
 
 export const Route = createFileRoute("/stores/")({
