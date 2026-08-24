@@ -533,11 +533,17 @@ function ChatScreen() {
       </div>
 
       <form onSubmit={onSubmit} className="shrink-0 border-t border-border bg-background px-4 py-4">
+        {chatError && (
+          <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
+            {chatError}
+          </div>
+        )}
         {voiceError && (
           <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
             {voiceError}
           </div>
         )}
+
         {recording && (
           <div
             className={
