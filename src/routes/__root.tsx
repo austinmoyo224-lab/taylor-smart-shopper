@@ -148,7 +148,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
