@@ -66,26 +66,32 @@ async function enableWebPush(): Promise<{ ok: true } | { ok: false; reason: stri
   return { ok: true };
 }
 
+function extractToken(result: unknown): string | null {
+  if (!result) return null;
+  if (typeof result === 'string') return result;
+  const r = result as Record<string, unknown>;
+  const candidate = r.token ?? r.value ?? r.registrationId ?? r.deviceToken ?? r.fcmToken;
+  return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
+}
+
 async function enableNativePush(): Promise<{ ok: true } | { ok: false; reason: string }> {
-  const perm = await PushNotifications.requestPermissions();
-  if (perm.receive !== 'granted') {
-    return { ok: false, reason: 'Permission denied.' };
+  const sdk = await getWrapper();
+  if (!sdk?.push?.register) {
+    return { ok: false, reason: 'Push notifications are not available in this app build.' };
   }
 
-  // Register with FCM/APNs and forward the native token to our backend.
-  await PushNotifications.register();
-
-  const token = await new Promise<string | null>((resolve) => {
-    const handler = (event: { value?: string }) => {
-      resolve(event.value ?? null);
+  let token: string | null = null;
+  try {
+    // The wrapper handles the OS permission prompt and APNs/FCM registration.
+    token = extractToken(await sdk.push.register());
+  } catch (err) {
+    const code = (err as { code?: string })?.code;
+    if (code === 'USER_CANCELLED') return { ok: false, reason: 'Permission denied.' };
+    return {
+      ok: false,
+      reason: err instanceof Error ? err.message : 'Could not enable push notifications.',
     };
-    PushNotifications.addListener('registration', handler);
-    // Timeout in case the event never fires.
-    window.setTimeout(() => {
-      PushNotifications.removeAllListeners();
-      resolve(null);
-    }, 10000);
-  });
+  }
 
   if (!token) {
     return { ok: false, reason: 'Could not retrieve push token from device.' };
@@ -93,7 +99,7 @@ async function enableNativePush(): Promise<{ ok: true } | { ok: false; reason: s
 
   await savePushSubscription({
     data: {
-      endpoint: `capacitor://fcm/${token}`,
+      endpoint: `appbuild://push/${token}`,
       p256dh: token,
       auth: token,
       user_agent: navigator.userAgent.slice(0, 500),
