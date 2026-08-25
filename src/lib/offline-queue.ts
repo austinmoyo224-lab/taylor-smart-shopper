@@ -1,5 +1,5 @@
-import { Preferences } from '@capacitor/preferences';
-import { isNativeApp } from './appbuild';
+// Offline mutation queue. The AppBuild wrapper runs the app in a webview, so
+// localStorage is the portable store for both the wrapper and the browser.
 
 const OFFLINE_QUEUE_KEY = 'taylor.offline.queue';
 
