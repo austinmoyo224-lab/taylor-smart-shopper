@@ -300,18 +300,33 @@ function AuthScreen() {
               autoComplete="email"
               placeholder="you@example.com"
             />
-            <Field
-              label="Password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              required
-              minLength={8}
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              placeholder={mode === "signup" ? "At least 8 characters" : ""}
-            />
+            {mode !== "forgot" && (
+              <Field
+                label="Password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                required
+                minLength={8}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                placeholder={mode === "signup" ? "At least 8 characters" : ""}
+              />
+            )}
+            {mode === "signin" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => switchMode("forgot")}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
             <PrimaryButton busy={busy}>
-              {mode === "signin"
+              {mode === "forgot"
+                ? "Send reset link"
+                : mode === "signin"
                 ? "Sign in"
                 : isStoreOwner
                   ? "Continue to store application"
