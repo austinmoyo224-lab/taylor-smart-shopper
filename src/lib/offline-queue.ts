@@ -17,8 +17,8 @@ function generateId() {
 }
 
 async function getQueue(): Promise<QueuedMutation[]> {
-  if (!isNativeApp()) return [];
-  const { value } = await Preferences.get({ key: OFFLINE_QUEUE_KEY });
+  if (typeof window === 'undefined') return [];
+  const value = window.localStorage.getItem(OFFLINE_QUEUE_KEY);
   if (!value) return [];
   try {
     return JSON.parse(value) as QueuedMutation[];
@@ -28,8 +28,12 @@ async function getQueue(): Promise<QueuedMutation[]> {
 }
 
 async function saveQueue(queue: QueuedMutation[]) {
-  if (!isNativeApp()) return;
-  await Preferences.set({ key: OFFLINE_QUEUE_KEY, value: JSON.stringify(queue) });
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    /* storage full or unavailable */
+  }
 }
 
 export async function queueMutation(
