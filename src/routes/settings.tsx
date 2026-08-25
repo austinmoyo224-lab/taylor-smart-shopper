@@ -11,6 +11,7 @@ import {
   pushSupported,
 } from "@/lib/push-client";
 import { sendTestPush } from "@/lib/push.functions";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 
 export const Route = createFileRoute("/settings")({
   ssr: false,
@@ -307,6 +308,8 @@ function SettingsScreen() {
           <LogOut className="size-3.5" />
           Sign out
         </button>
+
+        <DeleteAccountSection />
       </main>
     </AppShell>
   );

@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X, Trash2 } from "lucide-react";
+import { LogOut, Settings2, Sparkles, ShieldCheck, Users, Gift, Camera, Plus, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminStatus } from "@/lib/admin.functions";
-import { deleteMyAccount } from "@/lib/account.functions";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 
 
 export const Route = createFileRoute("/profile")({
@@ -75,10 +75,6 @@ function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const isWelcome =
