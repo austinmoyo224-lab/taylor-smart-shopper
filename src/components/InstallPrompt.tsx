@@ -16,7 +16,7 @@ export function InstallPrompt() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Don't show inside the native Capacitor app — it has its own store listing / icon.
+    // Do not show inside the AppBuild native shell — it has its own store listing / icon.
     if (isNativeApp()) return;
     // Already installed → nothing to do.
     const standalone =
