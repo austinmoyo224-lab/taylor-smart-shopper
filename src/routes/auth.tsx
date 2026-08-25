@@ -5,7 +5,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 
-type Mode = "signin" | "signup";
+type Mode = "signin" | "signup" | "forgot";
 type AccountType = "user" | "store_owner" | "delivery_boy";
 type SignupStep = "choose" | "form";
 
@@ -126,6 +126,12 @@ function AuthScreen() {
               ? "Check your inbox to confirm your email. Then we'll set up your rider profile."
               : "Check your inbox to confirm your email. Then we'll help you set up your Taylor profile.",
         );
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("If that email is registered, we've sent a reset link. Check your inbox.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -181,7 +187,9 @@ function AuthScreen() {
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/20 blur-3xl" aria-hidden />
         <div className="relative">
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-            {mode === "signin"
+            {mode === "forgot"
+              ? "Account recovery"
+              : mode === "signin"
               ? "Welcome back"
               : showChoose
                 ? "Join Taylor"
@@ -195,7 +203,9 @@ function AuthScreen() {
             className="text-balance text-3xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            {mode === "signin"
+            {mode === "forgot"
+              ? "Forgot your password?"
+              : mode === "signin"
               ? "Sign in to Taylor"
               : showChoose
                 ? "How will you use Taylor?"
@@ -206,7 +216,9 @@ function AuthScreen() {
                     : "Shopper sign-up"}
           </h1>
           <p className="mt-2 text-xs text-muted">
-            {mode === "signin"
+            {mode === "forgot"
+              ? "Enter your email and we'll send you a link to set a new password."
+              : mode === "signin"
               ? "Your conversations, lists and stores — synced across every device."
               : showChoose
                 ? "Pick the path that fits you. You can always switch or add roles later from Settings."
@@ -288,18 +300,33 @@ function AuthScreen() {
               autoComplete="email"
               placeholder="you@example.com"
             />
-            <Field
-              label="Password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              required
-              minLength={8}
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              placeholder={mode === "signup" ? "At least 8 characters" : ""}
-            />
+            {mode !== "forgot" && (
+              <Field
+                label="Password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                required
+                minLength={8}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                placeholder={mode === "signup" ? "At least 8 characters" : ""}
+              />
+            )}
+            {mode === "signin" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => switchMode("forgot")}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
             <PrimaryButton busy={busy}>
-              {mode === "signin"
+              {mode === "forgot"
+                ? "Send reset link"
+                : mode === "signin"
                 ? "Sign in"
                 : isStoreOwner
                   ? "Continue to store application"
@@ -319,26 +346,30 @@ function AuthScreen() {
               </p>
             )}
 
-            <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted">or</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
+            {mode !== "forgot" && (
+              <>
+                <div className="my-5 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted">or</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
 
-            <button
-              type="button"
-              onClick={onGoogle}
-              disabled={busy}
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/10 disabled:opacity-60"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="#EA4335"
-                  d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12S6.7 21.6 12 21.6c6.9 0 9.6-4.8 9.6-7.3 0-.5 0-.9-.1-1.3H12z"
-                />
-              </svg>
-              Continue with Google
-            </button>
+                <button
+                  type="button"
+                  onClick={onGoogle}
+                  disabled={busy}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted/10 disabled:opacity-60"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="#EA4335"
+                      d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12S6.7 21.6 12 21.6c6.9 0 9.6-4.8 9.6-7.3 0-.5 0-.9-.1-1.3H12z"
+                    />
+                  </svg>
+                  Continue with Google
+                </button>
+              </>
+            )}
 
             <div className="pt-4 text-center text-xs text-muted">
               {mode === "signin" ? (
