@@ -47,7 +47,7 @@ function requestBrowserLocation(): Promise<GeoLocation> {
 
 export async function getCurrentLocation(): Promise<GeoLocation> {
   if (isNativeApp()) {
-    const native = await runNative(requestNativeLocation);
+    const native = await requestNativeLocation();
     if (native) return native;
   }
   return requestBrowserLocation();
