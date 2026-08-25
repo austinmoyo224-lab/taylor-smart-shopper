@@ -807,3 +807,105 @@ function ShoppingSection({
     </section>
   );
 }
+
+function PasswordSection() {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit() {
+    setErr(null);
+    setMsg(null);
+    if (password.length < 8) {
+      setErr("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setErr("Passwords do not match.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      setPassword("");
+      setConfirm("");
+      setOpen(false);
+      setMsg("Password updated.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not update your password.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted">Password</h2>
+      <p className="mt-2 text-xs text-muted">
+        Change the password you use to sign in to Taylor.
+      </p>
+      {msg && <p className="mt-2 text-xs text-primary">{msg}</p>}
+      {!open ? (
+        <button
+          onClick={() => {
+            setOpen(true);
+            setMsg(null);
+          }}
+          className="mt-3 rounded-full border border-border px-4 py-2 text-xs font-medium hover:border-primary/40"
+        >
+          Update password
+        </button>
+      ) : (
+        <div className="mt-3 space-y-3">
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-medium text-muted">New password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={8}
+              autoComplete="new-password"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-medium text-muted">Confirm password</span>
+            <input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              minLength={8}
+              autoComplete="new-password"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+          </label>
+          {err && <p className="text-xs text-destructive">{err}</p>}
+          <div className="flex gap-2">
+            <button
+              onClick={submit}
+              disabled={busy}
+              className="rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground disabled:opacity-60"
+            >
+              {busy ? "Saving…" : "Save password"}
+            </button>
+            <button
+              onClick={() => {
+                setOpen(false);
+                setErr(null);
+                setPassword("");
+                setConfirm("");
+              }}
+              className="rounded-full border border-border px-4 py-2 text-xs"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
