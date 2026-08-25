@@ -37,6 +37,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AccountDeletedRouteImport } from './routes/account-deleted'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoresIndexRouteImport } from './routes/stores.index'
@@ -230,6 +231,11 @@ const AuthRoute = AuthRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountDeletedRoute = AccountDeletedRouteImport.update({
+  id: '/account-deleted',
+  path: '/account-deleted',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -507,6 +513,7 @@ const ApiPublicHooksFireRemindersRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account-deleted': typeof AccountDeletedRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
@@ -591,6 +598,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account-deleted': typeof AccountDeletedRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
   '/contact': typeof ContactRoute
@@ -669,6 +677,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account-deleted': typeof AccountDeletedRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
@@ -755,6 +764,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/account-deleted'
     | '/admin'
     | '/auth'
     | '/chat'
@@ -839,6 +849,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/account-deleted'
     | '/auth'
     | '/chat'
     | '/contact'
@@ -916,6 +927,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/account-deleted'
     | '/admin'
     | '/auth'
     | '/chat'
@@ -1001,6 +1013,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AccountDeletedRoute: typeof AccountDeletedRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
@@ -1239,6 +1252,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account-deleted': {
+      id: '/account-deleted'
+      path: '/account-deleted'
+      fullPath: '/account-deleted'
+      preLoaderRoute: typeof AccountDeletedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -1776,6 +1796,7 @@ const StoresRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AccountDeletedRoute: AccountDeletedRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
