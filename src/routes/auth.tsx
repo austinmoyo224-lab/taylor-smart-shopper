@@ -187,7 +187,9 @@ function AuthScreen() {
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/20 blur-3xl" aria-hidden />
         <div className="relative">
           <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-            {mode === "signin"
+            {mode === "forgot"
+              ? "Account recovery"
+              : mode === "signin"
               ? "Welcome back"
               : showChoose
                 ? "Join Taylor"
@@ -201,7 +203,9 @@ function AuthScreen() {
             className="text-balance text-3xl italic tracking-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            {mode === "signin"
+            {mode === "forgot"
+              ? "Forgot your password?"
+              : mode === "signin"
               ? "Sign in to Taylor"
               : showChoose
                 ? "How will you use Taylor?"
@@ -212,7 +216,9 @@ function AuthScreen() {
                     : "Shopper sign-up"}
           </h1>
           <p className="mt-2 text-xs text-muted">
-            {mode === "signin"
+            {mode === "forgot"
+              ? "Enter your email and we'll send you a link to set a new password."
+              : mode === "signin"
               ? "Your conversations, lists and stores — synced across every device."
               : showChoose
                 ? "Pick the path that fits you. You can always switch or add roles later from Settings."
