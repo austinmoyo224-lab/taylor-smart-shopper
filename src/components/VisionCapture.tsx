@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Camera, ImagePlus, X, RefreshCw, ScanLine } from "lucide-react";
-import { Camera as CapacitorCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { supabase } from "@/integrations/supabase/client";
-import { isNativeApp } from "@/lib/appbuild";
+import { getWrapper, isNativeApp } from "@/lib/appbuild";
 
 const STORAGE_BUCKET = "vision-uploads";
 const MAX_IMAGE_WIDTH = 1024;
