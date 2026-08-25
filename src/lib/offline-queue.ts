@@ -93,8 +93,8 @@ export async function processQueue(): Promise<{ processed: number; failed: numbe
 }
 
 export async function clearQueue(): Promise<void> {
-  if (!isNativeApp()) return;
-  await Preferences.remove({ key: OFFLINE_QUEUE_KEY });
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(OFFLINE_QUEUE_KEY);
 }
 
 /** Alias used by native connectivity listeners. */
