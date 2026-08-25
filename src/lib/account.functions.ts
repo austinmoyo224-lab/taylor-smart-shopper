@@ -48,6 +48,12 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
       "user_roles",
     ] as const;
 
+    // Financial records are retained for accounting but fully anonymised.
+    await (supabaseAdmin as any)
+      .from("payments")
+      .update({ user_id: null, metadata: {} })
+      .eq("user_id", uid);
+
     for (const table of userTables) {
       await (supabaseAdmin as any).from(table).delete().eq("user_id", uid);
     }
