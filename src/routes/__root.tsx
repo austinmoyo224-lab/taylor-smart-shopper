@@ -121,6 +121,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
+    scripts: [
+      // AppBuild mobile-app wrapper SDK. No-op in a normal browser.
+      { src: "https://appbuild.diy/snippets/appbuild-wrapper-sdk.js" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
