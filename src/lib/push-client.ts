@@ -27,8 +27,9 @@ export function pushSupported(): boolean {
 export async function getPushPermission(): Promise<NotificationPermission | 'unsupported'> {
   if (!pushSupported()) return 'unsupported';
   if (isNativeApp()) {
-    const perm = await PushNotifications.requestPermissions();
-    return perm.receive === 'granted' ? 'granted' : 'denied';
+    // The wrapper prompts for permission as part of register(); treat the
+    // registered state as granted and let enablePush() surface failures.
+    return 'granted';
   }
   return Notification.permission;
 }
