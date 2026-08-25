@@ -126,6 +126,12 @@ function AuthScreen() {
               ? "Check your inbox to confirm your email. Then we'll set up your rider profile."
               : "Check your inbox to confirm your email. Then we'll help you set up your Taylor profile.",
         );
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("If that email is registered, we've sent a reset link. Check your inbox.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
