@@ -156,84 +156,26 @@ function RootComponent() {
     void import("@/lib/sw-register").then(({ registerAppShellSW }) => registerAppShellSW());
   }, []);
 
+  // Warm up the AppBuild wrapper bridge (no-op in a normal browser).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Initialize Capacitor native chrome on first render.
     void (async () => {
-      const [{ isNativeApp }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
-        import("@/lib/capacitor"),
-        import("@capacitor/status-bar"),
-        import("@capacitor/splash-screen"),
-      ]);
-      if (!isNativeApp()) return;
-      try {
-        await StatusBar.setStyle({ style: Style.Dark });
-        await StatusBar.setBackgroundColor({ color: "#0F1B3D" });
-      } catch {
-        /* ignore */
-      }
-      try {
-        await SplashScreen.hide();
-      } catch {
-        /* ignore */
-      }
+      const { getWrapper } = await import("@/lib/appbuild");
+      await getWrapper();
     })();
   }, []);
 
-  // Handle native deep links (iOS Universal Links / Android App Links + custom scheme).
+  // Flush the offline mutation queue whenever connectivity returns.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    let removeListener: (() => void) | undefined;
-    void (async () => {
-      const [{ isNativeApp }, { App }] = await Promise.all([
-        import("@/lib/capacitor"),
-        import("@capacitor/app"),
-      ]);
-      if (!isNativeApp()) return;
-      const listener = await App.addListener("appUrlOpen", ({ url }) => {
-        try {
-          const parsed = new URL(url);
-          // Custom scheme: heytaylor://app/<path>
-          // HTTPS universal link: https://heytaylor.co.za/<path>
-          const path = parsed.pathname || "/";
-          const search = parsed.search || "";
-          if (path !== "/") {
-            router.navigate({ to: `${path}${search}`, replace: true });
-          }
-        } catch {
-          /* ignore malformed URLs */
-        }
-      });
-      removeListener = listener?.remove;
-    })();
-    return () => removeListener?.();
-  }, [router]);
-
-  // Native network listener: flush offline mutation queue when connectivity returns.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    let removeListener: (() => void) | undefined;
-    void (async () => {
-      const [{ isNativeApp }, { Network }] = await Promise.all([
-        import("@/lib/capacitor"),
-        import("@capacitor/network"),
-      ]);
-      if (!isNativeApp()) return;
-      const listener = await Network.addListener("networkStatusChange", async (status: { connected: boolean }) => {
-        if (!status.connected) return;
-        const { flushOfflineQueue } = await import("@/lib/offline-queue");
-        await flushOfflineQueue();
-      });
-      removeListener = listener?.remove;
-      // Also flush on startup if already online.
-      const { connected } = await Network.getStatus();
-      if (connected) {
-        const { flushOfflineQueue } = await import("@/lib/offline-queue");
-        await flushOfflineQueue();
-      }
-    })();
-    return () => removeListener?.();
+    const flush = () => {
+      void import("@/lib/offline-queue").then(({ flushOfflineQueue }) => flushOfflineQueue());
+    };
+    window.addEventListener("online", flush);
+    if (navigator.onLine) flush();
+    return () => window.removeEventListener("online", flush);
   }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
