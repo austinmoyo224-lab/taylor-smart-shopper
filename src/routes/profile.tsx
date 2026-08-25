@@ -416,6 +416,8 @@ function ProfileScreen() {
           )}
         </div>
 
+        <PasswordSection />
+
         <button
           onClick={async () => {
             await supabase.auth.signOut();
