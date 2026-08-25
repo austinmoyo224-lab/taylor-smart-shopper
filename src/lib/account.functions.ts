@@ -42,7 +42,7 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
       "household_members",
       "delivery_riders",
       "whatsapp_bindings",
-      "payments",
+      
       "ai_usage_events",
       "audit_log",
       "user_roles",
