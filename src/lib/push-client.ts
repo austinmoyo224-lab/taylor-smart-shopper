@@ -119,11 +119,8 @@ export async function enablePush(): Promise<{ ok: true } | { ok: false; reason: 
 
 export async function disablePush(): Promise<{ ok: true }> {
   if (isNativeApp()) {
-    await runNative(async () => {
-      await PushNotifications.removeAllListeners();
-      // On native we cannot easily delete the backend token here without the
-      // original token; the backend will prune stale tokens on delivery failure.
-    });
+    // Inside the wrapper we cannot delete the backend token without the
+    // original token; the backend prunes stale tokens on delivery failure.
     return { ok: true };
   }
 
