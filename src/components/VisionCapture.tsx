@@ -82,19 +82,22 @@ export function VisionCapture({
     setState("requesting");
     setHasLiveFrame(false);
 
-    // In the Capacitor native app, use the native camera plugin directly.
+    // Inside the AppBuild wrapper, use the native camera through the bridge.
     if (isNativeApp()) {
       try {
-        const photo = await CapacitorCamera.getPhoto({
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Camera,
+        const sdk = await getWrapper();
+        const photo = await sdk?.camera.getPhoto({
           quality: 80,
           allowEditing: false,
           saveToGallery: false,
         });
-        if (photo.webPath) {
+        const src: string | undefined =
+          photo?.webPath ||
+          photo?.dataUrl ||
+          (photo?.base64String ? `data:image/jpeg;base64,${photo.base64String}` : undefined);
+        if (src) {
           setState("uploading");
-          const blob = await fetch(photo.webPath).then((r) => r.blob());
+          const blob = await fetch(src).then((r) => r.blob());
           const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
           const { path, url } = await resizeAndUpload(file);
           setPreviewUrl(url);
