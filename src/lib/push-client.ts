@@ -1,6 +1,5 @@
-import { PushNotifications } from '@capacitor/push-notifications';
 import { savePushSubscription, deletePushSubscription, VAPID_PUBLIC_KEY } from './push.functions';
-import { isNativeApp, runNative } from './appbuild';
+import { getWrapper, isNativeApp } from './appbuild';
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
