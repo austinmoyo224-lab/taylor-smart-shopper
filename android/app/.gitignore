@@ -1,7 +1,0 @@
-/build/*
-!/build/.npmkeep
-# Release signing credentials — never commit
-signing.properties
-heytaylor-release.keystore.jks
-*.jks
-*.keystore
