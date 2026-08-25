@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
-import { isNativeApp } from "@/lib/capacitor";
+import { isNativeApp } from "@/lib/appbuild";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;

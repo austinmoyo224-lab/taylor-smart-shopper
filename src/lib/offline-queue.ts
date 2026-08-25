@@ -1,5 +1,5 @@
 import { Preferences } from '@capacitor/preferences';
-import { isNativeApp } from './capacitor';
+import { isNativeApp } from './appbuild';
 
 const OFFLINE_QUEUE_KEY = 'taylor.offline.queue';
 
