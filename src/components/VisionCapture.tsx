@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Camera, ImagePlus, X, RefreshCw, ScanLine } from "lucide-react";
-import { Camera as CapacitorCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { supabase } from "@/integrations/supabase/client";
-import { isNativeApp } from "@/lib/capacitor";
+import { getWrapper, isNativeApp } from "@/lib/appbuild";
 
 const STORAGE_BUCKET = "vision-uploads";
 const MAX_IMAGE_WIDTH = 1024;
@@ -83,19 +82,22 @@ export function VisionCapture({
     setState("requesting");
     setHasLiveFrame(false);
 
-    // In the Capacitor native app, use the native camera plugin directly.
+    // Inside the AppBuild wrapper, use the native camera through the bridge.
     if (isNativeApp()) {
       try {
-        const photo = await CapacitorCamera.getPhoto({
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Camera,
+        const sdk = await getWrapper();
+        const photo = await sdk?.camera.getPhoto({
           quality: 80,
           allowEditing: false,
           saveToGallery: false,
         });
-        if (photo.webPath) {
+        const src: string | undefined =
+          photo?.webPath ||
+          photo?.dataUrl ||
+          (photo?.base64String ? `data:image/jpeg;base64,${photo.base64String}` : undefined);
+        if (src) {
           setState("uploading");
-          const blob = await fetch(photo.webPath).then((r) => r.blob());
+          const blob = await fetch(src).then((r) => r.blob());
           const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
           const { path, url } = await resizeAndUpload(file);
           setPreviewUrl(url);

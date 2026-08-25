@@ -1,5 +1,5 @@
-import { Preferences } from '@capacitor/preferences';
-import { isNativeApp } from './capacitor';
+// Offline mutation queue. The AppBuild wrapper runs the app in a webview, so
+// localStorage is the portable store for both the wrapper and the browser.
 
 const OFFLINE_QUEUE_KEY = 'taylor.offline.queue';
 
@@ -17,8 +17,8 @@ function generateId() {
 }
 
 async function getQueue(): Promise<QueuedMutation[]> {
-  if (!isNativeApp()) return [];
-  const { value } = await Preferences.get({ key: OFFLINE_QUEUE_KEY });
+  if (typeof window === 'undefined') return [];
+  const value = window.localStorage.getItem(OFFLINE_QUEUE_KEY);
   if (!value) return [];
   try {
     return JSON.parse(value) as QueuedMutation[];
@@ -28,8 +28,12 @@ async function getQueue(): Promise<QueuedMutation[]> {
 }
 
 async function saveQueue(queue: QueuedMutation[]) {
-  if (!isNativeApp()) return;
-  await Preferences.set({ key: OFFLINE_QUEUE_KEY, value: JSON.stringify(queue) });
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    /* storage full or unavailable */
+  }
 }
 
 export async function queueMutation(
@@ -89,8 +93,8 @@ export async function processQueue(): Promise<{ processed: number; failed: numbe
 }
 
 export async function clearQueue(): Promise<void> {
-  if (!isNativeApp()) return;
-  await Preferences.remove({ key: OFFLINE_QUEUE_KEY });
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(OFFLINE_QUEUE_KEY);
 }
 
 /** Alias used by native connectivity listeners. */

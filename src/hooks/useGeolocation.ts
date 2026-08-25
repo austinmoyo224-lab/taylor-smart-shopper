@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Geolocation, Position } from '@capacitor/geolocation';
-import { isNativeApp, runNative } from '@/lib/capacitor';
+import { getPlugin, isNativeApp } from '@/lib/appbuild';
 
 export interface GeoLocation {
   latitude: number;
@@ -9,17 +8,22 @@ export interface GeoLocation {
 }
 
 async function requestNativeLocation(): Promise<GeoLocation | undefined> {
-  const perm = await Geolocation.requestPermissions();
-  if (perm.location !== 'granted') return undefined;
-  const pos: Position = await Geolocation.getCurrentPosition({
-    enableHighAccuracy: true,
-    timeout: 10000,
-  });
-  return {
-    latitude: pos.coords.latitude,
-    longitude: pos.coords.longitude,
-    accuracy: pos.coords.accuracy ?? 0,
-  };
+  const geo = await getPlugin('Geolocation');
+  if (!geo) return undefined;
+  try {
+    const perm = await geo.requestPermissions?.();
+    if (perm && perm.location && perm.location !== 'granted') return undefined;
+    const pos = await geo.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+    if (!pos?.coords) return undefined;
+    return {
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      accuracy: pos.coords.accuracy ?? 0,
+    };
+  } catch (err) {
+    console.warn('[appbuild] native location failed:', err);
+    return undefined;
+  }
 }
 
 function requestBrowserLocation(): Promise<GeoLocation> {
@@ -43,7 +47,7 @@ function requestBrowserLocation(): Promise<GeoLocation> {
 
 export async function getCurrentLocation(): Promise<GeoLocation> {
   if (isNativeApp()) {
-    const native = await runNative(requestNativeLocation);
+    const native = await requestNativeLocation();
     if (native) return native;
   }
   return requestBrowserLocation();
