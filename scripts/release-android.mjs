@@ -12,6 +12,7 @@ const PROPS = path.join(ROOT, "android", "app", "signing.properties");
 const ASSETLINKS = path.join(ROOT, "public", ".well-known", "assetlinks.json");
 const EXPECTED_APPLICATION_ID = "heytaylor.co.za";
 const APP_GRADLE = path.join(ROOT, "android", "app", "build.gradle");
+const ANDROID_STYLES = path.join(ROOT, "android", "app", "src", "main", "res", "values", "styles.xml");
 const AAB = path.join(ROOT, "android", "app", "build", "outputs", "bundle", "release", "app-release.aab");
 
 function run(cmd, cwd = ROOT) {
@@ -47,6 +48,13 @@ const applicationId = appGradle.match(/applicationId\s*[=(]?\s*["']([^"']+)["']/
 if (applicationId !== EXPECTED_APPLICATION_ID) {
   fail(
     `Android applicationId must be exactly ${EXPECTED_APPLICATION_ID}, but found ${applicationId || "none"} in android/app/build.gradle.`
+  );
+}
+
+const androidStyles = readFileSync(ANDROID_STYLES, "utf8");
+if (!androidStyles.includes('<item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>')) {
+  fail(
+    "Android launch theme is missing postSplashScreenTheme. This can crash the app immediately after the splash screen."
   );
 }
 
