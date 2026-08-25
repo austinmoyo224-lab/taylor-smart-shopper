@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Geolocation, Position } from '@capacitor/geolocation';
-import { isNativeApp, runNative } from '@/lib/appbuild';
+import { getPlugin, isNativeApp } from '@/lib/appbuild';
 
 export interface GeoLocation {
   latitude: number;
