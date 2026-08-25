@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const isWin = process.platform === "win32";
 const PROPS = path.join(ROOT, "android", "app", "signing.properties");
+const GOOGLE_SERVICES = path.join(ROOT, "android", "app", "google-services.json");
 const ASSETLINKS = path.join(ROOT, "public", ".well-known", "assetlinks.json");
 const EXPECTED_APPLICATION_ID = "heytaylor.co.za";
 const APP_GRADLE = path.join(ROOT, "android", "app", "build.gradle");
@@ -41,6 +42,29 @@ function fail(msg) {
 
 if (!existsSync(PROPS)) {
   fail(`android/app/signing.properties missing. Copy signing.properties.example to signing.properties and fill in your keystore credentials.`);
+}
+
+if (!existsSync(GOOGLE_SERVICES)) {
+  fail(
+    "android/app/google-services.json is required for Android releases because native push notifications load at app startup. " +
+      "Download the Android configuration for package heytaylor.co.za and place it at android/app/google-services.json."
+  );
+}
+
+let googleServices;
+try {
+  googleServices = JSON.parse(readFileSync(GOOGLE_SERVICES, "utf8"));
+} catch {
+  fail("android/app/google-services.json is not valid JSON.");
+}
+const configuredPackages = (googleServices.client ?? [])
+  .map((client) => client?.client_info?.android_client_info?.package_name)
+  .filter(Boolean);
+if (!configuredPackages.includes(EXPECTED_APPLICATION_ID)) {
+  fail(
+    `android/app/google-services.json does not contain the required package ${EXPECTED_APPLICATION_ID}. ` +
+      "Download the configuration for the existing Google Play application, not a differently named Android app."
+  );
 }
 
 const appGradle = readFileSync(APP_GRADLE, "utf8");

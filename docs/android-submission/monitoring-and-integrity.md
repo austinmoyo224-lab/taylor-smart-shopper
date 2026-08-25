@@ -1,14 +1,17 @@
 # Crashlytics + Play Integrity
 
 Both are wired in `android/app/build.gradle` and activate automatically once
-`android/app/google-services.json` exists. Without that file the build still works
-(the plugins are skipped), so nothing breaks before Firebase is set up.
+`android/app/google-services.json` exists. This file is mandatory for a release:
+native push notifications depend on the same configuration and are loaded when
+the Android process starts. The release script rejects a missing, invalid, or
+wrong-package configuration rather than producing an app that can crash at launch.
 
 ## 1. Firebase project
 1. https://console.firebase.google.com → Add project → link it to the same Google account as Play.
 2. Add Android app, package name **heytaylor.co.za**.
 3. Add SHA-256 fingerprints (upload key + Play App Signing key).
 4. Download `google-services.json` → place at `android/app/google-services.json` (gitignored — keep it local/CI secret).
+5. Confirm the Android app in that file uses package name **heytaylor.co.za**.
 
 ## 2. Crashlytics
 - Firebase Console → Crashlytics → Enable.
