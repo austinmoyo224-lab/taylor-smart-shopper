@@ -14,6 +14,7 @@ import { Route as StoresRouteImport } from './routes/stores'
 import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RiderRouteImport } from './routes/rider'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -114,6 +115,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const RiderRoute = RiderRouteImport.update({
   id: '/rider',
   path: '/rider',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesRoute = RecipesRouteImport.update({
@@ -523,6 +529,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/rider': typeof RiderRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
@@ -602,6 +609,7 @@ export interface FileRoutesByTo {
   '/pantry': typeof PantryRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/vision': typeof VisionRoute
@@ -683,6 +691,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/rider': typeof RiderRouteWithChildren
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
@@ -768,6 +777,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/profile'
     | '/recipes'
+    | '/reset-password'
     | '/rider'
     | '/settings'
     | '/store-onboarding'
@@ -847,6 +857,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/pricing'
     | '/profile'
+    | '/reset-password'
     | '/settings'
     | '/store-onboarding'
     | '/vision'
@@ -927,6 +938,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/profile'
     | '/recipes'
+    | '/reset-password'
     | '/rider'
     | '/settings'
     | '/store-onboarding'
@@ -1011,6 +1023,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RiderRoute: typeof RiderRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
@@ -1065,6 +1078,13 @@ declare module '@tanstack/react-router' {
       path: '/rider'
       fullPath: '/rider'
       preLoaderRoute: typeof RiderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recipes': {
@@ -1778,6 +1798,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   RiderRoute: RiderRouteWithChildren,
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,

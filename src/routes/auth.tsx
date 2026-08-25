@@ -5,7 +5,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 
-type Mode = "signin" | "signup";
+type Mode = "signin" | "signup" | "forgot";
 type AccountType = "user" | "store_owner" | "delivery_boy";
 type SignupStep = "choose" | "form";
 
