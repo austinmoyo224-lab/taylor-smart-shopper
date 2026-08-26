@@ -1,29 +1,24 @@
 import { computeRoute } from "./src/lib/maps.server";
-import { lookupSouthAfricanWeather } from "./src/lib/weather.server";
+import { getCitiesWeather } from "./src/lib/weather.server";
 
 async function test() {
   console.log("Testing computeRoute...");
   try {
-    const route = await computeRoute("Johannesburg", "Durban");
-    console.log("Route success:", route.distance_km, "km");
+    const route = await computeRoute("Johannesburg", "Durban").catch(e => {
+        console.error("Route catch block caught error:", e.message);
+        return null;
+    });
+    console.log("Route result:", route ? route.distance_km + " km" : "null");
   } catch (e) {
-    console.error("Route failed:", e);
+    console.error("Route FATAL failed:", e);
   }
 
-  console.log("\nTesting lookupSouthAfricanWeather (Johannesburg)...");
+  console.log("\nTesting getCitiesWeather(['Johannesburg', 'Durban'])...");
   try {
-    const wx = await lookupSouthAfricanWeather("Johannesburg");
-    console.log("Weather success:", wx.current.temperature_c, "C");
+    const weather = await getCitiesWeather(["Johannesburg", "Durban"]);
+    console.log("Weather results:", weather.map(w => w ? w.location + ": " + w.current.temperature_c + "C" : "null"));
   } catch (e) {
-    console.error("Weather failed (JHB):", e);
-  }
-
-  console.log("\nTesting lookupSouthAfricanWeather (Durban)...");
-  try {
-    const wx = await lookupSouthAfricanWeather("Durban");
-    console.log("Weather success:", wx.current.temperature_c, "C");
-  } catch (e) {
-    console.error("Weather failed (DUR):", e);
+    console.error("Weather FATAL failed:", e);
   }
 }
 
