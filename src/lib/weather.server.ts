@@ -68,6 +68,9 @@ export type SouthAfricanWeather = {
   meal_hint: string;
 };
 
+const freshWeatherCache = new Map<string, { value: SouthAfricanWeather; expiresAt: number }>();
+const staleWeatherCache = new Map<string, { value: SouthAfricanWeather; expiresAt: number }>();
+
 export function weatherCodeLabel(code: number): string {
   if (code === 0) return "clear sky";
   if ([1, 2, 3].includes(code)) return "partly cloudy";
@@ -81,6 +84,13 @@ export function weatherCodeLabel(code: number): string {
 
 export async function lookupSouthAfricanWeather(location: string): Promise<SouthAfricanWeather> {
   const query = location.trim();
+  const cacheKey = query.toLocaleLowerCase("en-ZA");
+  const cached = freshWeatherCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const stale = staleWeatherCache.get(cacheKey);
+
+  try {
   const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
   geoUrl.search = new URLSearchParams({
     name: query,
@@ -139,7 +149,7 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
     .filter((h) => new Date(h.time).getTime() >= nowMs - 60 * 60 * 1000)
     .slice(0, 12);
 
-  return {
+  const result: SouthAfricanWeather = {
     ok: true,
     location: `${first.name}${first.admin1 ? `, ${first.admin1}` : ""}`,
     coordinates: { latitude: first.latitude, longitude: first.longitude },
@@ -162,4 +172,11 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
           ? "hot — suggest light, fresh meals"
           : "mild — any meal type works",
   };
+  freshWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 15 * 60 * 1000 });
+  staleWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
+  return result;
+  } catch (error) {
+    if (stale && stale.expiresAt > Date.now()) return stale.value;
+    throw error;
+  }
 }

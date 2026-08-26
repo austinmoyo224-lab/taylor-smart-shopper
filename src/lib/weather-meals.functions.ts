@@ -9,6 +9,31 @@ export const suggestWeatherMealsFn = createServerFn({ method: "POST" })
       .object({
         location: z.string().min(2).max(120).optional(),
         use_pantry: z.boolean().optional(),
+        weather_snapshot: z
+          .object({
+            place: z.string().min(1).max(120),
+            temp: z.number().min(-30).max(60),
+            feels: z.number().min(-30).max(60),
+            high: z.number().min(-30).max(60),
+            low: z.number().min(-30).max(60),
+            label: z.string().min(1).max(80),
+            humidity: z.number().min(0).max(100),
+            wind: z.number().min(0).max(300),
+            precipitation: z.number().min(0).max(1000),
+            sunrise: z.string().nullable(),
+            sunset: z.string().nullable(),
+            hourly: z
+              .array(
+                z.object({
+                  time: z.string(),
+                  temp: z.number().min(-30).max(60),
+                  code: z.number(),
+                  rain: z.number().min(0).max(100),
+                }),
+              )
+              .max(24),
+          })
+          .optional(),
       })
       .parse(d ?? {}),
   )
@@ -37,5 +62,6 @@ export const suggestWeatherMealsFn = createServerFn({ method: "POST" })
       userId: context.userId,
       location,
       usePantry: data.use_pantry ?? true,
+      weatherSnapshot: data.weather_snapshot,
     });
   });

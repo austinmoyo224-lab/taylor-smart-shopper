@@ -19,10 +19,31 @@ export function WeatherMealPicks() {
 
   const q = useQuery({
     queryKey: ["weather-meals", location ?? "profile"],
-    queryFn: () => suggestWeatherMealsFn({ data: location ? { location } : {} }),
+    queryFn: () =>
+      suggestWeatherMealsFn({
+        data: cached
+          ? {
+              location: cached.place,
+              weather_snapshot: {
+                place: cached.place,
+                temp: cached.temp,
+                feels: cached.feels,
+                high: cached.high,
+                low: cached.low,
+                label: cached.label,
+                humidity: cached.humidity,
+                wind: cached.wind,
+                precipitation: cached.precipitation,
+                sunrise: cached.sunrise,
+                sunset: cached.sunset,
+                hourly: cached.hourly,
+              },
+            }
+          : {},
+      }),
     enabled: !!user,
     staleTime: 60 * 60 * 1000,
-    retry: false,
+    retry: 1,
   });
 
   const cook = useMutation({

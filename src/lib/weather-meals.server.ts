@@ -3,7 +3,11 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-import { lookupSouthAfricanWeather, type SouthAfricanWeather } from "@/lib/weather.server";
+import {
+  lookupSouthAfricanWeather,
+  weatherCodeLabel,
+  type SouthAfricanWeather,
+} from "@/lib/weather.server";
 
 const SuggestionSchema = z.object({
   headline: z.string(),
@@ -55,11 +59,70 @@ export async function generateWeatherMealSuggestions(input: {
   userId: string;
   location: string;
   usePantry?: boolean;
+  weatherSnapshot?: {
+    place: string;
+    temp: number;
+    feels: number;
+    high: number;
+    low: number;
+    label: string;
+    humidity: number;
+    wind: number;
+    precipitation: number;
+    sunrise: string | null;
+    sunset: string | null;
+    hourly: Array<{ time: string; temp: number; code: number; rain: number }>;
+  };
 }): Promise<WeatherMealSuggestions> {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Missing LOVABLE_API_KEY");
 
-  const wx = await lookupSouthAfricanWeather(input.location);
+  const snapshot = input.weatherSnapshot;
+  const today = new Date().toISOString().slice(0, 10);
+  const wx: SouthAfricanWeather = snapshot
+    ? {
+        ok: true,
+        location: snapshot.place,
+        coordinates: { latitude: 0, longitude: 0 },
+        observed_at: new Date().toISOString(),
+        timezone: "Africa/Johannesburg",
+        current: {
+          temperature_c: snapshot.temp,
+          feels_like_c: snapshot.feels,
+          humidity_percent: snapshot.humidity,
+          precipitation_mm: snapshot.precipitation,
+          wind_kmh: snapshot.wind,
+          condition: snapshot.label.toLocaleLowerCase("en-ZA"),
+        },
+        forecast: [
+          {
+            date: today,
+            high_c: snapshot.high,
+            low_c: snapshot.low,
+            condition: snapshot.label.toLocaleLowerCase("en-ZA"),
+            rain_probability_percent: snapshot.hourly.reduce(
+              (highest, hour) => Math.max(highest, hour.rain),
+              0,
+            ),
+            rain_mm: snapshot.precipitation,
+            sunrise: snapshot.sunrise,
+            sunset: snapshot.sunset,
+          },
+        ],
+        hourly: snapshot.hourly.map((hour) => ({
+          time: hour.time,
+          temperature_c: hour.temp,
+          rain_probability_percent: hour.rain,
+          condition: weatherCodeLabel(hour.code),
+        })),
+        meal_hint:
+          snapshot.temp <= 15
+            ? "cold — suggest hearty warm meals"
+            : snapshot.temp >= 26
+              ? "hot — suggest light, fresh meals"
+              : "mild — any meal type works",
+      }
+    : await lookupSouthAfricanWeather(input.location);
 
   const { data: memory } = await input.supabase
     .from("subscriber_memory")
@@ -80,7 +143,7 @@ export async function generateWeatherMealSuggestions(input: {
   const food = (memory?.food ?? {}) as Record<string, unknown>;
   const lifestyle = (memory?.lifestyle ?? {}) as Record<string, unknown>;
   const personal = (memory?.personal ?? {}) as Record<string, unknown>;
-  const today = wx.forecast[0];
+  const todayForecast = wx.forecast[0];
   const now = new Date().toLocaleString("en-ZA", { timeZone: wx.timezone });
 
   const promptLines = [
@@ -90,10 +153,10 @@ export async function generateWeatherMealSuggestions(input: {
     }, ${wx.current.condition}, humidity ${wx.current.humidity_percent ?? "n/a"}%, wind ${
       wx.current.wind_kmh ?? "n/a"
     } km/h.`,
-    today
-      ? `Today: high ${today.high_c ?? "?"}°C / low ${today.low_c ?? "?"}°C, ${today.condition}, rain chance ${
-          today.rain_probability_percent ?? 0
-        }%. Sunset ${today.sunset ?? "n/a"}.`
+    todayForecast
+      ? `Today: high ${todayForecast.high_c ?? "?"}°C / low ${todayForecast.low_c ?? "?"}°C, ${todayForecast.condition}, rain chance ${
+          todayForecast.rain_probability_percent ?? 0
+        }%. Sunset ${todayForecast.sunset ?? "n/a"}.`
       : "",
     `Next hours: ${summariseHours(wx) || "no hourly data"}.`,
     wx.forecast[1]
@@ -149,9 +212,9 @@ export async function generateWeatherMealSuggestions(input: {
     weather: {
       temperature_c: Math.round(wx.current.temperature_c),
       condition: wx.current.condition,
-      high_c: today?.high_c ?? null,
-      low_c: today?.low_c ?? null,
-      rain_probability_percent: today?.rain_probability_percent ?? null,
+      high_c: todayForecast?.high_c ?? null,
+      low_c: todayForecast?.low_c ?? null,
+      rain_probability_percent: todayForecast?.rain_probability_percent ?? null,
     },
   };
 }
