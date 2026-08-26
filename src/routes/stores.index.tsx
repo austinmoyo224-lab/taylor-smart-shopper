@@ -173,6 +173,9 @@ function StoresScreen() {
           </motion.div>
         )}
 
+        <p className="mt-4 text-xs text-muted">Fresh drops from the brands you follow.</p>
+
+
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
