@@ -3,6 +3,35 @@ import { createPortal } from "react-dom";
 import { CloudSun, MapPin, X, Loader2 } from "lucide-react";
 import { getCurrentLocation } from "@/hooks/useGeolocation";
 
+export const WEATHER_CACHE_KEY = "taylor.weather.snapshot";
+
+/** Persist the latest reading so Taylor's chat can quote the same weather. */
+export function cacheWeatherSnapshot(wx: WeatherSnapshot) {
+  try {
+    localStorage.setItem(
+      WEATHER_CACHE_KEY,
+      JSON.stringify({ ...wx, capturedAt: new Date().toISOString() }),
+    );
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+export function readCachedWeatherSnapshot():
+  | (WeatherSnapshot & { capturedAt: string })
+  | null {
+  try {
+    const raw = localStorage.getItem(WEATHER_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as WeatherSnapshot & { capturedAt: string };
+    // Ignore readings older than 2 hours.
+    if (Date.now() - new Date(parsed.capturedAt).getTime() > 2 * 60 * 60 * 1000) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export interface WeatherSnapshot {
   place: string;
   temp: number;
