@@ -1,5 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
+import { readCachedWeatherSnapshot } from "@/components/HeaderWeather";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
@@ -98,6 +99,30 @@ function ChatScreen() {
         const token = data.session?.access_token;
         const headers = new Headers(init?.headers);
         if (token) headers.set("Authorization", `Bearer ${token}`);
+        // Share the same live weather reading the header chip shows, so
+        // Taylor answers weather questions from real data.
+        const wx = readCachedWeatherSnapshot();
+        if (wx) {
+          headers.set(
+            "X-Taylor-Weather",
+            encodeURIComponent(
+              JSON.stringify({
+                place: wx.place,
+                temp: wx.temp,
+                feels: wx.feels,
+                high: wx.high,
+                low: wx.low,
+                label: wx.label,
+                humidity: wx.humidity,
+                wind: wx.wind,
+                precipitation: wx.precipitation,
+                sunrise: wx.sunrise,
+                sunset: wx.sunset,
+                capturedAt: wx.capturedAt,
+              }),
+            ),
+          );
+        }
         return fetch(input, { ...init, headers });
       },
     }),

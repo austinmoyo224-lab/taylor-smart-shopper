@@ -71,7 +71,7 @@ export const Route = createFileRoute("/api/chat")({
         const basePrompt = userId
           ? await buildTaylorSystemPrompt(userId).catch(() => TAYLOR_SYSTEM_PROMPT)
           : TAYLOR_SYSTEM_PROMPT;
-        const systemPrompt = `${basePrompt}\n\n${currentTimeBlock()}`;
+        const systemPrompt = `${basePrompt}\n\n${currentTimeBlock()}${liveWeatherBlock(request)}`;
 
         // Only the recent turns are sent to the model. Long threads (the client
         // restores up to 300 stored messages) otherwise balloon the prompt and
@@ -198,6 +198,51 @@ function currentTimeBlock() {
     `ISO timestamp: ${now.toISOString()}`,
     "Use this whenever the subscriber asks the time, the date, the day of the week, how long until an event, or when you set reminders or judge whether a promotion is still running. For any other timezone or city, CALL get_current_datetime.",
   ].join("\n");
+}
+
+type ClientWeather = {
+  place?: string;
+  temp?: number;
+  feels?: number;
+  high?: number;
+  low?: number;
+  label?: string;
+  humidity?: number;
+  wind?: number;
+  precipitation?: number;
+  sunrise?: string | null;
+  sunset?: string | null;
+  capturedAt?: string;
+};
+
+/**
+ * The app sends the subscriber's live weather reading (the same one shown in
+ * the header chip) so Taylor never says she can't see the weather.
+ */
+function liveWeatherBlock(request: Request) {
+  const raw = request.headers.get("X-Taylor-Weather");
+  if (!raw) return "";
+  let wx: ClientWeather;
+  try {
+    wx = JSON.parse(decodeURIComponent(raw)) as ClientWeather;
+  } catch {
+    return "";
+  }
+  if (typeof wx.temp !== "number") return "";
+  return [
+    "",
+    "",
+    "---",
+    "LIVE WEATHER AT THE SUBSCRIBER'S LOCATION (measured now — authoritative)",
+    `Location: ${wx.place ?? "their area"}`,
+    `Now: ${wx.temp}°C (feels like ${wx.feels ?? wx.temp}°C), ${wx.label ?? "current conditions"}`,
+    `Today: high ${wx.high ?? "?"}°C / low ${wx.low ?? "?"}°C`,
+    `Humidity ${wx.humidity ?? "?"}% · Wind ${wx.wind ?? "?"} km/h · Precipitation ${wx.precipitation ?? 0} mm`,
+    wx.sunrise || wx.sunset ? `Sunrise ${wx.sunrise ?? "—"} · Sunset ${wx.sunset ?? "—"}` : "",
+    "NEVER say you don't have access to the weather. Answer weather questions directly from this block for their own location. If they ask about a DIFFERENT city, CALL lookup_weather for that city. Keep it natural and tie it to meal or shopping advice when it helps.",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function datetimeTool() {
