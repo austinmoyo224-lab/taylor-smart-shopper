@@ -10,6 +10,7 @@ import {
   searchRestaurants,
   type PlaceSummary,
 } from "@/lib/maps.server";
+import { lookupSouthAfricanWeather, type SouthAfricanWeather } from "@/lib/weather.server";
 
 function err(e: unknown) {
   return { ok: false as const, error: (e as Error).message };
@@ -82,7 +83,11 @@ export function buildTravelTools() {
       }),
       execute: async ({ origin, destination, include_food_stops = true, stops = 4 }) => {
         try {
-          const route = await computeRoute(origin, destination);
+          const [route, originWeather, destinationWeather] = await Promise.all([
+            computeRoute(origin, destination),
+            lookupSouthAfricanWeather(origin).catch(() => null),
+            lookupSouthAfricanWeather(destination).catch(() => null),
+          ]);
           const result: {
             ok: true;
             origin: string;
@@ -91,6 +96,10 @@ export function buildTravelTools() {
             driving_time: string;
             route_summary?: string;
             warnings?: string[];
+            weather: {
+              origin: SouthAfricanWeather | null;
+              destination: SouthAfricanWeather | null;
+            };
             food_stops?: Array<{
               approx_progress: string;
               coordinates: { lat: number; lng: number };
@@ -105,8 +114,9 @@ export function buildTravelTools() {
             driving_time: route.duration_text,
             route_summary: route.summary,
             warnings: route.warnings,
+            weather: { origin: originWeather, destination: destinationWeather },
             instruction:
-              "Give the distance and traffic-aware driving time first, then walk through the food stops in order along the road with their Google ratings. Call lookup_weather for the origin and destination so you can advise on driving conditions and what kind of food suits the weather. Remind them to rest every two hours.",
+              "Give the distance and traffic-aware driving time first. Then report the supplied live origin and destination temperatures, conditions and rain probabilities before the food stops. If one weather value is null, say that location could not be checked; never invent it. Remind them to rest every two hours.",
           };
 
           if (include_food_stops && route.polyline) {
