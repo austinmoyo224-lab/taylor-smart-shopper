@@ -27,6 +27,12 @@ type ForecastResponse = {
     sunrise?: string[];
     sunset?: string[];
   };
+  hourly?: {
+    time?: string[];
+    temperature_2m?: number[];
+    precipitation_probability?: number[];
+    weather_code?: number[];
+  };
 };
 
 export type SouthAfricanWeather = {
@@ -52,6 +58,12 @@ export type SouthAfricanWeather = {
     rain_mm: number | null;
     sunrise: string | null;
     sunset: string | null;
+  }>;
+  hourly: Array<{
+    time: string;
+    temperature_c: number | null;
+    rain_probability_percent: number | null;
+    condition: string;
   }>;
   meal_hint: string;
 };
@@ -92,6 +104,7 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
       "temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m",
     daily:
       "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weather_code,sunrise,sunset",
+    hourly: "temperature_2m,precipitation_probability,weather_code",
     timezone: "auto",
     forecast_days: "3",
   }).toString();
@@ -115,6 +128,17 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
     sunset: wx.daily?.sunset?.[index] ?? null,
   }));
 
+  const nowMs = Date.now();
+  const hourly = (wx.hourly?.time ?? [])
+    .map((time, index) => ({
+      time,
+      temperature_c: wx.hourly?.temperature_2m?.[index] ?? null,
+      rain_probability_percent: wx.hourly?.precipitation_probability?.[index] ?? null,
+      condition: weatherCodeLabel(wx.hourly?.weather_code?.[index] ?? 0),
+    }))
+    .filter((h) => new Date(h.time).getTime() >= nowMs - 60 * 60 * 1000)
+    .slice(0, 12);
+
   return {
     ok: true,
     location: `${first.name}${first.admin1 ? `, ${first.admin1}` : ""}`,
@@ -130,6 +154,7 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
       condition: weatherCodeLabel(wx.current?.weather_code ?? 0),
     },
     forecast,
+    hourly,
     meal_hint:
       tempC <= 15
         ? "cold — suggest hearty warm meals"

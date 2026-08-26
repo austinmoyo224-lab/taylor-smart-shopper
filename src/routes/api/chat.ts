@@ -241,6 +241,7 @@ function liveWeatherBlock(request: Request) {
     `Humidity ${wx.humidity ?? "?"}% · Wind ${wx.wind ?? "?"} km/h · Precipitation ${wx.precipitation ?? 0} mm`,
     wx.sunrise || wx.sunset ? `Sunrise ${wx.sunrise ?? "—"} · Sunset ${wx.sunset ?? "—"}` : "",
     "NEVER say you don't have access to the weather. Answer weather questions directly from this block for their own location. If they ask about a DIFFERENT city, CALL lookup_weather for that city. Keep it natural and tie it to meal or shopping advice when it helps.",
+    "When asked what to cook, use the hourly and daily forecast (not just the current temperature): cold, wet or sub-15C conditions mean hearty warm meals; above 25C means light, fresh or braai food; note changes coming in the next few hours (rain arriving, a cold evening) and pick the meal that suits when they will actually eat.",
   ]
     .filter(Boolean)
     .join("\n");
