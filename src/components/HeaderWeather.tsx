@@ -125,6 +125,13 @@ async function loadWeather(lat: number, lon: number, place: string): Promise<Wea
 const timeFmt = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false });
 
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)),
+  ]);
+}
+
 /**
  * Compact date + weather chip for screen headers. Tapping it opens a full
  * weather detail sheet (current conditions, hi/lo and an hourly strip).
@@ -134,37 +141,38 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [nonce, setNonce] = useState(0);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
+      // 1. Show something fast: fallback city (or Johannesburg) weather.
+      const base = async () => {
+        const geo = fallbackCity ? await geocodeCity(fallbackCity).catch(() => null) : null;
+        return geo ?? { lat: -26.2041, lon: 28.0473, name: "Johannesburg" };
+      };
       try {
-        let lat: number | null = null;
-        let lon: number | null = null;
-        let place = "";
-        try {
-          const loc = await getCurrentLocation();
-          lat = loc.latitude;
-          lon = loc.longitude;
-          place = await reverseName(lat, lon);
-        } catch {
-          const geo = fallbackCity ? await geocodeCity(fallbackCity) : null;
-          if (geo) {
-            lat = geo.lat;
-            lon = geo.lon;
-            place = geo.name;
-          }
+        const b = await base();
+        const first = await loadWeather(b.lat, b.lon, b.name);
+        if (!cancelled) {
+          setWx(first);
+          setLoading(false);
         }
-        if (lat == null || lon == null) {
-          // Default to Johannesburg so the chip is never empty.
-          lat = -26.2041;
-          lon = 28.0473;
-          place = "Johannesburg";
-        }
-        const data = await loadWeather(lat, lon, place);
-        if (!cancelled) setWx(data);
+      } catch {
+        if (!cancelled) setLoading(false);
+      }
+
+      // 2. Upgrade to precise location if the device allows it in time.
+      try {
+        const loc = await withTimeout(getCurrentLocation(), 6000);
+        const place = await reverseName(loc.latitude, loc.longitude);
+        const precise = await loadWeather(loc.latitude, loc.longitude, place);
+        if (!cancelled) setWx(precise);
+      } catch {
+        /* keep fallback weather */
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -172,7 +180,7 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
     return () => {
       cancelled = true;
     };
-  }, [fallbackCity]);
+  }, [fallbackCity, nonce]);
 
   const now = new Date();
   const dateLabel = now.toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" });
@@ -182,12 +190,12 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
     <>
       <button
         type="button"
-        onClick={() => wx && setOpen(true)}
+        onClick={() => (wx ? setOpen(true) : setNonce((n) => n + 1))}
         aria-label="Open weather details"
         className="flex items-center gap-2 rounded-2xl border border-border bg-card/70 px-3 py-2 text-right shadow-sm backdrop-blur transition active:scale-95"
       >
         <span className="text-lg leading-none">
-          {loading ? (
+          {!wx && loading ? (
             <Loader2 className="size-4 animate-spin text-muted" />
           ) : (
             weatherEmoji(wx?.code ?? 0, isNight)
@@ -195,7 +203,7 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
         </span>
         <span className="flex flex-col items-end leading-tight">
           <span className="text-sm font-semibold text-foreground">
-            {wx ? `${wx.temp}°` : "--°"}
+            {wx ? `${wx.temp}°` : loading ? "--°" : "Retry"}
           </span>
           <span className="font-mono text-[9px] uppercase tracking-widest text-muted">
             {dateLabel}
@@ -209,6 +217,7 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
     </>
   );
 }
+
 
 function WeatherSheet({ wx, onClose }: { wx: WeatherSnapshot; onClose: () => void }) {
   const now = new Date();
