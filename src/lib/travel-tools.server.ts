@@ -10,7 +10,7 @@ import {
   searchRestaurants,
   type PlaceSummary,
 } from "@/lib/maps.server";
-import { lookupSouthAfricanWeather, type SouthAfricanWeather } from "@/lib/weather.server";
+import { getCityWeather, type SouthAfricanWeather } from "@/lib/weather.server";
 
 function err(e: unknown) {
   return { ok: false as const, error: (e as Error).message };
@@ -85,8 +85,8 @@ export function buildTravelTools() {
         try {
           const [route, originWeather, destinationWeather] = await Promise.all([
             computeRoute(origin, destination),
-            lookupSouthAfricanWeather(origin).catch(() => null),
-            lookupSouthAfricanWeather(destination).catch(() => null),
+            getCityWeather(origin).catch(() => null),
+            getCityWeather(destination).catch(() => null),
           ]);
           const result: {
             ok: true;

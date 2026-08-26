@@ -15,7 +15,7 @@ import { routeChatModel } from "@/lib/model-router.server";
 import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
 import { buildTravelTools } from "@/lib/travel-tools.server";
 import { prepareShoppingListItemForStorage } from "@/lib/shopping-list-utils";
-import { lookupSouthAfricanWeather } from "@/lib/weather.server";
+import { getCityWeather } from "@/lib/weather.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -299,7 +299,7 @@ function _weatherTool() {
     execute: async ({ location }) => {
       try {
         return {
-          ...(await lookupSouthAfricanWeather(location)),
+          ...(await getCityWeather(location)),
           instruction:
             "State the verified temperature, feels-like temperature, conditions, high/low and rain probability. Use the forecast for future-day questions and meal_hint for food suggestions. Never omit a numeric temperature that is present.",
         };
