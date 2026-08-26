@@ -12,6 +12,9 @@ import {
 import { listMyRecipes } from "@/lib/recipes.functions";
 import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode, ChefHat, Clock, ArrowRight } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
+import { HeaderWeather } from "@/components/HeaderWeather";
+import { supabase } from "@/integrations/supabase/client";
+import { User as UserIcon } from "lucide-react";
 
 export const Route = createFileRoute("/stores/")({
   ssr: false,
