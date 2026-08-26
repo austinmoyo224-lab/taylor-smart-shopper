@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisionRouteImport } from './routes/vision'
+import { Route as TravelRouteImport } from './routes/travel'
 import { Route as StoresRouteImport } from './routes/stores'
 import { Route as StoreOnboardingRouteImport } from './routes/store-onboarding'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -96,6 +97,11 @@ import { Route as ApiPublicHooksFireRemindersRouteImport } from './routes/api/pu
 const VisionRoute = VisionRouteImport.update({
   id: '/vision',
   path: '/vision',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TravelRoute = TravelRouteImport.update({
+  id: '/travel',
+  path: '/travel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoresRoute = StoresRouteImport.update({
@@ -541,6 +547,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRouteWithChildren
+  '/travel': typeof TravelRoute
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -620,6 +627,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
+  '/travel': typeof TravelRoute
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -705,6 +713,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/store-onboarding': typeof StoreOnboardingRoute
   '/stores': typeof StoresRouteWithChildren
+  '/travel': typeof TravelRoute
   '/vision': typeof VisionRoute
   '/admin/ai-usage': typeof AdminAiUsageRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -792,6 +801,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/store-onboarding'
     | '/stores'
+    | '/travel'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -871,6 +881,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/store-onboarding'
+    | '/travel'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -955,6 +966,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/store-onboarding'
     | '/stores'
+    | '/travel'
     | '/vision'
     | '/admin/ai-usage'
     | '/admin/audit'
@@ -1041,6 +1053,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StoreOnboardingRoute: typeof StoreOnboardingRoute
   StoresRoute: typeof StoresRouteWithChildren
+  TravelRoute: typeof TravelRoute
   VisionRoute: typeof VisionRoute
   ApiChatRoute: typeof ApiChatRoute
   JoinSlugRoute: typeof JoinSlugRoute
@@ -1063,6 +1076,13 @@ declare module '@tanstack/react-router' {
       path: '/vision'
       fullPath: '/vision'
       preLoaderRoute: typeof VisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/travel': {
+      id: '/travel'
+      path: '/travel'
+      fullPath: '/travel'
+      preLoaderRoute: typeof TravelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stores': {
@@ -1824,6 +1844,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StoreOnboardingRoute: StoreOnboardingRoute,
   StoresRoute: StoresRouteWithChildren,
+  TravelRoute: TravelRoute,
   VisionRoute: VisionRoute,
   ApiChatRoute: ApiChatRoute,
   JoinSlugRoute: JoinSlugRoute,
