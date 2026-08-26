@@ -116,7 +116,7 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
       "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weather_code,sunrise,sunset",
     hourly: "temperature_2m,precipitation_probability,weather_code",
     timezone: "auto",
-    forecast_days: "3",
+    forecast_days: "7",
   }).toString();
 
   const wxRes = await fetch(wxUrl, { signal: AbortSignal.timeout(10_000) });

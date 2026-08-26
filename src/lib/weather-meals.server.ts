@@ -37,6 +37,25 @@ export type WeatherMealSuggestions = z.infer<typeof SuggestionSchema> & {
   };
 };
 
+const WeeklyPlanSchema = z.object({
+  summary: z.string(),
+  days: z.array(
+    z.object({
+      date: z.string(),
+      weather: z.string(),
+      meal: z.string(),
+      why: z.string(),
+      cooking_time_minutes: z.number().int(),
+      key_ingredients: z.array(z.string()).min(2).max(10),
+      suggested_store: z.string().nullable(),
+      matching_special: z.string().nullable(),
+      recipe_brief: z.string(),
+    }),
+  ).length(7),
+});
+
+export type WeeklyWeatherMealPlan = z.infer<typeof WeeklyPlanSchema> & { location: string };
+
 function summariseHours(wx: SouthAfricanWeather) {
   return wx.hourly
     .slice(0, 12)
@@ -217,4 +236,100 @@ export async function generateWeatherMealSuggestions(input: {
       rain_probability_percent: todayForecast?.rain_probability_percent ?? null,
     },
   };
+}
+
+export async function generateWeeklyWeatherMealPlan(input: {
+  supabase: SupabaseClient<Database>;
+  userId: string;
+  location: string;
+}): Promise<WeeklyWeatherMealPlan> {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) throw new Error("Taylor's recipe service is temporarily unavailable.");
+
+  const wx = await lookupSouthAfricanWeather(input.location);
+  const [{ data: memory }, { data: subscriptions }] = await Promise.all([
+    input.supabase
+      .from("subscriber_memory")
+      .select("food, lifestyle, personal")
+      .eq("user_id", input.userId)
+      .maybeSingle(),
+    input.supabase
+      .from("subscriber_store_subs")
+      .select("target_id")
+      .eq("user_id", input.userId)
+      .eq("target_type", "store")
+      .eq("is_active", true),
+  ]);
+
+  const storeIds = (subscriptions ?? []).map((subscription) => subscription.target_id);
+  const [{ data: stores }, { data: promotions }] = await Promise.all([
+    storeIds.length
+      ? input.supabase.from("stores").select("id, name").in("id", storeIds).is("deleted_at", null)
+      : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
+    storeIds.length
+      ? input.supabase
+          .from("promotions")
+          .select("title, description, sale_price, currency_code, store_id, ends_at")
+          .in("store_id", storeIds)
+          .eq("is_published", true)
+          .is("deleted_at", null)
+          .gte("ends_at", new Date().toISOString())
+          .limit(40)
+      : Promise.resolve({ data: [] as never[] }),
+  ]);
+
+  const storeNames = new Map((stores ?? []).map((store) => [store.id, store.name]));
+  const specials = (promotions ?? []).map((promotion) => ({
+    store: promotion.store_id ? storeNames.get(promotion.store_id) ?? "Followed store" : "Followed store",
+    title: promotion.title,
+    description: promotion.description,
+    price:
+      promotion.sale_price === null
+        ? null
+        : `${promotion.currency_code} ${Number(promotion.sale_price).toFixed(2)}`,
+    ends_at: promotion.ends_at,
+  }));
+  const foodProfile = memory?.food ?? {};
+  const household = memory?.personal ?? {};
+  const lifestyle = memory?.lifestyle ?? {};
+  const forecast = wx.forecast.map((day) => ({
+    date: day.date,
+    high_c: day.high_c,
+    low_c: day.low_c,
+    condition: day.condition,
+    rain_probability_percent: day.rain_probability_percent,
+  }));
+
+  try {
+    const { output } = await generateText({
+      model: createLovableAiGatewayProvider(key, undefined, { structuredOutputs: true })(
+        "google/gemini-2.5-flash",
+      ),
+      system:
+        "You are Taylor, a South African shopping and cooking companion. Create exactly seven practical dinners, one per forecast day. Match each meal to that day's temperature and rain, respect food restrictions absolutely, vary proteins and cooking styles, and favour affordable seasonal food. Use a followed-store special only when it genuinely suits the meal; never invent a price or special. If there is no relevant verified special, set matching_special to null. Dates must exactly match the supplied forecast dates.",
+      prompt: [
+        `Location: ${wx.location}`,
+        `Seven-day forecast: ${JSON.stringify(forecast)}`,
+        `Followed stores: ${(stores ?? []).map((store) => store.name).join(", ") || "None saved"}`,
+        `Active specials at followed stores: ${JSON.stringify(specials).slice(0, 5000) || "None"}`,
+        `Food profile: ${JSON.stringify(foodProfile).slice(0, 1200)}`,
+        `Household: ${JSON.stringify(household).slice(0, 800)}`,
+        `Lifestyle: ${JSON.stringify(lifestyle).slice(0, 600)}`,
+      ].join("\n"),
+      output: Output.object({ schema: WeeklyPlanSchema }),
+    });
+
+    void (await import("@/lib/ai-usage.server")).logAiUsage({
+      operation: "chat",
+      model: "google/gemini-2.5-flash",
+      userId: input.userId,
+      route: "recipes.weeklyWeatherPlan",
+    });
+    return { ...output, location: wx.location };
+  } catch (error) {
+    if (NoObjectGeneratedError.isInstance(error)) {
+      throw new Error("Taylor couldn't finish the weekly plan. Please try again shortly.");
+    }
+    throw error;
+  }
 }

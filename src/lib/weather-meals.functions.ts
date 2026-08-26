@@ -65,3 +65,39 @@ export const suggestWeatherMealsFn = createServerFn({ method: "POST" })
       weatherSnapshot: data.weather_snapshot,
     });
   });
+
+export const generateWeeklyWeatherMealPlanFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        location: z.string().min(2).max(120).optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { rateLimit } = await import("@/lib/rate-limit.server");
+    const rl = rateLimit(`weekly-meal-plan:u:${context.userId}`, 6, 60 * 60 * 1000);
+    if (!rl.ok) {
+      throw new Error(
+        `Your weekly plan was recently generated — try again in ${Math.ceil(rl.retryAfterSec / 60)} minutes.`,
+      );
+    }
+
+    let location = data.location?.trim();
+    if (!location) {
+      const { data: profile } = await context.supabase
+        .from("profiles")
+        .select("city")
+        .eq("id", context.userId)
+        .maybeSingle();
+      location = profile?.city?.trim() || "Johannesburg";
+    }
+
+    const { generateWeeklyWeatherMealPlan } = await import("@/lib/weather-meals.server");
+    return generateWeeklyWeatherMealPlan({
+      supabase: context.supabase,
+      userId: context.userId,
+      location,
+    });
+  });
