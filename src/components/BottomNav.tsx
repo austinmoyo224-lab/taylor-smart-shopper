@@ -34,6 +34,7 @@ export function BottomNav() {
     (target === "/stores" && pathname === "/") ||
     (target === "/chat" && pathname.startsWith("/chat")) ||
     (target === "/inbox" && pathname.startsWith("/inbox")) ||
+    (target === "/travel" && pathname.startsWith("/travel")) ||
     (target === "/recipes" && pathname.startsWith("/recipes"));
 
   const renderTab = (
