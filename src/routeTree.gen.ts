@@ -47,6 +47,7 @@ import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as FeaturesIndexRouteImport } from './routes/features.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as StoresFollowingRouteImport } from './routes/stores.following'
 import { Route as StoresStoreIdRouteImport } from './routes/stores.$storeId'
 import { Route as RiderStoresRouteImport } from './routes/rider.stores'
 import { Route as RiderProfileRouteImport } from './routes/rider.profile'
@@ -283,6 +284,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const StoresFollowingRoute = StoresFollowingRouteImport.update({
+  id: '/following',
+  path: '/following',
+  getParentRoute: () => StoresRoute,
 } as any)
 const StoresStoreIdRoute = StoresStoreIdRouteImport.update({
   id: '/$storeId',
@@ -588,6 +594,7 @@ export interface FileRoutesByFullPath {
   '/rider/profile': typeof RiderProfileRoute
   '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
+  '/stores/following': typeof StoresFollowingRoute
   '/admin/': typeof AdminIndexRoute
   '/features/': typeof FeaturesIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -667,6 +674,7 @@ export interface FileRoutesByTo {
   '/rider/profile': typeof RiderProfileRoute
   '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
+  '/stores/following': typeof StoresFollowingRoute
   '/admin': typeof AdminIndexRoute
   '/features': typeof FeaturesIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -754,6 +762,7 @@ export interface FileRoutesById {
   '/rider/profile': typeof RiderProfileRoute
   '/rider/stores': typeof RiderStoresRoute
   '/stores/$storeId': typeof StoresStoreIdRoute
+  '/stores/following': typeof StoresFollowingRoute
   '/admin/': typeof AdminIndexRoute
   '/features/': typeof FeaturesIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -842,6 +851,7 @@ export interface FileRouteTypes {
     | '/rider/profile'
     | '/rider/stores'
     | '/stores/$storeId'
+    | '/stores/following'
     | '/admin/'
     | '/features/'
     | '/portal/'
@@ -921,6 +931,7 @@ export interface FileRouteTypes {
     | '/rider/profile'
     | '/rider/stores'
     | '/stores/$storeId'
+    | '/stores/following'
     | '/admin'
     | '/features'
     | '/portal'
@@ -1007,6 +1018,7 @@ export interface FileRouteTypes {
     | '/rider/profile'
     | '/rider/stores'
     | '/stores/$storeId'
+    | '/stores/following'
     | '/admin/'
     | '/features/'
     | '/portal/'
@@ -1336,6 +1348,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/stores/following': {
+      id: '/stores/following'
+      path: '/following'
+      fullPath: '/stores/following'
+      preLoaderRoute: typeof StoresFollowingRouteImport
+      parentRoute: typeof StoresRoute
     }
     '/stores/$storeId': {
       id: '/stores/$storeId'
@@ -1802,11 +1821,13 @@ const RiderRouteWithChildren = RiderRoute._addFileChildren(RiderRouteChildren)
 
 interface StoresRouteChildren {
   StoresStoreIdRoute: typeof StoresStoreIdRoute
+  StoresFollowingRoute: typeof StoresFollowingRoute
   StoresIndexRoute: typeof StoresIndexRoute
 }
 
 const StoresRouteChildren: StoresRouteChildren = {
   StoresStoreIdRoute: StoresStoreIdRoute,
+  StoresFollowingRoute: StoresFollowingRoute,
   StoresIndexRoute: StoresIndexRoute,
 }
 

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Store, ListChecks, ChefHat, Inbox, MapPinned } from "lucide-react";
+import { Home, Store, ListChecks, ChefHat, Inbox, MapPinned } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyInboxUnread } from "@/lib/store-messages.functions";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,8 @@ import taylorCharacter from "@/assets/taylor-face.jpg.asset.json";
 
 // Taylor is the centre "hero" action; other tabs flank it two-per-side.
 const leftTabs = [
-  { label: "Stores", icon: Store, target: "/stores" as const },
+  { label: "Home", icon: Home, target: "/stores" as const },
+  { label: "Stores", icon: Store, target: "/stores/following" as const },
   { label: "Lists", icon: ListChecks, target: "/lists" as const },
 ] as const;
 const rightTabs = [
@@ -16,6 +17,7 @@ const rightTabs = [
   { label: "Travel", icon: MapPinned, target: "/travel" as const },
   { label: "Recipe", icon: ChefHat, target: "/recipes" as const },
 ] as const;
+
 
 export function BottomNav() {
   const { pathname } = useLocation();
@@ -32,10 +34,12 @@ export function BottomNav() {
   const isActive = (target: string) =>
     pathname === target ||
     (target === "/stores" && pathname === "/") ||
+    (target === "/stores/following" && pathname.startsWith("/stores/")) ||
     (target === "/chat" && pathname.startsWith("/chat")) ||
     (target === "/inbox" && pathname.startsWith("/inbox")) ||
     (target === "/travel" && pathname.startsWith("/travel")) ||
     (target === "/recipes" && pathname.startsWith("/recipes"));
+
 
   const renderTab = (
     { target, label, icon: Icon }: { target: string; label: string; icon: typeof Store },
