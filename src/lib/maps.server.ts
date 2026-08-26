@@ -16,34 +16,15 @@ function mapsHeaders(fieldMask?: string): Record<string, string> {
   return h;
 }
 
-/** Map a gateway path onto the direct Google endpoint for operator-owned keys. */
-function directUrl(path: string): string {
-  if (path.startsWith("/places/")) {
-    return `https://places.googleapis.com${path.replace("/places", "")}`;
-  }
-  if (path.startsWith("/routes/")) {
-    return `https://routes.googleapis.com${path.replace("/routes", "")}`;
-  }
-  return `https://maps.googleapis.com${path}`;
-}
-
 async function mapsFetch(path: string, init: RequestInit & { fieldMask?: string }) {
   const { fieldMask, ...rest } = init;
-  const { getCustomGoogleMapsKey } = await import("./platform-settings.server");
-  const customKey = await getCustomGoogleMapsKey();
-
-  let url: string;
-  let headers: Record<string, string>;
-  if (customKey) {
-    url = directUrl(path);
-    headers = { "Content-Type": "application/json", "X-Goog-Api-Key": customKey };
-    if (fieldMask) headers["X-Goog-FieldMask"] = fieldMask;
-  } else {
-    url = `${GATEWAY}${path}`;
-    headers = mapsHeaders(fieldMask);
-  }
-
-  const res = await fetch(url, { ...rest, headers });
+  // Server-side Maps calls always use the linked connector. The custom key in
+  // platform settings is browser/referrer restricted and fails from the server.
+  const res = await fetch(`${GATEWAY}${path}`, {
+    ...rest,
+    headers: mapsHeaders(fieldMask),
+    signal: rest.signal ?? AbortSignal.timeout(15_000),
+  });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     if (res.status === 403) {

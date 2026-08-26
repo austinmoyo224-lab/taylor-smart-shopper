@@ -6,33 +6,37 @@ type GeocodingResult = {
   country_code?: string;
 };
 
-type ForecastResponse = {
-  timezone?: string;
-  current?: {
-    time?: string;
-    temperature_2m?: number;
-    apparent_temperature?: number;
-    relative_humidity_2m?: number;
-    precipitation?: number;
-    weather_code?: number;
-    wind_speed_10m?: number;
+type GoogleCondition = { description?: { text?: string } };
+type GooglePrecipitation = {
+  probability?: { percent?: number };
+  qpf?: { quantity?: number };
+};
+type GoogleCurrent = {
+  currentTime?: string;
+  timeZone?: { id?: string };
+  weatherCondition?: GoogleCondition;
+  temperature?: { degrees?: number };
+  feelsLikeTemperature?: { degrees?: number };
+  relativeHumidity?: number;
+  precipitation?: GooglePrecipitation;
+  wind?: { speed?: { value?: number } };
+};
+type GoogleForecastDay = {
+  displayDate?: { year?: number; month?: number; day?: number };
+  daytimeForecast?: {
+    weatherCondition?: GoogleCondition;
+    precipitation?: GooglePrecipitation;
   };
-  daily?: {
-    time?: string[];
-    temperature_2m_max?: number[];
-    temperature_2m_min?: number[];
-    precipitation_sum?: number[];
-    precipitation_probability_max?: number[];
-    weather_code?: number[];
-    sunrise?: string[];
-    sunset?: string[];
-  };
-  hourly?: {
-    time?: string[];
-    temperature_2m?: number[];
-    precipitation_probability?: number[];
-    weather_code?: number[];
-  };
+  nighttimeForecast?: { precipitation?: GooglePrecipitation };
+  maxTemperature?: { degrees?: number };
+  minTemperature?: { degrees?: number };
+  sunEvents?: { sunriseTime?: string; sunsetTime?: string };
+};
+type GoogleForecastHour = {
+  interval?: { startTime?: string };
+  weatherCondition?: GoogleCondition;
+  temperature?: { degrees?: number };
+  precipitation?: GooglePrecipitation;
 };
 
 export type SouthAfricanWeather = {
@@ -77,6 +81,7 @@ const inFlight = new Map<string, Promise<SouthAfricanWeather>>();
 export const WEATHER_FRESH_MS = 15 * 60 * 1000;
 /** How long a stale reading may still be served if the provider is unavailable. */
 export const WEATHER_STALE_MS = 6 * 60 * 60 * 1000;
+const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
 function cacheKeyFor(location: string) {
   return (location.trim() || "Johannesburg").toLocaleLowerCase("en-ZA");
@@ -127,6 +132,70 @@ export function weatherCodeLabel(code: number): string {
   return "mixed conditions";
 }
 
+function mapsHeaders(): Record<string, string> {
+  const lovableKey = process.env.LOVABLE_API_KEY;
+  const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!lovableKey || !mapsKey) throw new Error("Live weather is not configured.");
+  return {
+    Authorization: `Bearer ${lovableKey}`,
+    "X-Connection-Api-Key": mapsKey,
+  };
+}
+
+async function googleGet<T>(path: string, params: Record<string, string>): Promise<T> {
+  const url = new URL(`${GATEWAY}${path}`);
+  url.search = new URLSearchParams(params).toString();
+  const response = await fetch(url, {
+    headers: mapsHeaders(),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    if (response.status === 403) {
+      throw new Error("Live weather access was denied. Check the Google Maps connection.");
+    }
+    throw new Error(`Live weather lookup failed (${response.status}). ${body.slice(0, 120)}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function geocodeSouthAfricanLocation(query: string): Promise<GeocodingResult> {
+  const candidates = Array.from(
+    new Set([query, ...query.split(",").map((part) => part.trim()).filter(Boolean)]),
+  );
+  for (const candidate of candidates) {
+    const result = await googleGet<{
+      status?: string;
+      results?: Array<{
+        formatted_address?: string;
+        address_components?: Array<{ long_name?: string; types?: string[] }>;
+        geometry?: { location?: { lat?: number; lng?: number } };
+      }>;
+    }>("/maps/api/geocode/json", {
+      address: `${candidate}, South Africa`,
+      region: "za",
+    });
+    const hit = result.results?.[0];
+    const latitude = hit?.geometry?.location?.lat;
+    const longitude = hit?.geometry?.location?.lng;
+    if (typeof latitude !== "number" || typeof longitude !== "number") continue;
+    const locality = hit?.address_components?.find((part) =>
+      part.types?.some((type) => ["locality", "sublocality", "administrative_area_level_2"].includes(type)),
+    )?.long_name;
+    const province = hit?.address_components?.find((part) =>
+      part.types?.includes("administrative_area_level_1"),
+    )?.long_name;
+    return {
+      latitude,
+      longitude,
+      name: locality ?? hit?.formatted_address?.split(",")[0] ?? candidate,
+      admin1: province,
+      country_code: "ZA",
+    };
+  }
+  throw new Error(`Couldn't find "${query}" in South Africa.`);
+}
+
 export async function lookupSouthAfricanWeather(location: string): Promise<SouthAfricanWeather> {
   const query = location.trim() || "Johannesburg";
   const cacheKey = query.toLocaleLowerCase("en-ZA");
@@ -136,99 +205,68 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
   const stale = staleWeatherCache.get(cacheKey);
 
   try {
-    const candidates = Array.from(
-      new Set([
-        query,
-        ...query.split(",").map((part) => part.trim()).filter(Boolean),
-        "Johannesburg",
-      ]),
-    );
-    let first: GeocodingResult | undefined;
-    for (const candidate of candidates) {
-      const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
-      geoUrl.search = new URLSearchParams({
-        name: candidate,
-        count: "5",
-        countryCode: "ZA",
-        language: "en",
-        format: "json",
-      }).toString();
-
-      const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
-      if (!geoRes.ok) continue;
-      const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
-      first =
-        geo.results?.find((place) => place.country_code?.toUpperCase() === "ZA") ??
-        geo.results?.[0];
-      if (first) break;
-    }
-
-    // Keep weather-dependent features usable if the geocoder temporarily
-    // returns no matches. These coordinates are central Johannesburg.
-    first ??= {
-      name: "Johannesburg",
-      admin1: "Gauteng",
-      country_code: "ZA",
-      latitude: -26.2041,
-      longitude: 28.0473,
+    const first = await geocodeSouthAfricanLocation(query);
+    const coordinates = {
+      "location.latitude": String(first.latitude),
+      "location.longitude": String(first.longitude),
+      unitsSystem: "METRIC",
     };
-
-    const wxUrl = new URL("https://api.open-meteo.com/v1/forecast");
-    wxUrl.search = new URLSearchParams({
-    latitude: String(first.latitude),
-    longitude: String(first.longitude),
-    current:
-      "temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m",
-    daily:
-      "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weather_code,sunrise,sunset",
-    hourly: "temperature_2m,precipitation_probability,weather_code",
-    timezone: "auto",
-    forecast_days: "7",
-    }).toString();
-
-    const wxRes = await fetch(wxUrl, { signal: AbortSignal.timeout(10_000) });
-    if (!wxRes.ok) throw new Error(`Weather forecast lookup failed (${wxRes.status}).`);
-    const wx = (await wxRes.json()) as ForecastResponse;
-    const tempC = wx.current?.temperature_2m;
+    const [current, daysResponse, hoursResponse] = await Promise.all([
+      googleGet<GoogleCurrent>("/weather/v1/currentConditions:lookup", coordinates),
+      googleGet<{ forecastDays?: GoogleForecastDay[]; timeZone?: { id?: string } }>(
+        "/weather/v1/forecast/days:lookup",
+        { ...coordinates, days: "7", pageSize: "7" },
+      ),
+      googleGet<{ forecastHours?: GoogleForecastHour[] }>(
+        "/weather/v1/forecast/hours:lookup",
+        { ...coordinates, hours: "12", pageSize: "12" },
+      ),
+    ]);
+    const tempC = current.temperature?.degrees;
     if (typeof tempC !== "number") {
       throw new Error(`Live temperature is temporarily unavailable for ${first.name}.`);
     }
 
-    const forecast = (wx.daily?.time ?? []).map((date, index) => ({
-    date,
-    high_c: wx.daily?.temperature_2m_max?.[index] ?? null,
-    low_c: wx.daily?.temperature_2m_min?.[index] ?? null,
-    condition: weatherCodeLabel(wx.daily?.weather_code?.[index] ?? 0),
-    rain_probability_percent: wx.daily?.precipitation_probability_max?.[index] ?? null,
-    rain_mm: wx.daily?.precipitation_sum?.[index] ?? null,
-    sunrise: wx.daily?.sunrise?.[index] ?? null,
-    sunset: wx.daily?.sunset?.[index] ?? null,
-    }));
+    const forecast = (daysResponse.forecastDays ?? []).map((day) => {
+      const date = day.displayDate;
+      const dateText = date?.year && date.month && date.day
+        ? `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`
+        : day.daytimeForecast?.weatherCondition?.description?.text ?? "";
+      const dayRain = day.daytimeForecast?.precipitation?.probability?.percent;
+      const nightRain = day.nighttimeForecast?.precipitation?.probability?.percent;
+      return {
+        date: dateText,
+        high_c: day.maxTemperature?.degrees ?? null,
+        low_c: day.minTemperature?.degrees ?? null,
+        condition: day.daytimeForecast?.weatherCondition?.description?.text?.toLocaleLowerCase("en-ZA") ?? "mixed conditions",
+        rain_probability_percent:
+          dayRain === undefined && nightRain === undefined ? null : Math.max(dayRain ?? 0, nightRain ?? 0),
+        rain_mm: day.daytimeForecast?.precipitation?.qpf?.quantity ?? null,
+        sunrise: day.sunEvents?.sunriseTime ?? null,
+        sunset: day.sunEvents?.sunsetTime ?? null,
+      };
+    }).filter((day) => Boolean(day.date)).slice(0, 7);
 
-    const nowMs = Date.now();
-    const hourly = (wx.hourly?.time ?? [])
-    .map((time, index) => ({
-      time,
-      temperature_c: wx.hourly?.temperature_2m?.[index] ?? null,
-      rain_probability_percent: wx.hourly?.precipitation_probability?.[index] ?? null,
-      condition: weatherCodeLabel(wx.hourly?.weather_code?.[index] ?? 0),
-    }))
-    .filter((h) => new Date(h.time).getTime() >= nowMs - 60 * 60 * 1000)
-      .slice(0, 12);
+    const hourly = (hoursResponse.forecastHours ?? []).map((hour) => ({
+      time: hour.interval?.startTime ?? "",
+      temperature_c: hour.temperature?.degrees ?? null,
+      rain_probability_percent: hour.precipitation?.probability?.percent ?? null,
+      condition: hour.weatherCondition?.description?.text?.toLocaleLowerCase("en-ZA") ?? "mixed conditions",
+    })).filter((hour) => Boolean(hour.time)).slice(0, 12);
 
     const result: SouthAfricanWeather = {
     ok: true,
     location: `${first.name}${first.admin1 ? `, ${first.admin1}` : ""}`,
     coordinates: { latitude: first.latitude, longitude: first.longitude },
-    observed_at: wx.current?.time ?? null,
-    timezone: wx.timezone ?? "Africa/Johannesburg",
+    observed_at: current.currentTime ?? null,
+    timezone: current.timeZone?.id ?? daysResponse.timeZone?.id ?? "Africa/Johannesburg",
     current: {
       temperature_c: tempC,
-      feels_like_c: wx.current?.apparent_temperature ?? null,
-      humidity_percent: wx.current?.relative_humidity_2m ?? null,
-      precipitation_mm: wx.current?.precipitation ?? null,
-      wind_kmh: wx.current?.wind_speed_10m ?? null,
-      condition: weatherCodeLabel(wx.current?.weather_code ?? 0),
+      feels_like_c: current.feelsLikeTemperature?.degrees ?? null,
+      humidity_percent: current.relativeHumidity ?? null,
+      precipitation_mm: current.precipitation?.qpf?.quantity ?? null,
+      wind_kmh: current.wind?.speed?.value ?? null,
+      condition: current.weatherCondition?.description?.text?.toLocaleLowerCase("en-ZA") ?? "mixed conditions",
     },
     forecast,
     hourly,
@@ -239,8 +277,8 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
           ? "hot — suggest light, fresh meals"
           : "mild — any meal type works",
     };
-    freshWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 15 * 60 * 1000 });
-    staleWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
+    freshWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + WEATHER_FRESH_MS });
+    staleWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + WEATHER_STALE_MS });
     return result;
   } catch (error) {
     if (stale && stale.expiresAt > Date.now()) return stale.value;
