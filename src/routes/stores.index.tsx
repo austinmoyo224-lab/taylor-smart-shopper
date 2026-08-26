@@ -134,14 +134,6 @@ function StoresScreen() {
             >
               {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
             </motion.h1>
-            <motion.p
-              initial={reduce ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.35, duration: 0.5 }}
-              className="mt-1 text-xs text-muted"
-            >
-              Fresh drops from the brands you follow.
-            </motion.p>
           </div>
 
           <div className="mt-1 shrink-0">
@@ -180,6 +172,9 @@ function StoresScreen() {
             <AdsCarousel ads={railAds} />
           </motion.div>
         )}
+
+        <p className="mt-4 text-xs text-muted">Fresh drops from the brands you follow.</p>
+
 
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 12 }}
