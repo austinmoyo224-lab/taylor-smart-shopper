@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { CloudSun, Clock, Loader2, RefreshCw, Wand2 } from "lucide-react";
-import { suggestWeatherMealsFn } from "@/lib/weather-meals.functions";
+import { CalendarDays, CloudSun, Clock, Loader2, RefreshCw, Wand2 } from "lucide-react";
+import {
+  generateWeeklyWeatherMealPlanFn,
+  suggestWeatherMealsFn,
+} from "@/lib/weather-meals.functions";
 import { generateRecipeIdeaFn } from "@/lib/recipes.functions";
 import { readCachedWeatherSnapshot } from "@/components/HeaderWeather";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 /** Weather-aware "what should I cook next" picks, driven by today's hourly forecast. */
 export function WeatherMealPicks() {
@@ -19,10 +23,31 @@ export function WeatherMealPicks() {
 
   const q = useQuery({
     queryKey: ["weather-meals", location ?? "profile"],
-    queryFn: () => suggestWeatherMealsFn({ data: location ? { location } : {} }),
+    queryFn: () =>
+      suggestWeatherMealsFn({
+        data: cached
+          ? {
+              location: cached.place,
+              weather_snapshot: {
+                place: cached.place,
+                temp: cached.temp,
+                feels: cached.feels,
+                high: cached.high,
+                low: cached.low,
+                label: cached.label,
+                humidity: cached.humidity,
+                wind: cached.wind,
+                precipitation: cached.precipitation,
+                sunrise: cached.sunrise,
+                sunset: cached.sunset,
+                hourly: cached.hourly,
+              },
+            }
+          : {},
+      }),
     enabled: !!user,
     staleTime: 60 * 60 * 1000,
-    retry: false,
+    retry: 1,
   });
 
   const cook = useMutation({
@@ -33,6 +58,11 @@ export function WeatherMealPicks() {
       navigate({ to: "/recipes/$slug", params: { slug: r.slug } });
     },
     onSettled: () => setCooking(null),
+  });
+
+  const weekly = useMutation({
+    mutationFn: () =>
+      generateWeeklyWeatherMealPlanFn({ data: location ? { location } : {} }),
   });
 
   if (!user) return null;
@@ -46,15 +76,17 @@ export function WeatherMealPicks() {
             Cook for today's weather
           </p>
         </div>
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant="outline"
           onClick={() => q.refetch()}
           disabled={q.isFetching}
-          className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted disabled:opacity-50"
+          className="h-7 rounded-full px-2.5 text-[11px] text-muted"
           aria-label="Refresh weather meal suggestions"
         >
           <RefreshCw className={`size-3 ${q.isFetching ? "animate-spin" : ""}`} /> Refresh
-        </button>
+        </Button>
       </div>
 
       {q.isLoading && (
@@ -96,14 +128,15 @@ export function WeatherMealPicks() {
                     {s.key_ingredients.slice(0, 5).join(" · ")}
                   </p>
                 )}
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     setCooking(s.title);
                     cook.mutate(s.recipe_brief || s.title);
                   }}
                   disabled={cook.isPending}
-                  className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2 text-xs text-primary-foreground disabled:opacity-60"
+                  size="sm"
+                  className="mt-2.5 w-full rounded-full text-xs"
                 >
                   {cook.isPending && cooking === s.title ? (
                     <>
@@ -114,7 +147,7 @@ export function WeatherMealPicks() {
                       <Wand2 className="size-3.5" /> Get the recipe
                     </>
                   )}
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -123,6 +156,84 @@ export function WeatherMealPicks() {
           )}
         </>
       )}
+
+      <div className="mt-4 border-t border-border pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <CalendarDays className="size-4 text-primary" /> 7-day meal plan
+            </p>
+            <p className="mt-1 text-xs text-muted">Forecast-led meals using your followed stores.</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => weekly.mutate()}
+            disabled={weekly.isPending}
+          >
+            {weekly.isPending ? <Loader2 className="animate-spin" /> : <Wand2 />}
+            {weekly.data ? "Regenerate" : "Generate"}
+          </Button>
+        </div>
+
+        {weekly.error && (
+          <p className="mt-3 text-xs text-destructive">{(weekly.error as Error).message}</p>
+        )}
+
+        {weekly.data && (
+          <div className="mt-4">
+            <p className="mb-3 text-xs text-muted">
+              {weekly.data.summary} · {weekly.data.location}
+            </p>
+            <ol className="space-y-2">
+              {weekly.data.days.map((day) => (
+                <li key={day.date} className="rounded-xl border border-border bg-background p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                        {new Date(`${day.date}T12:00:00`).toLocaleDateString("en-ZA", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "short",
+                        })} · {day.weather}
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{day.meal}</p>
+                    </div>
+                    <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted">
+                      <Clock className="size-3" /> {day.cooking_time_minutes} min
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted">{day.why}</p>
+                  {day.suggested_store && (
+                    <p className="mt-1.5 text-[11px] text-primary">
+                      {day.suggested_store}{day.matching_special ? ` · ${day.matching_special}` : ""}
+                    </p>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2 px-0 text-primary"
+                    disabled={cook.isPending}
+                    onClick={() => {
+                      setCooking(day.meal);
+                      cook.mutate(day.recipe_brief || day.meal);
+                    }}
+                  >
+                    {cook.isPending && cooking === day.meal ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Wand2 />
+                    )}
+                    Get recipe
+                  </Button>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

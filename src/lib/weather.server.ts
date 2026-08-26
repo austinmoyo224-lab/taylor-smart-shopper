@@ -68,6 +68,9 @@ export type SouthAfricanWeather = {
   meal_hint: string;
 };
 
+const freshWeatherCache = new Map<string, { value: SouthAfricanWeather; expiresAt: number }>();
+const staleWeatherCache = new Map<string, { value: SouthAfricanWeather; expiresAt: number }>();
+
 export function weatherCodeLabel(code: number): string {
   if (code === 0) return "clear sky";
   if ([1, 2, 3].includes(code)) return "partly cloudy";
@@ -81,19 +84,33 @@ export function weatherCodeLabel(code: number): string {
 
 export async function lookupSouthAfricanWeather(location: string): Promise<SouthAfricanWeather> {
   const query = location.trim();
-  const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
-  geoUrl.search = new URLSearchParams({
-    name: query,
-    count: "5",
-    countryCode: "ZA",
-    language: "en",
-    format: "json",
-  }).toString();
+  const cacheKey = query.toLocaleLowerCase("en-ZA");
+  const cached = freshWeatherCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
 
-  const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
-  if (!geoRes.ok) throw new Error(`Weather location lookup failed (${geoRes.status}).`);
-  const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
-  const first = geo.results?.find((place) => place.country_code === "ZA") ?? geo.results?.[0];
+  const stale = staleWeatherCache.get(cacheKey);
+
+  try {
+  const candidates = Array.from(
+    new Set([query, ...query.split(",").map((part) => part.trim()).filter(Boolean)]),
+  );
+  let first: GeocodingResult | undefined;
+  for (const candidate of candidates) {
+    const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+    geoUrl.search = new URLSearchParams({
+      name: candidate,
+      count: "5",
+      countryCode: "ZA",
+      language: "en",
+      format: "json",
+    }).toString();
+
+    const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
+    if (!geoRes.ok) throw new Error(`Weather location lookup failed (${geoRes.status}).`);
+    const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
+    first = geo.results?.find((place) => place.country_code === "ZA") ?? geo.results?.[0];
+    if (first) break;
+  }
   if (!first) throw new Error(`Couldn't find "${query}" in South Africa.`);
 
   const wxUrl = new URL("https://api.open-meteo.com/v1/forecast");
@@ -106,7 +123,7 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
       "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weather_code,sunrise,sunset",
     hourly: "temperature_2m,precipitation_probability,weather_code",
     timezone: "auto",
-    forecast_days: "3",
+    forecast_days: "7",
   }).toString();
 
   const wxRes = await fetch(wxUrl, { signal: AbortSignal.timeout(10_000) });
@@ -139,7 +156,7 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
     .filter((h) => new Date(h.time).getTime() >= nowMs - 60 * 60 * 1000)
     .slice(0, 12);
 
-  return {
+  const result: SouthAfricanWeather = {
     ok: true,
     location: `${first.name}${first.admin1 ? `, ${first.admin1}` : ""}`,
     coordinates: { latitude: first.latitude, longitude: first.longitude },
@@ -162,4 +179,11 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
           ? "hot — suggest light, fresh meals"
           : "mild — any meal type works",
   };
+  freshWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 15 * 60 * 1000 });
+  staleWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
+  return result;
+  } catch (error) {
+    if (stale && stale.expiresAt > Date.now()) return stale.value;
+    throw error;
+  }
 }
