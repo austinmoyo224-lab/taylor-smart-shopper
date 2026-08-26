@@ -70,6 +70,51 @@ export type SouthAfricanWeather = {
 
 const freshWeatherCache = new Map<string, { value: SouthAfricanWeather; expiresAt: number }>();
 const staleWeatherCache = new Map<string, { value: SouthAfricanWeather; expiresAt: number }>();
+/** One in-flight lookup per city, so parallel callers share a single request. */
+const inFlight = new Map<string, Promise<SouthAfricanWeather>>();
+
+/** How long a per-city reading is considered fresh before a background refresh. */
+export const WEATHER_FRESH_MS = 15 * 60 * 1000;
+/** How long a stale reading may still be served if the provider is unavailable. */
+export const WEATHER_STALE_MS = 6 * 60 * 60 * 1000;
+
+function cacheKeyFor(location: string) {
+  return (location.trim() || "Johannesburg").toLocaleLowerCase("en-ZA");
+}
+
+/**
+ * Cached, per-city weather with stale-while-revalidate: fresh readings return
+ * instantly, slightly-old readings return instantly and refresh in the
+ * background, and only a cold city waits for the provider.
+ */
+export async function getCityWeather(location: string): Promise<SouthAfricanWeather> {
+  const key = cacheKeyFor(location);
+  const fresh = freshWeatherCache.get(key);
+  if (fresh && fresh.expiresAt > Date.now()) return fresh.value;
+
+  const stale = staleWeatherCache.get(key);
+  if (stale && stale.expiresAt > Date.now()) {
+    if (!inFlight.has(key)) void refresh(location, key).catch(() => undefined);
+    return stale.value;
+  }
+  return refresh(location, key);
+}
+
+function refresh(location: string, key: string): Promise<SouthAfricanWeather> {
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+  const p = lookupSouthAfricanWeather(location).finally(() => inFlight.delete(key));
+  inFlight.set(key, p);
+  return p;
+}
+
+/** Fetch several cities at once, sharing the per-city cache and in-flight requests. */
+export async function getCitiesWeather(
+  locations: string[],
+): Promise<Array<SouthAfricanWeather | null>> {
+  return Promise.all(locations.map((l) => getCityWeather(l).catch(() => null)));
+}
+
 
 export function weatherCodeLabel(code: number): string {
   if (code === 0) return "clear sky";
