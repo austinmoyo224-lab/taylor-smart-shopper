@@ -83,7 +83,7 @@ export function weatherCodeLabel(code: number): string {
 }
 
 export async function lookupSouthAfricanWeather(location: string): Promise<SouthAfricanWeather> {
-  const query = location.trim();
+  const query = location.trim() || "Johannesburg";
   const cacheKey = query.toLocaleLowerCase("en-ZA");
   const cached = freshWeatherCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
@@ -91,30 +91,45 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
   const stale = staleWeatherCache.get(cacheKey);
 
   try {
-  const candidates = Array.from(
-    new Set([query, ...query.split(",").map((part) => part.trim()).filter(Boolean)]),
-  );
-  let first: GeocodingResult | undefined;
-  for (const candidate of candidates) {
-    const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
-    geoUrl.search = new URLSearchParams({
-      name: candidate,
-      count: "5",
-      countryCode: "ZA",
-      language: "en",
-      format: "json",
-    }).toString();
+    const candidates = Array.from(
+      new Set([
+        query,
+        ...query.split(",").map((part) => part.trim()).filter(Boolean),
+        "Johannesburg",
+      ]),
+    );
+    let first: GeocodingResult | undefined;
+    for (const candidate of candidates) {
+      const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+      geoUrl.search = new URLSearchParams({
+        name: candidate,
+        count: "5",
+        countryCode: "ZA",
+        language: "en",
+        format: "json",
+      }).toString();
 
-    const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
-    if (!geoRes.ok) throw new Error(`Weather location lookup failed (${geoRes.status}).`);
-    const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
-    first = geo.results?.find((place) => place.country_code === "ZA") ?? geo.results?.[0];
-    if (first) break;
-  }
-  if (!first) throw new Error(`Couldn't find "${query}" in South Africa.`);
+      const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
+      if (!geoRes.ok) continue;
+      const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
+      first =
+        geo.results?.find((place) => place.country_code?.toUpperCase() === "ZA") ??
+        geo.results?.[0];
+      if (first) break;
+    }
 
-  const wxUrl = new URL("https://api.open-meteo.com/v1/forecast");
-  wxUrl.search = new URLSearchParams({
+    // Keep weather-dependent features usable if the geocoder temporarily
+    // returns no matches. These coordinates are central Johannesburg.
+    first ??= {
+      name: "Johannesburg",
+      admin1: "Gauteng",
+      country_code: "ZA",
+      latitude: -26.2041,
+      longitude: 28.0473,
+    };
+
+    const wxUrl = new URL("https://api.open-meteo.com/v1/forecast");
+    wxUrl.search = new URLSearchParams({
     latitude: String(first.latitude),
     longitude: String(first.longitude),
     current:
@@ -124,17 +139,17 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
     hourly: "temperature_2m,precipitation_probability,weather_code",
     timezone: "auto",
     forecast_days: "7",
-  }).toString();
+    }).toString();
 
-  const wxRes = await fetch(wxUrl, { signal: AbortSignal.timeout(10_000) });
-  if (!wxRes.ok) throw new Error(`Weather forecast lookup failed (${wxRes.status}).`);
-  const wx = (await wxRes.json()) as ForecastResponse;
-  const tempC = wx.current?.temperature_2m;
-  if (typeof tempC !== "number") {
-    throw new Error(`Live temperature is temporarily unavailable for ${first.name}.`);
-  }
+    const wxRes = await fetch(wxUrl, { signal: AbortSignal.timeout(10_000) });
+    if (!wxRes.ok) throw new Error(`Weather forecast lookup failed (${wxRes.status}).`);
+    const wx = (await wxRes.json()) as ForecastResponse;
+    const tempC = wx.current?.temperature_2m;
+    if (typeof tempC !== "number") {
+      throw new Error(`Live temperature is temporarily unavailable for ${first.name}.`);
+    }
 
-  const forecast = (wx.daily?.time ?? []).map((date, index) => ({
+    const forecast = (wx.daily?.time ?? []).map((date, index) => ({
     date,
     high_c: wx.daily?.temperature_2m_max?.[index] ?? null,
     low_c: wx.daily?.temperature_2m_min?.[index] ?? null,
@@ -143,10 +158,10 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
     rain_mm: wx.daily?.precipitation_sum?.[index] ?? null,
     sunrise: wx.daily?.sunrise?.[index] ?? null,
     sunset: wx.daily?.sunset?.[index] ?? null,
-  }));
+    }));
 
-  const nowMs = Date.now();
-  const hourly = (wx.hourly?.time ?? [])
+    const nowMs = Date.now();
+    const hourly = (wx.hourly?.time ?? [])
     .map((time, index) => ({
       time,
       temperature_c: wx.hourly?.temperature_2m?.[index] ?? null,
@@ -154,9 +169,9 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
       condition: weatherCodeLabel(wx.hourly?.weather_code?.[index] ?? 0),
     }))
     .filter((h) => new Date(h.time).getTime() >= nowMs - 60 * 60 * 1000)
-    .slice(0, 12);
+      .slice(0, 12);
 
-  const result: SouthAfricanWeather = {
+    const result: SouthAfricanWeather = {
     ok: true,
     location: `${first.name}${first.admin1 ? `, ${first.admin1}` : ""}`,
     coordinates: { latitude: first.latitude, longitude: first.longitude },
@@ -178,10 +193,10 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
         : tempC >= 26
           ? "hot — suggest light, fresh meals"
           : "mild — any meal type works",
-  };
-  freshWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 15 * 60 * 1000 });
-  staleWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
-  return result;
+    };
+    freshWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 15 * 60 * 1000 });
+    staleWeatherCache.set(cacheKey, { value: result, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
+    return result;
   } catch (error) {
     if (stale && stale.expiresAt > Date.now()) return stale.value;
     throw error;
