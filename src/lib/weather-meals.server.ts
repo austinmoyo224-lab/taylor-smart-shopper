@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import {
-  lookupSouthAfricanWeather,
+  getCityWeather,
   weatherCodeLabel,
   type SouthAfricanWeather,
 } from "@/lib/weather.server";
@@ -141,7 +141,7 @@ export async function generateWeatherMealSuggestions(input: {
               ? "hot — suggest light, fresh meals"
               : "mild — any meal type works",
       }
-    : await lookupSouthAfricanWeather(input.location);
+    : await getCityWeather(input.location);
 
   const { data: memory } = await input.supabase
     .from("subscriber_memory")
@@ -246,7 +246,7 @@ export async function generateWeeklyWeatherMealPlan(input: {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Taylor's recipe service is temporarily unavailable.");
 
-  const wx = await lookupSouthAfricanWeather(input.location);
+  const wx = await getCityWeather(input.location);
   const [{ data: memory }, { data: subscriptions }] = await Promise.all([
     input.supabase
       .from("subscriber_memory")
