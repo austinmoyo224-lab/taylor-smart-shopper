@@ -15,6 +15,7 @@ import { routeChatModel } from "@/lib/model-router.server";
 import { notifyCreditsExhausted } from "@/lib/credit-alert.server";
 import { buildTravelTools } from "@/lib/travel-tools.server";
 import { prepareShoppingListItemForStorage } from "@/lib/shopping-list-utils";
+import { lookupSouthAfricanWeather } from "@/lib/weather.server";
 
 type ChatRequestBody = { messages?: unknown };
 
@@ -286,7 +287,7 @@ function datetimeTool() {
 function _weatherTool() {
   return tool({
     description:
-      "Look up the CURRENT weather and today's forecast for a South African city or suburb using Open-Meteo (no API key). Call this whenever the subscriber asks for meal/dinner/lunch/recipe ideas so you can tailor comfort food to the weather (soups & stews when cold, salads & braai when hot).",
+      "Look up verified CURRENT weather plus a 3-day forecast for ANY South African city, town or suburb. Always call this for a named location instead of using the subscriber's current-location weather. Also use it for destination weather and weather-aware meal ideas.",
     inputSchema: z.object({
       location: z
         .string()
@@ -296,76 +297,16 @@ function _weatherTool() {
     }),
     execute: async ({ location }) => {
       try {
-        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&country=ZA&language=en&format=json`;
-        const geoRes = await fetch(geoUrl);
-        const geo = (await geoRes.json()) as {
-          results?: Array<{ latitude: number; longitude: number; name: string; admin1?: string }>;
-        };
-        const first = geo.results?.[0];
-        if (!first) return { ok: false, error: `Couldn't find "${location}" in South Africa.` };
-        const wxUrl = `https://api.open-meteo.com/v1/forecast?latitude=${first.latitude}&longitude=${first.longitude}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&timezone=Africa%2FJohannesburg&forecast_days=1`;
-        const wxRes = await fetch(wxUrl);
-        const wx = (await wxRes.json()) as {
-          current?: {
-            temperature_2m?: number;
-            relative_humidity_2m?: number;
-            precipitation?: number;
-            weather_code?: number;
-            wind_speed_10m?: number;
-          };
-          daily?: {
-            temperature_2m_max?: number[];
-            temperature_2m_min?: number[];
-            precipitation_sum?: number[];
-            weather_code?: number[];
-          };
-        };
-        const code = wx.current?.weather_code ?? 0;
-        const desc = weatherCodeLabel(code);
-        const tempC = wx.current?.temperature_2m ?? null;
-        const hint =
-          tempC == null
-            ? "balanced"
-            : tempC <= 15
-              ? "cold — suggest hearty warm meals (soups, stews, curries, pap & vleis, roasts, hot pies)"
-              : tempC >= 26
-                ? "hot — suggest light/fresh meals (salads, braai, wraps, cold pasta, smoothie bowls)"
-                : "mild — any meal type works";
         return {
-          ok: true,
-          location: `${first.name}${first.admin1 ? `, ${first.admin1}` : ""}`,
-          current: {
-            temperature_c: tempC,
-            humidity: wx.current?.relative_humidity_2m,
-            precipitation_mm: wx.current?.precipitation,
-            wind_kmh: wx.current?.wind_speed_10m,
-            condition: desc,
-          },
-          today: {
-            high_c: wx.daily?.temperature_2m_max?.[0] ?? null,
-            low_c: wx.daily?.temperature_2m_min?.[0] ?? null,
-            rain_mm: wx.daily?.precipitation_sum?.[0] ?? null,
-          },
-          meal_hint: hint,
+          ...(await lookupSouthAfricanWeather(location)),
           instruction:
-            "Use meal_hint to steer recipe suggestions. Mention the weather in one short natural sentence (e.g. 'It's a chilly 12°C in Cape Town — perfect for a hearty stew').",
+            "State the verified temperature, feels-like temperature, conditions, high/low and rain probability. Use the forecast for future-day questions and meal_hint for food suggestions. Never omit a numeric temperature that is present.",
         };
       } catch (e) {
         return { ok: false, error: (e as Error).message };
       }
     },
   });
-}
-
-function weatherCodeLabel(code: number): string {
-  if (code === 0) return "clear sky";
-  if ([1, 2, 3].includes(code)) return "partly cloudy";
-  if ([45, 48].includes(code)) return "foggy";
-  if ([51, 53, 55, 56, 57].includes(code)) return "drizzle";
-  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "rainy";
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return "snowy";
-  if ([95, 96, 99].includes(code)) return "thunderstorms";
-  return "mixed conditions";
 }
 
 function _livePricesTool(userId: string | null) {
