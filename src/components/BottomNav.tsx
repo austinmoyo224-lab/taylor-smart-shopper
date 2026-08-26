@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Store, ListChecks, ChefHat, Inbox } from "lucide-react";
+import { Store, ListChecks, ChefHat, Inbox, MapPinned } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { countMyInboxUnread } from "@/lib/store-messages.functions";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ const leftTabs = [
 ] as const;
 const rightTabs = [
   { label: "Inbox", icon: Inbox, target: "/inbox" as const },
+  { label: "Travel", icon: MapPinned, target: "/travel" as const },
   { label: "Recipe", icon: ChefHat, target: "/recipes" as const },
 ] as const;
 
@@ -33,6 +34,7 @@ export function BottomNav() {
     (target === "/stores" && pathname === "/") ||
     (target === "/chat" && pathname.startsWith("/chat")) ||
     (target === "/inbox" && pathname.startsWith("/inbox")) ||
+    (target === "/travel" && pathname.startsWith("/travel")) ||
     (target === "/recipes" && pathname.startsWith("/recipes"));
 
   const renderTab = (
