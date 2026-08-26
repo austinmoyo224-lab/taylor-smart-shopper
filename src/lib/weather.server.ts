@@ -91,19 +91,26 @@ export async function lookupSouthAfricanWeather(location: string): Promise<South
   const stale = staleWeatherCache.get(cacheKey);
 
   try {
-  const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
-  geoUrl.search = new URLSearchParams({
-    name: query,
-    count: "5",
-    countryCode: "ZA",
-    language: "en",
-    format: "json",
-  }).toString();
+  const candidates = Array.from(
+    new Set([query, ...query.split(",").map((part) => part.trim()).filter(Boolean)]),
+  );
+  let first: GeocodingResult | undefined;
+  for (const candidate of candidates) {
+    const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+    geoUrl.search = new URLSearchParams({
+      name: candidate,
+      count: "5",
+      countryCode: "ZA",
+      language: "en",
+      format: "json",
+    }).toString();
 
-  const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
-  if (!geoRes.ok) throw new Error(`Weather location lookup failed (${geoRes.status}).`);
-  const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
-  const first = geo.results?.find((place) => place.country_code === "ZA") ?? geo.results?.[0];
+    const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(10_000) });
+    if (!geoRes.ok) throw new Error(`Weather location lookup failed (${geoRes.status}).`);
+    const geo = (await geoRes.json()) as { results?: GeocodingResult[] };
+    first = geo.results?.find((place) => place.country_code === "ZA") ?? geo.results?.[0];
+    if (first) break;
+  }
   if (!first) throw new Error(`Couldn't find "${query}" in South Africa.`);
 
   const wxUrl = new URL("https://api.open-meteo.com/v1/forecast");

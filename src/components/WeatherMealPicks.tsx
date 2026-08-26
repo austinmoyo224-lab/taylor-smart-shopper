@@ -76,15 +76,17 @@ export function WeatherMealPicks() {
             Cook for today's weather
           </p>
         </div>
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant="outline"
           onClick={() => q.refetch()}
           disabled={q.isFetching}
-          className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted disabled:opacity-50"
+          className="h-7 rounded-full px-2.5 text-[11px] text-muted"
           aria-label="Refresh weather meal suggestions"
         >
           <RefreshCw className={`size-3 ${q.isFetching ? "animate-spin" : ""}`} /> Refresh
-        </button>
+        </Button>
       </div>
 
       {q.isLoading && (
@@ -126,14 +128,15 @@ export function WeatherMealPicks() {
                     {s.key_ingredients.slice(0, 5).join(" · ")}
                   </p>
                 )}
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     setCooking(s.title);
                     cook.mutate(s.recipe_brief || s.title);
                   }}
                   disabled={cook.isPending}
-                  className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2 text-xs text-primary-foreground disabled:opacity-60"
+                  size="sm"
+                  className="mt-2.5 w-full rounded-full text-xs"
                 >
                   {cook.isPending && cooking === s.title ? (
                     <>
@@ -144,7 +147,7 @@ export function WeatherMealPicks() {
                       <Wand2 className="size-3.5" /> Get the recipe
                     </>
                   )}
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
