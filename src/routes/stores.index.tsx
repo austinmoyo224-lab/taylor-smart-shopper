@@ -12,6 +12,9 @@ import {
 import { listMyRecipes } from "@/lib/recipes.functions";
 import { MapPin, X, ChevronLeft, ChevronRight, Sparkles, QrCode, ChefHat, Clock, ArrowRight } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
+import { HeaderWeather } from "@/components/HeaderWeather";
+import { supabase } from "@/integrations/supabase/client";
+import { User as UserIcon } from "lucide-react";
 
 export const Route = createFileRoute("/stores/")({
   ssr: false,
@@ -61,7 +64,22 @@ function StoresScreen() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subs", "mine"] }),
   });
 
+  const profile = useQuery({
+    queryKey: ["profile", "header", user?.id],
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url, first_name, display_name, city")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const firstName =
+    profile.data?.first_name ??
     (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
     user?.email?.split("@")[0] ??
     null;
@@ -79,32 +97,59 @@ function StoresScreen() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="relative isolate overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-5 pt-8"
       >
-        <motion.div
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="mb-1 font-mono text-[10px] uppercase tracking-widest text-primary"
-        >
-          {greeting}
-        </motion.div>
-        <motion.h1
-          initial={reduce ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-xl italic tracking-tight"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
-        </motion.h1>
-        <motion.p
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-          className="mt-1 text-xs text-muted"
-        >
-          Fresh drops from the brands you follow.
-        </motion.p>
+        <div className="flex items-start gap-3">
+          <Link
+            to="/profile"
+            aria-label="Open your profile"
+            className="mt-1 size-12 shrink-0 overflow-hidden rounded-full border border-border bg-card shadow-sm transition active:scale-95"
+          >
+            {profile.data?.avatar_url ? (
+              <img
+                src={profile.data.avatar_url}
+                alt="Your profile"
+                className="size-full object-cover"
+              />
+            ) : (
+              <span className="flex size-full items-center justify-center text-muted">
+                <UserIcon className="size-5" />
+              </span>
+            )}
+          </Link>
+
+          <div className="min-w-0 flex-1">
+            <motion.div
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
+              className="mb-1 font-mono text-[10px] uppercase tracking-widest text-primary"
+            >
+              {greeting}
+            </motion.div>
+            <motion.h1
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="truncate text-xl italic tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+            </motion.h1>
+            <motion.p
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35, duration: 0.5 }}
+              className="mt-1 text-xs text-muted"
+            >
+              Fresh drops from the brands you follow.
+            </motion.p>
+          </div>
+
+          <div className="mt-1 shrink-0">
+            <HeaderWeather fallbackCity={profile.data?.city ?? null} />
+          </div>
+        </div>
       </motion.header>
+
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         {heroAd ? (
