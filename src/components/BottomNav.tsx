@@ -34,10 +34,12 @@ export function BottomNav() {
   const isActive = (target: string) =>
     pathname === target ||
     (target === "/stores" && pathname === "/") ||
+    (target === "/stores/following" && pathname.startsWith("/stores/")) ||
     (target === "/chat" && pathname.startsWith("/chat")) ||
     (target === "/inbox" && pathname.startsWith("/inbox")) ||
     (target === "/travel" && pathname.startsWith("/travel")) ||
     (target === "/recipes" && pathname.startsWith("/recipes"));
+
 
   const renderTab = (
     { target, label, icon: Icon }: { target: string; label: string; icon: typeof Store },
