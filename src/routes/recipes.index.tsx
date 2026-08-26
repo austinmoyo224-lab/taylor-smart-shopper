@@ -17,6 +17,7 @@ import { RECIPE_STYLES } from "@/lib/recipe-styles";
 import { useAuth } from "@/hooks/useAuth";
 import { ChefHat, Clock, Loader2, Sparkles, Users, Wand2 } from "lucide-react";
 import { Paginator, usePaged } from "@/components/Paginator";
+import { WeatherMealPicks } from "@/components/WeatherMealPicks";
 
 const recipesQO = queryOptions({
   queryKey: ["recipes", "published"],
@@ -59,6 +60,7 @@ function RecipesScreen() {
         </h1>
       </header>
       <main className="flex-1 overflow-y-auto px-4 py-4">
+        <WeatherMealPicks />
         <IdeaGenerator />
         <Suspense fallback={<p className="px-2 py-6 text-sm text-muted">Loading…</p>}>
           <MyRecipes />
