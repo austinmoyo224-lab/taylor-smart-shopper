@@ -61,10 +61,10 @@ export async function generateWeatherMealSuggestions(input: {
 
   const wx = await lookupSouthAfricanWeather(input.location);
 
-  const { data: profile } = await input.supabase
-    .from("profiles")
-    .select("household_size, dietary_preferences, allergies, health_goal, cooking_skill")
-    .eq("id", input.userId)
+  const { data: memory } = await input.supabase
+    .from("subscriber_memory")
+    .select("food, lifestyle, personal")
+    .eq("user_id", input.userId)
     .maybeSingle();
 
   let pantry: string[] = [];
@@ -77,7 +77,9 @@ export async function generateWeatherMealSuggestions(input: {
     pantry = (data ?? []).map((p: { name: string }) => p.name);
   }
 
-  const p = (profile ?? {}) as Record<string, unknown>;
+  const food = (memory?.food ?? {}) as Record<string, unknown>;
+  const lifestyle = (memory?.lifestyle ?? {}) as Record<string, unknown>;
+  const personal = (memory?.personal ?? {}) as Record<string, unknown>;
   const today = wx.forecast[0];
   const now = new Date().toLocaleString("en-ZA", { timeZone: wx.timezone });
 
@@ -99,11 +101,11 @@ export async function generateWeatherMealSuggestions(input: {
           wx.forecast[1].rain_probability_percent ?? 0
         }%.`
       : "",
-    `Household size: ${p["household_size"] ?? "unknown"}.`,
-    p["dietary_preferences"] ? `Dietary preferences: ${JSON.stringify(p["dietary_preferences"])}.` : "",
-    p["allergies"] ? `ALLERGIES — never include these: ${JSON.stringify(p["allergies"])}.` : "",
-    p["health_goal"] ? `Health goal: ${String(p["health_goal"])}.` : "",
-    p["cooking_skill"] ? `Cooking skill: ${String(p["cooking_skill"])}.` : "",
+    Object.keys(personal).length ? `Household details: ${JSON.stringify(personal).slice(0, 600)}.` : "",
+    Object.keys(food).length
+      ? `Food profile (respect allergies and diets absolutely): ${JSON.stringify(food).slice(0, 900)}.`
+      : "",
+    Object.keys(lifestyle).length ? `Lifestyle: ${JSON.stringify(lifestyle).slice(0, 500)}.` : "",
     pantry.length ? `Already in the pantry: ${pantry.join(", ")}.` : "",
   ].filter(Boolean);
 
