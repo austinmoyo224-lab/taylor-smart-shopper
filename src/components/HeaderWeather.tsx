@@ -188,6 +188,7 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
         const first = await loadWeather(b.lat, b.lon, b.name);
         if (!cancelled) {
           setWx(first);
+          cacheWeatherSnapshot(first);
           setLoading(false);
         }
       } catch {
@@ -199,7 +200,10 @@ export function HeaderWeather({ fallbackCity }: { fallbackCity?: string | null }
         const loc = await withTimeout(getCurrentLocation(), 6000);
         const place = await reverseName(loc.latitude, loc.longitude);
         const precise = await loadWeather(loc.latitude, loc.longitude, place);
-        if (!cancelled) setWx(precise);
+        if (!cancelled) {
+          setWx(precise);
+          cacheWeatherSnapshot(precise);
+        }
       } catch {
         /* keep fallback weather */
       } finally {
