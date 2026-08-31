@@ -299,12 +299,6 @@ function ChatScreen() {
     if (recording && !lockedRef.current) void stopRecording(false);
   }
 
-  function toggleAutoSpeak() {
-    const next = !autoSpeak;
-    setAutoSpeak(next);
-    setAutoSpeakState(next);
-    if (!next) stopSpeaking();
-  }
 
   // Keep the thread pinned to the newest message. During streaming this fires
   // on every token, so batch into one frame and skip smooth scrolling — smooth
