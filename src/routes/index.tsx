@@ -125,13 +125,13 @@ function Hero() {
             <ShoppingBag className="h-4 w-4" />
             Join as a Shopper
           </Link>
-          <Link
-            to="/auth"
+          <a
+            href="https://heytaylor.co.za/store-onboarding"
             className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
           >
             <Store className="h-4 w-4" />
             List your Store
-          </Link>
+          </a>
         </motion.div>
         <p className="mt-5 text-xs text-white/55">
           Free forever for shoppers · No card required · Your data stays yours
