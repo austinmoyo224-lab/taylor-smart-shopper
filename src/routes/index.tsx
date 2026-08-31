@@ -77,7 +77,7 @@ function Landing() {
           </>
         }
         desc="Join South African households already shopping smarter with Taylor."
-        secondary={{ label: "List your store", to: "/store-onboarding" }}
+        secondary={{ label: "List your store", to: "https://heytaylor.co.za/store-onboarding" }}
       />
       <SiteFooter />
     </div>

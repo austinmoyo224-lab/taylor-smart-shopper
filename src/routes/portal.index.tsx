@@ -78,9 +78,9 @@ function PortalHome() {
         {orgStores.length === 0 ? (
           <p className="mt-2 text-sm text-muted">
             No stores yet.{" "}
-            <Link to="/store-onboarding" className="text-primary underline">
+            <a href="https://heytaylor.co.za/store-onboarding" className="text-primary underline">
               Apply to list your store
-            </Link>{" "}
+            </a>{" "}
             and our team will approve it within 1–2 business days.
           </p>
         ) : (
