@@ -77,6 +77,7 @@ export function AppShell({ children, hideNav = false }: { children: ReactNode; h
   return (
     <div className="flex min-h-screen w-full justify-center bg-background">
       <div className="relative flex min-h-screen w-full max-w-md flex-col bg-background shadow-2xl">
+        {!hideNav && <BackBar />}
         {children}
         {!hideNav && <BottomNav />}
         <InstallPrompt />
