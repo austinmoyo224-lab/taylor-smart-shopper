@@ -278,12 +278,12 @@ function NoAccess() {
           You need a retailer admin, store manager or staff role on an organisation to use the store
           portal. Set up your own business in a few minutes, or ask a platform admin to grant you access.
         </p>
-        <Link
-          to="/store-onboarding"
+        <a
+          href="https://heytaylor.co.za/store-onboarding"
           className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
           Apply to list your store
-        </Link>
+        </a>
         <div className="mt-3">
           <Link
             to="/chat"
@@ -314,12 +314,12 @@ function NoOrgs() {
           Your account has a portal role but is not linked to any organisation. A super admin needs
           to create an organisation and assign you to it.
         </p>
-        <Link
-          to="/store-onboarding"
+        <a
+          href="https://heytaylor.co.za/store-onboarding"
           className="mt-6 inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground"
         >
           Apply to list your store
-        </Link>
+        </a>
         <div className="mt-3">
           <Link
             to="/chat"

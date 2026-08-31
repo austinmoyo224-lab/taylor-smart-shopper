@@ -138,7 +138,7 @@ function Contact() {
               </div>
 
               <SmartLink
-                to="/store-onboarding"
+                to="https://heytaylor.co.za/store-onboarding"
                 className="block rounded-3xl border border-border bg-card p-7 transition hover:-translate-y-1 hover:shadow-xl"
               >
                 <Store className="mb-3 h-6 w-6 text-primary" strokeWidth={1.75} />

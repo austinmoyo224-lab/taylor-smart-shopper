@@ -56,7 +56,7 @@ function ForStores() {
           </>
         }
         subtitle="Taylor is where South African households plan their groceries. Listing your store puts your catalogue, specials and coupons in the moment the basket is being decided — not after."
-        primary={{ label: "List your store", to: "/store-onboarding" }}
+        primary={{ label: "List your store", to: "https://heytaylor.co.za/store-onboarding" }}
         secondary={{ label: "Talk to us", to: "/contact" }}
         note="Reviewed and approved by our team · Live in days, not months"
       />
@@ -161,7 +161,7 @@ function ForStores() {
       <CtaBand
         title={<>Put your store where the <span className="italic text-primary">list gets made.</span></>}
         desc="Apply in a few minutes. Our team reviews every application personally."
-        primary={{ label: "List your store", to: "/store-onboarding" }}
+        primary={{ label: "List your store", to: "https://heytaylor.co.za/store-onboarding" }}
         secondary={{ label: "Contact sales", to: "/contact" }}
       />
     </MarketingPage>

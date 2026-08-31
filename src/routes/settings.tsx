@@ -191,8 +191,8 @@ function SettingsScreen() {
         </section>
 
         <section>
-          <Link
-            to="/store-onboarding"
+          <a
+            href="https://heytaylor.co.za/store-onboarding"
             className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 text-sm hover:border-primary/40"
           >
             <span className="flex items-center gap-3">
@@ -207,7 +207,7 @@ function SettingsScreen() {
               </span>
             </span>
             <span className="text-xs text-muted">→</span>
-          </Link>
+          </a>
         </section>
 
         <section className="space-y-3">
