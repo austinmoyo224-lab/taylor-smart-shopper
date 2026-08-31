@@ -16,8 +16,8 @@ import {
   ScanSearch,
   Square,
   Volume2,
-  VolumeX,
   Loader2,
+  Play,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { InstallPrompt } from "@/components/InstallPrompt";
@@ -31,7 +31,6 @@ import {
   speakText,
   stopSpeaking,
   getAutoSpeak,
-  setAutoSpeak,
   voiceSupported,
 } from "@/lib/voice-client";
 import { VisionCapture } from "@/components/VisionCapture";
@@ -299,12 +298,6 @@ function ChatScreen() {
     if (recording && !lockedRef.current) void stopRecording(false);
   }
 
-  function toggleAutoSpeak() {
-    const next = !autoSpeak;
-    setAutoSpeak(next);
-    setAutoSpeakState(next);
-    if (!next) stopSpeaking();
-  }
 
   // Keep the thread pinned to the newest message. During streaming this fires
   // on every token, so batch into one frame and skip smooth scrolling — smooth
@@ -479,22 +472,16 @@ function ChatScreen() {
             </h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {canVoice && (
-              <button
-                type="button"
-                onClick={toggleAutoSpeak}
-                aria-pressed={autoSpeak}
-                aria-label={autoSpeak ? "Turn voice replies off" : "Turn voice replies on"}
-                className={
-                  "flex size-9 items-center justify-center rounded-full border transition-colors " +
-                  (autoSpeak
-                    ? "border-primary bg-primary/15 text-primary"
-                    : "border-border bg-card text-muted hover:text-foreground")
-                }
-              >
-                {autoSpeak ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
-              </button>
-            )}
+            <a
+              href="https://shopwithtaylor.co.za"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Meet Taylor — visual experience"
+              className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-[11px] font-semibold text-primary-foreground shadow-md shadow-primary/30 transition-transform hover:scale-105"
+            >
+              <Play className="size-3.5 fill-current" />
+              Meet Taylor
+            </a>
             {user ? (
             <Link
               to="/profile"
