@@ -31,7 +31,6 @@ import {
   speakText,
   stopSpeaking,
   getAutoSpeak,
-  setAutoSpeak,
   voiceSupported,
 } from "@/lib/voice-client";
 import { VisionCapture } from "@/components/VisionCapture";
