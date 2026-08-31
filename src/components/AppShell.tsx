@@ -1,7 +1,51 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { ChevronLeft } from "lucide-react";
 import { InstallPrompt } from "./InstallPrompt";
 import { BottomNav } from "./BottomNav";
+
+/** Routes that are top-level destinations — no back arrow needed. */
+const ROOT_ROUTES = new Set([
+  "/",
+  "/stores",
+  "/stores/following",
+  "/lists",
+  "/chat",
+  "/inbox",
+  "/travel",
+  "/recipes",
+  "/auth",
+  "/onboarding",
+  "/store-onboarding",
+  "/reset-password",
+  "/account-deleted",
+]);
+
+function BackBar() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  if (ROOT_ROUTES.has(pathname)) return null;
+  return (
+    <div
+      className="sticky top-0 z-40 flex items-center border-b border-border bg-background/90 px-2 py-1.5 backdrop-blur-md"
+      style={{ paddingTop: "max(0.375rem, env(safe-area-inset-top))" }}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          if (window.history.length > 1) window.history.back();
+          else void navigate({ to: "/stores" });
+        }}
+        aria-label="Go back"
+        className="flex items-center gap-0.5 rounded-full py-1 pl-1 pr-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
+      >
+        <ChevronLeft className="size-5" />
+        Back
+      </button>
+    </div>
+  );
+}
 
 interface ScreenOrientationWithLock {
   lock?: (orientation: string) => Promise<void>;
