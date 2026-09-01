@@ -70,9 +70,9 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <a href="https://heytaylor.co.za/store-onboarding" className="hover:text-white">
+              <Link to="/store-onboarding" className="hover:text-white">
                 List your store
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

@@ -56,7 +56,7 @@ const plans = [
     period: "per store",
     highlight: true,
     desc: "The full retail operating system for your store on Taylor.",
-    cta: { label: "List your store", to: "https://heytaylor.co.za/store-onboarding" },
+    cta: { label: "List your store", to: "/store-onboarding" },
     features: [
       "Public store profile with shoppable catalogue",
       "CSV product import — up to 1 000 items per upload",
@@ -180,7 +180,7 @@ function Pricing() {
       <CtaBand
         title={<>Start free. <span className="italic text-primary">Today.</span></>}
         desc="Shoppers and riders can sign up right now. Stores apply in a few minutes."
-        secondary={{ label: "List your store", to: "https://heytaylor.co.za/store-onboarding" }}
+        secondary={{ label: "List your store", to: "/store-onboarding" }}
       />
     </MarketingPage>
   );
