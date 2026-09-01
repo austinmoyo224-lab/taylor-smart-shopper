@@ -1,12 +1,12 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getMyStoreOnboardingRequest,
   submitStoreOnboardingRequest,
 } from "@/lib/store-onboarding.functions";
-import { ArrowLeft, Check, Clock, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock, Store, X } from "lucide-react";
 
 export const Route = createFileRoute("/store-onboarding")({
   ssr: false,
@@ -54,11 +54,6 @@ const PROVINCES = [
 
 function StoreOnboardingPage() {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) void navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
 
   const existing = useQuery({
     queryKey: ["store-onboarding", "mine"],
@@ -66,10 +61,64 @@ function StoreOnboardingPage() {
     enabled: !!user,
   });
 
-  if (loading || existing.isLoading || !user) {
+  if (loading || (user && existing.isLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted">
         Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="mx-auto flex max-w-2xl items-center justify-between px-6 pb-4 pt-8">
+          <Link
+            to="/for-stores"
+            className="inline-flex items-center gap-2 text-xs text-muted hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            For stores
+          </Link>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Store owner application
+          </p>
+        </header>
+
+        <main className="mx-auto max-w-2xl px-6 pb-24 pt-10">
+          <div className="border-y border-border py-12 text-center">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Store className="size-7" />
+            </span>
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-widest text-primary">
+              List your store
+            </p>
+            <h1
+              className="mx-auto mt-3 max-w-lg text-4xl italic tracking-tight sm:text-5xl"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Start your store application
+            </h1>
+            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted">
+              Create a store-owner account to save your application, track its approval and manage
+              your store once it goes live.
+            </p>
+            <Link
+              to="/auth"
+              search={{ mode: "signup", accountType: "store_owner" } as never}
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:scale-[1.02]"
+            >
+              Begin application
+              <ArrowRight className="size-4" />
+            </Link>
+            <p className="mt-5 text-xs text-muted">
+              Already have an account?{" "}
+              <Link to="/auth" className="font-semibold text-foreground underline underline-offset-4">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </main>
       </div>
     );
   }
